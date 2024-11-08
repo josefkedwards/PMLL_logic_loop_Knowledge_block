@@ -1,10 +1,11 @@
-
+// pml.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+// Define the PMLL structure
 typedef struct PMLL {
- // Metrics
+    // Metrics
     int user_adoption_rate;
     int security_incident_rate;
     int user_satisfaction_rate;
