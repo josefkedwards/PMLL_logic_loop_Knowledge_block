@@ -1,0 +1,10 @@
+CC=gcc
+NVCC=nvcc
+
+all: Optimizelogic Gpuaceel
+
+Optimizelogic:
+	$(CC) -O3 -fopenmp pmll_optimized.c -o pmll_optimized
+
+Gpuaceel:
+	$(NVCC) -O3 -arch=sm_80 pmll_gpu.cu -o pmll_gpu
