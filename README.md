@@ -65,4 +65,4 @@ If you intend to use the PMLL for commercial purposes, you must obtain a commerc
 
 * Commercial use includes, but is not limited to, selling, licensing, or distributing the PMLL or any derivative works.
 * The commercial license will be negotiated on a case-by-case basis, and will depend on the specific use case and requirements of the licensee.
-* Please contact the licensor at [insert contact information] to discuss commercial licensing options.
+* Please contact the licensor at joed6834@colorado.edu to discuss commercial licensing options.
