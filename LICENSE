@@ -173,6 +173,23 @@
       incurred by, or claims asserted against, such Contributor by reason
       of your accepting any such warranty or additional liability.
 
+Apache License
+Version 2.0, January 2004
+
+http://www.apache.org/licenses/
+
+TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+COMMERCIAL USE PROVISION
+
+If you intend to use the Software for commercial purposes, you must obtain a commercial license from the Licensor. The commercial license will provide a royalty payment to the Licensor for commercial use of the Software.
+
+* Commercial use includes, but is not limited to, selling, licensing, or distributing the Software or any derivative works.
+* The commercial license will be negotiated on a case-by-case basis, and will depend on the specific use case and requirements of the Licensee.
+* Please contact the Licensor at joed6834@colorado.edu to discuss commercial licensing options. (simply %5 of royalities if used comercially by a major company whose networth is greater than $100,000 and $1 if used by a small business)
+
+By using the Software, you acknowledge that you have read, understand, and agree to be bound by the terms and conditions of this License, including the commercial use provision.
+
    END OF TERMS AND CONDITIONS
 
    APPENDIX: How to apply the Apache License to your work.
@@ -186,7 +203,7 @@
       same "printed page" as the copyright notice for easier
       identification within third-party archives.
 
-   Copyright [yyyy] [name of copyright owner]
+   Copyright 2024 Josef K. Edwards and Dan
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
