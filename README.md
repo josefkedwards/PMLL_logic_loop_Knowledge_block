@@ -17,9 +17,8 @@ The Persistent Memory Logic Loop (PMLL) is a novel framework for creating adapti
 The PMLL is a modular, flexible, and scalable framework for creating AI systems that can learn, adapt, and evolve over time. It is designed to support multiple machine learning models and algorithms, and provides automated prioritization and implementation of strategies.
 
 ## Serializaiton
-Sure! Here’s the updated version with your requested addition:
-
-Serialization in PMLL: A “Blockchain” of Knowledge
+ 
+consider Serialization in PMLL as a “Blockchain” of Knowledge. 
 
 The Personalized Machine Learning Layer (PMLL) operates much like Bitcoin and its ledger, where each memory update or learning iteration is serialized, creating a structured, traceable sequence of information. Here’s how it works:
 	1.	Knowledge as Blocks
