@@ -1,12 +1,12 @@
-CC = gcc
-CFLAGS = -Wall -Wextra -Werror -pthread
-LDFLAGS = -lpthread -lcrypto
+CC=gcc
+CFLAGS=-Wall -Werror -std=c11
+LDFLAGS=-lpthread -lcrypto
 INCLUDES=-I./include
 
 all: pmll
 
-pmll: unified_voice.o pml_logic_loop.o knowledge_graph.o main.o
-	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o pmll unified_voice.o pml_logic_loop.o knowledge_graph.o main.o
+pmll: unified_voice.o pml_logic_loop.o memory_silo.o io_socket.o main.o
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o pmll unified_voice.o pml_logic_loop.o memory_silo.o io_socket.o main.o
 
 unified_voice.o: unified_voice.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c unified_voice.c
@@ -14,8 +14,11 @@ unified_voice.o: unified_voice.c
 pml_logic_loop.o: pml_logic_loop.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c pml_logic_loop.c
 
-knowledge_graph.o: knowledge_graph.c
-	$(CC) $(CFLAGS) $(INCLUDES) -c knowledge_graph.c
+memory_silo.o: memory_silo.c
+	$(CC) $(CFLAGS) $(INCLUDES) -c memory_silo.c
+
+io_socket.o: io_socket.c
+	$(CC) $(CFLAGS) $(INCLUDES) -c io_socket.c
 
 main.o: main.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c main.c
