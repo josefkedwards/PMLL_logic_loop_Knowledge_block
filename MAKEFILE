@@ -1,12 +1,18 @@
 CC=gcc
-CFLAGS=-Wall -Werror -std=c11
-LDFLAGS=-lpthread -lcrypto
+CFLAGS=-Wall -Werror -std=c11 -pedantic -Wextra
+LDFLAGS=-lpthread -lcrypto -lssl
 INCLUDES=-I./include
 
-all: pmll
+ARC_AGI_BENCHMARK_CFLAGS=-DARC_AGI_BENCHMARK
+ARC_AGI_BENCHMARK_LDFLAGS=-larc_agi_benchmark
+
+all: pmll arc_agi_benchmark
 
 pmll: unified_voice.o pml_logic_loop.o memory_silo.o io_socket.o main.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o pmll unified_voice.o pml_logic_loop.o memory_silo.o io_socket.o main.o
+
+arc_agi_benchmark: arc_agi_benchmark.o
+	$(CC) $(CFLAGS) $(ARC_AGI_BENCHMARK_CFLAGS) $(LDFLAGS) $(ARC_AGI_BENCHMARK_LDFLAGS) $(INCLUDES) -o arc_agi_benchmark arc_agi_benchmark.o
 
 unified_voice.o: unified_voice.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c unified_voice.c
@@ -23,8 +29,14 @@ io_socket.o: io_socket.c
 main.o: main.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c main.c
 
+arc_agi_benchmark.o: arc_agi_benchmark.c
+	$(CC) $(CFLAGS) $(ARC_AGI_BENCHMARK_CFLAGS) $(INCLUDES) -c arc_agi_benchmark.c
+
 clean:
-	rm -f *.o pmll
+	rm -f *.o pmll arc_agi_benchmark
 
 run:
 	./pmll
+
+run_arc_agi_benchmark:
+	./arc_agi_benchmark
