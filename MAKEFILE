@@ -1,10 +1,52 @@
-CC=gcc
-NVCC=nvcc
+# Compiler and flags
+CC = gcc
+CFLAGS = -Wall -g
 
-all: Optimizelogic Gpuaceel
+# Define targets for the PMLL logic loop and memory association
+TARGET_LOGIC_LOOP = pml_logic_loop
+TARGET_MEMORY_ASSOC = pml_memory_assoc
 
-Optimizelogic:
-	$(CC) -O3 -fopenmp pmll_optimized.c -o pmll_optimized
+# List of source files for the PMLL logic loop
+SRC_LOGIC_LOOP = main.c logic_loop.c memory.c tokenizer.c
 
-Gpuaceel:
-	$(NVCC) -O3 -arch=sm_80 pmll_gpu.cu -o pmll_gpu
+# List of source files for the memory association
+SRC_MEMORY_ASSOC = association.c memory_assoc.c tokenizer.c
+
+# Define object files for each target
+OBJ_LOGIC_LOOP = $(SRC_LOGIC_LOOP:.c=.o)
+OBJ_MEMORY_ASSOC = $(SRC_MEMORY_ASSOC:.c=.o)
+
+# Default target to build both programs
+all: $(TARGET_LOGIC_LOOP) $(TARGET_MEMORY_ASSOC)
+
+# Rule to link object files for the PMLL logic loop
+$(TARGET_LOGIC_LOOP): $(OBJ_LOGIC_LOOP)
+	$(CC) $(OBJ_LOGIC_LOOP) -o $(TARGET_LOGIC_LOOP)
+
+# Rule to link object files for the memory association program
+$(TARGET_MEMORY_ASSOC): $(OBJ_MEMORY_ASSOC)
+	$(CC) $(OBJ_MEMORY_ASSOC) -o $(TARGET_MEMORY_ASSOC)
+
+# Rule to compile each .c file into a .o file for logic loop
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Rule to clean up the build artifacts (object files and executables)
+clean:
+	rm -f $(OBJ_LOGIC_LOOP) $(OBJ_MEMORY_ASSOC) $(TARGET_LOGIC_LOOP) $(TARGET_MEMORY_ASSOC)
+
+# Rule to run the logic loop program
+run_logic_loop: $(TARGET_LOGIC_LOOP)
+	./$(TARGET_LOGIC_LOOP)
+
+# Rule to run the memory association program
+run_memory_assoc: $(TARGET_MEMORY_ASSOC)
+	./$(TARGET_MEMORY_ASSOC)
+
+# Optional: Rule to handle installation (if needed)
+install: $(TARGET_LOGIC_LOOP) $(TARGET_MEMORY_ASSOC)
+	install -m 755 $(TARGET_LOGIC_LOOP) /usr/local/bin
+	install -m 755 $(TARGET_MEMORY_ASSOC) /usr/local/bin
+
+# Phony targets to avoid conflicts with file names
+.PHONY: all clean run_logic_loop run_memory_assoc install
