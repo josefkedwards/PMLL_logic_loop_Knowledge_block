@@ -1,6 +1,6 @@
-CC=gcc
-CFLAGS=-Wall -Werror -std=c11
-LDFLAGS=-lpthread -lcrypto
+CC = gcc
+CFLAGS = -Wall -Wextra -Werror -pthread
+LDFLAGS = -lpthread -lcrypto
 INCLUDES=-I./include
 
 all: pmll
