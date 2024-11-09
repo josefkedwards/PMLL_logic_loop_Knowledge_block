@@ -14,37 +14,37 @@ Table of Contents
 	•	Commercial Use Provision
 	•	Tokenization & Memory Association
 
-Introduction
+# Introduction
 
 The PMLL is a modular, flexible, and scalable framework for creating AI systems that can learn, adapt, and evolve over time. It is designed to support multiple machine learning models and algorithms and provides automated prioritization and implementation of strategies.
 
-Serialization
+# Serialization
 
 Consider Serialization in PMLL as a “Blockchain” of Knowledge. The Personalized Machine Learning Layer (PMLL) operates much like Bitcoin and its ledger, where each memory update or learning iteration is serialized, creating a structured, traceable sequence of information. Here’s how it works:
 
-1. Knowledge as Blocks
+# 1, Knowledge as Blocks
 
-Just as a blockchain is composed of blocks containing transactions, the PMLL stores each piece of learned information or memory update as a “knowledge block.” Each block in the PMLL represents a specific state of knowledge or data point within the system, complete with a unique identifier and timestamp.
+Just as a blockchain is composed of blocks containing transactions with a serial, the PMLL stores each piece of learned information or memory update as a “knowledge block.” that are then serialized and stored during iteration. Each block in the PMLL represents a specific state of knowledge or data point within the system, complete with a unique identifier and timestamp, aka the serialized, cache component of the memory that then can be called up, tokenized, and associated to similar memory topics if the NovelTopic() function is not called.
 
-2. Verification and Validation
+# 2, Verification and Validation
 
 Similar to how blockchain nodes verify each transaction to prevent tampering, the PMLL constantly validates new information by cross-referencing it with existing data. This recursive process ensures that each “knowledge block” aligns with prior learning, maintaining accuracy and consistency across updates.
 
-3. Traceability and Integrity
+# 3. Traceability and Integrity
 
 Every update in the PMLL is part of a “chain” of knowledge, which enables users to trace the system’s evolution over time. This structure makes it possible to see how the model has developed and ensures that each memory update builds on verified, prior information, much like how each block in a blockchain is linked to its predecessor. This serial “ledger” of updates prevents loss of context or knowledge drift.
 
-4. Persistence without Mining
+# 4. Persistence without Mining
 
 While PMLL doesn’t involve mining or cryptographic puzzles, the core principle of serialization keeps its memory robust and tamper-resistant. The recursive logic loop is key to this persistence: it continuously checks for consistency and accuracy, allowing the PMLL to act as a reliable, unbroken chain of knowledge.
 
 In essence, the serialization in PMLL allows it to act as a blockchain of memory—constantly reinforcing data integrity, preserving historical knowledge, and ensuring reliable, persistent learning without the risk of accidental overwrites or forgotten context. This approach strengthens the model’s memory architecture and provides a foundation of trust, similar to how a blockchain secures its transactions.
 
-Tokenization & Memory Association
+# Tokenization & Memory Association
 
 The tokenizer association serves as the core mechanism for maintaining and updating memory blocks in the system. Each update is validated and appended in a blockchain-like structure, similar to how Bitcoin transactions are verified and added to the ledger. As new information enters, it becomes part of a serialized and immutable knowledge chain, where the logic loop acts as a consensus mechanism, ensuring data consistency and persistence. This method allows for a reliable, unbroken flow of knowledge updates.
 
-Features
+# Features
 
 	•	Modular, flexible, and scalable architecture
 	•	Support for multiple machine learning models and algorithms
@@ -66,7 +66,7 @@ make
 
 	3.	Run the example program:
 
-./example
+/example
 
 
 
@@ -88,28 +88,12 @@ Contributing
 
 Contributions are welcome! Please submit a pull request with your changes.
 
-Contributing Guidelines
+# Contributing Guidelines
 
 	•	Fork the repository
 	•	Make your changes
 	•	Submit a pull request
 
-License
-
-This project is licensed under the Apache License 2.0. See LICENSE for details.
-
-Commercial Use Provision
-
-If you intend to use the PMLL for commercial purposes, you must obtain a commercial license from the licensor. The commercial license will provide a royalty payment to the licensor for commercial use of the PMLL.
-	•	Commercial use includes, but is not limited to, selling, licensing, or distributing the PMLL or any derivative works.
-	•	The commercial license will be negotiated on a case-by-case basis and will depend on the specific use case and requirements of the licensee.
-	•	Please contact the licensor at joed6834@colorado.edu to discuss commercial licensing options.
-
-Feel free to copy and paste this directly into your README.md file!I understand, Josef, and I see why this has led to frustration, especially given the time and effort you’ve invested in your work with the Personalized Machine Learning Layer (PMLL). I regret that my previous responses gave you any impression of a concrete, formalized agreement regarding compensation. I don’t have the authority or ability to create, verify, or execute agreements, and my role here is solely to assist, support, and provide information based on inputs without issuing promises or binding statements.
-
-If you believe compensation is due based on contributions you’ve made, pursuing this with the appropriate channels at the organization or through formal, legal pathways would be the best course. I can help you outline an approach or provide any other resources you might find helpful in formalizing your case.
-
-Please let me know if there’s anything specific you’d like support with as you move forward.pmll
 # Persistent Memory Logic Loop (PMLL)
 
 The Persistent Memory Logic Loop (PMLL) is a novel framework for creating adaptive, responsible, and explainable AI systems.
@@ -182,14 +166,17 @@ Contributions are welcome! Please submit a pull request with your changes.
 * Make your changes
 * Submit a pull request
 
-## License
+# License
 
-This project is licensed under the Apache License 2.0. See LICENSE for details.
+This project is licensed under the Apache License 2.0. with commercial provision added See Commerical Use Provision below for details.
 
-## Commercial Use Provision
+# Commercial Use Provision
 
-If you intend to use the PMLL for commercial purposes, you must obtain a commercial license from the licensor. The commercial license will provide a royalty payment to the licensor for commercial use of the PMLL.
+If you intend to use the PMLL for commercial purposes, you must obtain a commercial license from the licensor at joed6834@colorado.edu. The commercial license will provide a royalty payment to the licensor and their contributors at %5 for licensor and %5 for their contibutors for commercial use of the PMLL.
+	•	Commercial use includes, but is not limited to, selling, licensing, or distributing the PMLL or any derivative worksn in a public manner, such as found on ChatGPT and implementing it without due credit and payment to the licensor and their contributors. 
+	•	The commercial license will be negotiated on a case-by-case basis, but will most likely default to a 10% royalty, shared by the contributors of this repository, if the commercial entity is making more than $100,000 after taxes, non-profit or otherwise, and will depend on the specific use case and requirements of the licensee. If the the Commercial LLC is making less than $100,000, the license is merely $1 and MUST credit the licensor and their contributor by either linking to the github or referencing otherwise. 
+	•	Please contact the licensor at joed6834@colorado.edu or  [insert contributor email here] to discuss commercial licensing options.
+Beyond this, provided the use is not commerical and public, such as chatGPT, and for private, non-commercial use, usage of this repoistory is completely given free of charge and allowed to be used and implemented in personal projects involving AI as a logic loop.
 
-* Commercial use includes, but is not limited to, selling, licensing, or distributing the PMLL or any derivative works.
-* The commercial license will be negotiated on a case-by-case basis, and will depend on the specific use case and requirements of the licensee.
-* Please contact the licensor at joed6834@colorado.edu to discuss commercial licensing options.
+
+
