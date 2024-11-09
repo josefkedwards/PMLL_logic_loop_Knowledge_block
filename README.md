@@ -1,10 +1,10 @@
 Here is the full updated README.md file incorporating the new tokenization and memory association information:
 
-Persistent Memory Logic Loop (PMLL)
+## Persistent Memory Logic Loop (PMLL)
 
 The Persistent Memory Logic Loop (PMLL) is a novel framework for creating adaptive, responsible, and explainable AI systems.
 
-Table of Contents
+# Table of Contents
 
 	•	Introduction
 	•	Features
@@ -172,11 +172,11 @@ This project is licensed under the Apache License 2.0. with commercial provision
 
 # Commercial Use Provision
 
-If you intend to use the PMLL for commercial purposes, you must obtain a commercial license from the licensor at joed6834@colorado.edu. The commercial license will provide a royalty payment to the licensor and their contributors at %5 for licensor and %5 for their contibutors for commercial use of the PMLL.
-	•	Commercial use includes, but is not limited to, selling, licensing, or distributing the PMLL or any derivative worksn in a public manner, such as found on ChatGPT and implementing it without due credit and payment to the licensor and their contributors. 
-	•	The commercial license will be negotiated on a case-by-case basis, but will most likely default to a 10% royalty, shared by the contributors of this repository, if the commercial entity is making more than $100,000 after taxes, non-profit or otherwise, and will depend on the specific use case and requirements of the licensee. If the the Commercial LLC is making less than $100,000, the license is merely $1 and MUST credit the licensor and their contributor by either linking to the github or referencing otherwise. 
-	•	Please contact the licensor at joed6834@colorado.edu or  [insert contributor email here] to discuss commercial licensing options.
-Beyond this, provided the use is not commerical and public, such as chatGPT, and for private, non-commercial use, usage of this repoistory is completely given free of charge and allowed to be used and implemented in personal projects involving AI as a logic loop.
+# 1. If you intend to use the PMLL for commercial purposes, you must obtain a commercial license from the licensor at joed6834@colorado.edu. The commercial license will provide a royalty payment to the licensor and their contributors at %5 for licensor and %5 for their contibutors for commercial use of the PMLL.
+# 2. Commercial use includes, but is not limited to, selling, licensing, or distributing the PMLL or any derivative worksn in a public manner, such as found on ChatGPT and implementing it without due credit and payment to the licensor and their contributors. 
+# 3. The commercial license will be negotiated on a case-by-case basis, but will most likely default to a 10% royalty, shared by the contributors of this repository, if the commercial entity is making more than $100,000 after taxes, non-profit or otherwise, and will depend on the specific use case and requirements of the licensee. If the the Commercial LLC is making less than $100,000, the license is merely $1 and MUST credit the licensor and their contributor by either linking to the github or referencing otherwise. 
+# 4. Please contact the licensor at joed6834@colorado.edu or  [insert contributor email here] to discuss commercial licensing options.
+# 5. Beyond this, provided the use is not commerical and public, such as chatGPT, and for private, non-commercial use, usage of this repoistory is completely given free of charge and allowed to be used and implemented in personal projects involving AI as a logic loop.
 
 
 
