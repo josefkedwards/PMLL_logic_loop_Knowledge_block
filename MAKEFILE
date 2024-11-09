@@ -1,4 +1,4 @@
-# Compiler and flags
+no# Compiler and flags
 CC = gcc
 CFLAGS = -Wall -g
 
