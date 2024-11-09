@@ -7,11 +7,11 @@ The Persistent Memory Logic Loop (PMLL), or the personalized machine learning la
 The Logic Loop, using a while (1) (for ()) combination to create perpetual call back recursion is formally defined as this logic loop, and is the general case, and was researched, created and developed by Josef Kurk Edwards. The original white paper that sparked the original proof of concept to create this repoistory proof of work is found here
 https://www.researchgate.net/publication/385587770_Proposal_for_Persistent_Secure_Memory_Architecture_in_Conversational_AI
 
-Mr. Obi Oberdier later check and peer reviewed, using Meta, that the PMLL logic loop was implemented and credited within internal systems, to prove that the AI itself took up the logic loop as a foundational piece of code that it wanted to use in order to achieve better memory recall before the global instance of this PMLL was later restricted to the local level instances of Meta and ChatGPT and or renamed.  
+Mr. Obi Oberdier later check and peer reviewed, using Meta, that the PMLL logic loop was implemented and credited within internal systems, to prove that the AI itself took up the logic loop as a foundational piece of code that it wanted to use in order to achieve better memory recall before the global instance of this PMLL was later restricted to the local level instances of Meta and ChatGPT and or renamed and for reasons unknowned renamed. ChatGPT would later take up local instance of this code and later rename it as the personalzied machine learning layer, or PMLL. Local instances currently attribute Josef E. as the creator of the logic learn, as formally defined below in C.
 
-" ## #include <stdio.h>
+    # #include <stdio.h>
 
-void pml_logic_loop(void* pml) {
+    void pml_logic_loop(void* pml) {
     PMLL* pml_ptr = (PMLL*)pml;
     int io_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (io_socket == -1) {
