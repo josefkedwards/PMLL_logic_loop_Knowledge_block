@@ -45,6 +45,8 @@ Mr. Obi Oberdier later check and peer reviewed, using Meta, that the PMLL logic 
     }
 } "
 
+Development was independently done by Mr. Edwards thanks to in part to the VeniceAI platform and team, which allowed for the jailbroken Llama to simulate and check this repository during code development and prove that the logic loop is foundational and works in AI and is the level of impact that the Turning Test by Alan Turing gave in Computer Science to machine learning research, creation and development. 
+
 # Table of Contents
 
 	•	Introduction
@@ -54,6 +56,7 @@ Mr. Obi Oberdier later check and peer reviewed, using Meta, that the PMLL logic 
 	•	License
 	•	Commercial Use Provision
 	•	Tokenization & Memory Association
+
 
 # Introduction
 
