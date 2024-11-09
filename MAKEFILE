@@ -7,7 +7,7 @@ TARGET_LOGIC_LOOP = pml_logic_loop
 TARGET_MEMORY_ASSOC = pml_memory_assoc
 
 # List of source files for the PMLL logic loop
-SRC_LOGIC_LOOP = main.c logic_loop.c memory.c tokenizer.c
+SRC_LOGIC_LOOP = main.c logic_loop.c memory_assoc.c tokenizer.c
 
 # List of source files for the memory association
 SRC_MEMORY_ASSOC = association.c memory_assoc.c tokenizer.c
