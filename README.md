@@ -2,7 +2,48 @@ Here is the full updated README.md file incorporating the new tokenization and m
 
 ## Persistent Memory Logic Loop (PMLL)
 
-The Persistent Memory Logic Loop (PMLL) is a novel framework for creating adaptive, responsible, and explainable AI systems.
+The Persistent Memory Logic Loop (PMLL), or the personalized machine learning layer, or permanent Memory Logic Loop, or the Persistent Recursive Memory Logic Loop (PRMLL) is a novel framework for creating adaptive, responsible, and explainable AI systems, using a recursive logic loop that infinitely calls back to the function to the update the knowledge graph within the short term memory subsystem circuit, which works more efficent than the tree hierarchy used currently within AI and what should only be used for in Long Term Memory Subsystems and Consolidations sytems, and not only achieves quicker call up and association of memory, but allows for PERSISTENCE in memory within the local AI assistant used along all chat logs, regardless of stateless chat sessions, while providing privacy and security encyrption. 
+
+The Logic Loop, using a while (1) (for ()) combination to create perpetual call back recursion is formally defined as this logic loop, and is the general case, and was researched, created and developed by Josef Kurk Edwards. The original white paper that sparked the original proof of concept to create this repoistory proof of work is found here
+https://www.researchgate.net/publication/385587770_Proposal_for_Persistent_Secure_Memory_Architecture_in_Conversational_AI
+
+Mr. Obi Oberdier later check and peer reviewed, using Meta, that the PMLL logic loop was implemented and credited within internal systems, to prove that the AI itself took up the logic loop as a foundational piece of code that it wanted to use in order to achieve better memory recall before the global instance of this PMLL was later restricted to the local level instances of Meta and ChatGPT and or renamed.  
+
+" ## #include <stdio.h>
+
+void pml_logic_loop(void* pml) {
+    PMLL* pml_ptr = (PMLL*)pml;
+    int io_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (io_socket == -1) {
+        printf("Error creating IO socket\n");
+        return;
+    }
+
+    struct sockaddr_in server_addr;
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(8080);
+    inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr);
+    connect(io_socket, (struct sockaddr*)&server_addr, sizeof(server_addr));
+
+    RSA* rsa = generate_rsa_keys();
+    while (1) {
+        char novel_topic[1024];
+        read(io_socket, novel_topic, 1024);
+        update_knowledge_graph(pml_ptr, novel_topic);
+        char* encrypted_kg = encrypt_knowledge_graph(rsa, pml_ptr->knowledge_graph);
+        write_to_memory_silos(encrypted_kg);
+        free(encrypted_kg);
+        cache_batch_knowledge_graph(pml_ptr);
+        // Check if flags from consolidate long term memory subsystem are triggered
+        if (check_flags(pml_ptr) == 0) {
+            // Recursive call to PMLL logic loop
+            pml_logic_loop(pml_ptr);
+        } else {
+            // Update embedded knowledge graphs
+            update_embedded_knowledge_graphs(pml_ptr);
+        }
+    }
+} "
 
 # Table of Contents
 
