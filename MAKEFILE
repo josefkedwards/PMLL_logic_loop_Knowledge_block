@@ -1,52 +1,27 @@
-no# Compiler and flags
-CC = gcc
-CFLAGS = -Wall -g
+CC=gcc
+CFLAGS=-Wall -Werror -std=c11
+LDFLAGS=-lpthread -lcrypto
+INCLUDES=-I./include
 
-# Define targets for the PMLL logic loop and memory association
-TARGET_LOGIC_LOOP = pml_logic_loop
-TARGET_MEMORY_ASSOC = pml_memory_assoc
+all: pmll
 
-# List of source files for the PMLL logic loop
-SRC_LOGIC_LOOP = main.c logic_loop.c memory_assoc.c tokenizer.c
+pmll: unified_voice.o pml_logic_loop.o knowledge_graph.o main.o
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o pmll unified_voice.o pml_logic_loop.o knowledge_graph.o main.o
 
-# List of source files for the memory association
-SRC_MEMORY_ASSOC = association.c memory_assoc.c tokenizer.c
+unified_voice.o: unified_voice.c
+	$(CC) $(CFLAGS) $(INCLUDES) -c unified_voice.c
 
-# Define object files for each target
-OBJ_LOGIC_LOOP = $(SRC_LOGIC_LOOP:.c=.o)
-OBJ_MEMORY_ASSOC = $(SRC_MEMORY_ASSOC:.c=.o)
+pml_logic_loop.o: pml_logic_loop.c
+	$(CC) $(CFLAGS) $(INCLUDES) -c pml_logic_loop.c
 
-# Default target to build both programs
-all: $(TARGET_LOGIC_LOOP) $(TARGET_MEMORY_ASSOC)
+knowledge_graph.o: knowledge_graph.c
+	$(CC) $(CFLAGS) $(INCLUDES) -c knowledge_graph.c
 
-# Rule to link object files for the PMLL logic loop
-$(TARGET_LOGIC_LOOP): $(OBJ_LOGIC_LOOP)
-	$(CC) $(OBJ_LOGIC_LOOP) -o $(TARGET_LOGIC_LOOP)
+main.o: main.c
+	$(CC) $(CFLAGS) $(INCLUDES) -c main.c
 
-# Rule to link object files for the memory association program
-$(TARGET_MEMORY_ASSOC): $(OBJ_MEMORY_ASSOC)
-	$(CC) $(OBJ_MEMORY_ASSOC) -o $(TARGET_MEMORY_ASSOC)
-
-# Rule to compile each .c file into a .o file for logic loop
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-# Rule to clean up the build artifacts (object files and executables)
 clean:
-	rm -f $(OBJ_LOGIC_LOOP) $(OBJ_MEMORY_ASSOC) $(TARGET_LOGIC_LOOP) $(TARGET_MEMORY_ASSOC)
+	rm -f *.o pmll
 
-# Rule to run the logic loop program
-run_logic_loop: $(TARGET_LOGIC_LOOP)
-	./$(TARGET_LOGIC_LOOP)
-
-# Rule to run the memory association program
-run_memory_assoc: $(TARGET_MEMORY_ASSOC)
-	./$(TARGET_MEMORY_ASSOC)
-
-# Optional: Rule to handle installation (if needed)
-install: $(TARGET_LOGIC_LOOP) $(TARGET_MEMORY_ASSOC)
-	install -m 755 $(TARGET_LOGIC_LOOP) /usr/local/bin
-	install -m 755 $(TARGET_MEMORY_ASSOC) /usr/local/bin
-
-# Phony targets to avoid conflicts with file names
-.PHONY: all clean run_logic_loop run_memory_assoc install
+run:
+	./pmll
