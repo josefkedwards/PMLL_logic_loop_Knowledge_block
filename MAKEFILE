@@ -14,7 +14,7 @@ pmll: unified_voice.o pml_logic_loop.o memory_silo.o io_socket.o main.o
 arc_agi_benchmark: arc_agi_benchmark.o
 	$(CC) $(CFLAGS) $(ARC_AGI_BENCHMARK_CFLAGS) $(LDFLAGS) $(ARC_AGI_BENCHMARK_LDFLAGS) $(INCLUDES) -o arc_agi_benchmark arc_agi_benchmark.o
 
-unified_voice.o: unified_voice.c
+unified_voice.o: unified_voice.c memory_silo.h io_socket.h
 	$(CC) $(CFLAGS) $(INCLUDES) -c unified_voice.c
 
 pml_logic_loop.o: pml_logic_loop.c
