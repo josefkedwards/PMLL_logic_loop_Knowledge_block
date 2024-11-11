@@ -1,15 +1,18 @@
 CC=gcc
 CFLAGS=-Wall -Werror -std=c11 -pedantic -Wextra
-LDFLAGS=-lpthread -lcrypto -lssl
+LDFLAGS=-lpthread -lcrypto -lssl -lcblas -fopenmp
 INCLUDES=-I./include
 
 ARC_AGI_BENCHMARK_CFLAGS=-DARC_AGI_BENCHMARK
 ARC_AGI_BENCHMARK_LDFLAGS=-larc_agi_benchmark
 
-all: pmll arc_agi_benchmark
+all: pmll arc_agi_benchmark pmll_np_solver
 
 pmll: unified_voice.o pml_logic_loop.o memory_silo.o io_socket.o main.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o pmll unified_voice.o pml_logic_loop.o memory_silo.o io_socket.o main.o
+
+pmll_np_solver: pmll_np_solver.o
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o pmll_np_solver pmll_np_solver.o
 
 arc_agi_benchmark: arc_agi_benchmark.o
 	$(CC) $(CFLAGS) $(ARC_AGI_BENCHMARK_CFLAGS) $(LDFLAGS) $(ARC_AGI_BENCHMARK_LDFLAGS) $(INCLUDES) -o arc_agi_benchmark arc_agi_benchmark.o
@@ -32,11 +35,17 @@ main.o: main.c
 arc_agi_benchmark.o: arc_agi_benchmark.c
 	$(CC) $(CFLAGS) $(ARC_AGI_BENCHMARK_CFLAGS) $(INCLUDES) -c arc_agi_benchmark.c
 
+pmll_np_solver.o: pmll_np_solver.c
+	$(CC) $(CFLAGS) $(INCLUDES) -c pmll_np_solver.c
+
 clean:
-	rm -f *.o pmll arc_agi_benchmark
+	rm -f *.o pmll arc_agi_benchmark pmll_np_solver
 
 run:
 	./pmll
 
 run_arc_agi_benchmark:
 	./arc_agi_benchmark
+
+run_pmll_np_solver:
+	./pmll_np_solver
