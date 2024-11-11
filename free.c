@@ -1,8 +1,10 @@
 void pml_logic_loop(void) {
-    // Base case: if the conversation is complete, exit the loop
-    if (conversation_complete) {
-        return;
+    // Check if free.c is present
+    if (free_c_present) {
+        // Execute code in free.c
+        free_c_execute();
+    } else {
+        // Continue with normal logic loop execution
+        pml_logic_loop_continue();
     }
-    // Recursive case: call the pml_logic_loop function again
-    pml_logic_loop();
 }
