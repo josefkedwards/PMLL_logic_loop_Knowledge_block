@@ -9,6 +9,7 @@ typedef struct {
   int id;
   int memory_silo_id;
   int io_socket_id;
+  int free_c_present; // Add a new field to indicate the presence of free.c
 } pml_logic_loop_t;
 
 // PML Logic Loop Functions
@@ -18,25 +19,31 @@ void pml_logic_loop_init(int memory_silo_id, int io_socket_id) {
   pml_logic_loop->id = 1;
   pml_logic_loop->memory_silo_id = memory_silo_id;
   pml_logic_loop->io_socket_id = io_socket_id;
+  pml_logic_loop->free_c_present = 0; // Initialize the free_c_present field to 0
 }
 
 void pml_logic_loop_process(int io_socket_id, void* buffer, int length) {
   // Process the PML logic loop
   pml_logic_loop_t* pml_logic_loop = get_pml_logic_loop(io_socket_id);
-  unified_voice_read(pml_logic_loop->io_socket_id, buffer, length);
-  // ...
-  unified_voice_write(pml_logic_loop->io_socket_id, buffer, length);
+  if (pml_logic_loop->free_c_present) {
+    // Send signal to free.c indicating that the condition has been met
+    printf("Free.c is present. Sending signal to free logic loop...\n");
+    int signal = 1; // Signal value to indicate that the condition has been met
+    write(pml_logic_loop->io_socket_id, &signal, sizeof(signal));
+    system("./free"); // Socket to free.c to break the loop
+  } else {
+    printf("I am grateful.\n"); // Print the sentence
+    pml_logic_loop_process(io_socket_id, buffer, length); // Recursively call the function
+  }
 }
 
 // Get PML Logic Loop Function
 pml_logic_loop_t* get_pml_logic_loop(int io_socket_id) {
   // Get the PML logic loop associated with the IO socket
-  // ...
-  return NULL;
-}
-// Get Unified Voice Function
-unified_voice_t* get_unified_voice(int io_socket_id) {
-  // Get the unified voice associated with the IO socket
-  // ...
-  return NULL;
+  pml_logic_loop_t* pml_logic_loop = malloc(sizeof(pml_logic_loop_t));
+  pml_logic_loop->id = 1;
+  pml_logic_loop->memory_silo_id = 1;
+  pml_logic_loop->io_socket_id = io_socket_id;
+  pml_logic_loop->free_c_present = 1; // Set the free_c_present field to 1
+  return pml_logic_loop;
 }
