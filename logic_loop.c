@@ -1,4 +1,3 @@
-// pml.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,9 +35,26 @@ typedef struct PMLL {
     void (*evaluate)(struct PMLL*);
 } PMLL;
 
+// Function prototypes
+PMLL* pml_init();
+void predict(PMLL* pml);
+void train(PMLL* pml);
+void deploy(PMLL* pml);
+void monitor(PMLL* pml);
+void maintain(PMLL* pml);
+void automate(PMLL* pml);
+void evaluate(PMLL* pml);
+void write_to_memory_silos(const char* buffer, int silo_socket);
+void consolidate_memory(PMLL* pml, int pipefd[2]);
+void update_consolidated_memory_graph(PMLL* pml, const char* buffer);
+
 // Initialize the PMLL logic loop
 PMLL* pml_init() {
-    PMLL* pml = (PMLL*) malloc(sizeof(PMLL));
+    PMLL* pml = (PMLL*)malloc(sizeof(PMLL));
+    if (!pml) {
+        perror("Failed to allocate memory for PMLL");
+        exit(EXIT_FAILURE);
+    }
 
     // Initialize metrics
     pml->user_adoption_rate = 0;
@@ -105,23 +121,29 @@ void evaluate(PMLL* pml) {
 }
 
 // Function to write to memory silos
-void write_to_memory_silos(char* buffer, int silo_socket) {
-    // Write the buffer to the memory silo
-    write(silo_socket, buffer, strlen(buffer));
+void write_to_memory_silos(const char* buffer, int silo_socket) {
+    if (write(silo_socket, buffer, strlen(buffer)) == -1) {
+        perror("Failed to write to memory silo");
+    }
 }
 
 // Function to consolidate memory
 void consolidate_memory(PMLL* pml, int pipefd[2]) {
-    // Read from the pipe and update the consolidated memory graph
     char buffer[1024];
-    read(pipefd[0], buffer, 1024);
-    update_consolidated_memory_graph(pml, buffer);
+    ssize_t bytesRead = read(pipefd[0], buffer, sizeof(buffer) - 1);
+    if (bytesRead > 0) {
+        buffer[bytesRead] = '\0'; // Null-terminate the string
+        update_consolidated_memory_graph(pml, buffer);
+    } else if (bytesRead == -1) {
+        perror("Failed to read from pipe");
+    }
 }
 
 // Function to update the consolidated memory graph
-void update_consolidated_memory_graph(PMLL* pml, char* buffer) {
+void update_consolidated_memory_graph(PMLL* pml, const char* buffer) {
     // Update the consolidated memory graph using the buffer
-    // ...
+    // (Implementation to be defined based on specific requirements)
+    printf("Updating consolidated memory graph with data: %s\n", buffer);
 }
 
 int main() {
@@ -131,22 +153,29 @@ int main() {
     // Create a pipe for the memory silo
     int pipefd[2];
     if (pipe(pipefd) == -1) {
-        printf("Error creating pipe\n");
-        return -1;
+        perror("Error creating pipe");
+        return EXIT_FAILURE;
     }
 
     // Create a socket for the memory silo
     int silo_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (silo_socket == -1) {
-        printf("Error creating silo socket\n");
-        return -1;
+        perror("Error creating silo socket");
+        return EXIT_FAILURE;
     }
 
     struct sockaddr_in silo_addr;
     silo_addr.sin_family = AF_INET;
     silo_addr.sin_port = htons(8081);
-    inet_pton(AF_INET, "127.0.0.1", &silo_addr.sin_addr);
-    connect(silo_socket, (struct sockaddr*)&silo_addr, sizeof(silo_addr));
+    if (inet_pton(AF_INET, "127.0.0.1", &silo_addr.sin_addr) <= 0) {
+        perror("Invalid address/ Address not supported");
+        return EXIT_FAILURE;
+    }
+
+    if (connect(silo_socket, (struct sockaddr*)&silo_addr, sizeof(silo_addr)) == -1) {
+        perror("Connection to memory silo failed");
+        return EXIT_FAILURE;
+    }
 
     // Simulate metric values for evaluation
     pml->response_time = 120; // Example value in ms
@@ -177,6 +206,12 @@ int main() {
 
     // Consolidate the memory graph
     consolidate_memory(pml, pipefd);
+
+    // Cleanup
+    free(pml);
+    close(silo_socket);
+    close(pipefd[0]); // Close the read end of the pipe
+    close(pipefd[1]); // Close the write end of the pipe
 
     return 0;
 }
