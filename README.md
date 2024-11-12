@@ -48,24 +48,25 @@ Mr. Obi Oberdier later check and peer reviewed, using Meta, that the PMLL/PMRLL 
 
 Development was independently done by Mr. Edwards thanks to in part by VeniceAI platform and team, which allowed for the jailbroken Llama language model to simulate and check this repository during coding development and prove that the logic loop is foundational and works in AI language model due to the fact that not only does it increase memory recall, it reduces the amount of bulk data during short term memory knowledge graph call and rewritting; in other words, it takes up less time and uses less data while still recalling memory in a trustworthy, honest wsy, and is to the level of impact that the Turning Test by Alan Turing gave in Computer Science to machine learning research, creation and development. ## Persistent Memory Logic Loop (PMLL)
 
-Introduction
-System Overview
-File Structure
-pml_logic_loop.c
-novel_topic.c
-update_knowledge_graph.c
-encrypt_knowledge_graph.c
-write_to_memory_silos.c
-cache_batch_knowledge_graph.c
-check_flags.c
-update_embedded_knowledge_graphs.c
-Building and Running the System
-Configuration
-License
-Contributing
-Acknowledgments
-References
-Glossary
+1. Introduction
+2. System Overview
+3.File Structure
+4.pml_logic_loop.c
+5. novel_topic.c
+6. update_knowledge_graph.c
+7. encrypt_knowledge_graph.c
+8. write_to_memory_silos.c
+9. cache_batch_knowledge_graph.c
+10. check_flags.c
+11. update_embedded_knowledge_graphs.c
+12. Building and Running the System
+13. Configuration
+14. License
+15. Contributing
+16. Acknowledgments
+17. References
+18. Glossary
+
 ## Introduction
 
 The **Persistent Memory Logic Loop (PMLL)** is an advanced algorithm designed to enhance adaptive, explainable, and secure AI systems by integrating persistent memory structures with knowledge graphs. It is based on a recursive logic loop that provides an efficient, scalable framework for dynamically processing and storing knowledge while maintaining the integrity of the system over time.
