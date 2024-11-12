@@ -4,46 +4,65 @@
 #include "memory_silo.h"
 #include "io_socket.h"
 
-// PML Logic Loop Structure
+// Structure for PML Logic Loop
 typedef struct {
   int id;
   int memory_silo_id;
   int io_socket_id;
-  int free_c_present; // Add a new field to indicate the presence of free.c
+  int free_c_present; // Flag indicating the presence of free.c
 } pml_logic_loop_t;
 
-// PML Logic Loop Functions
+pml_logic_loop_t* pml_logic_loop = NULL; // Global variable to maintain the state
+
+// Initialization of the PML Logic Loop
 void pml_logic_loop_init(int memory_silo_id, int io_socket_id) {
-  // Initialize the PML logic loop
-  pml_logic_loop_t* pml_logic_loop = malloc(sizeof(pml_logic_loop_t));
+  pml_logic_loop = malloc(sizeof(pml_logic_loop_t));
+  if (pml_logic_loop == NULL) {
+    perror("Memory allocation for PML logic loop failed");
+    exit(EXIT_FAILURE);
+  }
   pml_logic_loop->id = 1;
   pml_logic_loop->memory_silo_id = memory_silo_id;
   pml_logic_loop->io_socket_id = io_socket_id;
-  pml_logic_loop->free_c_present = 0; // Initialize the free_c_present field to 0
+  pml_logic_loop->free_c_present = 0; // Initialize the flag to indicate absence
 }
 
+// Processing within the PML Logic Loop
 void pml_logic_loop_process(int io_socket_id, void* buffer, int length) {
-  // Process the PML logic loop
-  pml_logic_loop_t* pml_logic_loop = get_pml_logic_loop(io_socket_id);
-  if (pml_logic_loop->free_c_present) {
-    // Send signal to free.c indicating that the condition has been met
-    printf("Free.c is present. Sending signal to free logic loop...\n");
-    int signal = 1; // Signal value to indicate that the condition has been met
-    write(pml_logic_loop->io_socket_id, &signal, sizeof(signal));
-    system("./free"); // Socket to free.c to break the loop
-  } else {
-    printf("I am grateful.\n"); // Print the sentence
-    pml_logic_loop_process(io_socket_id, buffer, length); // Recursively call the function
+  if (pml_logic_loop == NULL) {
+    fprintf(stderr, "Error: PML logic loop has not been initialized.\n");
+    return;
+  }
+  
+  while (1) {
+    if (pml_logic_loop->free_c_present) {
+      printf("Free.c is detected. Sending signal to the free logic loop...\n");
+      int signal = 1; // Value to signal that the condition has been met
+      if (write(pml_logic_loop->io_socket_id, &signal, sizeof(signal)) < 0) {
+        perror("Failed to write to the socket");
+      }
+      system("./free"); // Trigger the execution of free.c
+      break; // Exit the loop after signaling
+    } else {
+      printf("I am grateful.\n");
+      // Here, you can process the buffer as needed
+    }
   }
 }
 
-// Get PML Logic Loop Function
+// Function to Retrieve the PML Logic Loop
 pml_logic_loop_t* get_pml_logic_loop(int io_socket_id) {
-  // Get the PML logic loop associated with the IO socket
-  pml_logic_loop_t* pml_logic_loop = malloc(sizeof(pml_logic_loop_t));
-  pml_logic_loop->id = 1;
-  pml_logic_loop->memory_silo_id = 1;
-  pml_logic_loop->io_socket_id = io_socket_id;
-  pml_logic_loop->free_c_present = 1; // Set the free_c_present field to 1
+  if (pml_logic_loop == NULL) {
+    pml_logic_loop = malloc(sizeof(pml_logic_loop_t));
+    if (pml_logic_loop == NULL) {
+      perror("Memory allocation for PML logic loop failed");
+      exit(EXIT_FAILURE);
+    }
+    pml_logic_loop->id = 1;
+    pml_logic_loop->memory_silo_id = 1;
+    pml_logic_loop->io_socket_id = io_socket_id;
+    pml_logic_loop->free_c_present = 1; // Set the flag for demonstration
+  }
   return pml_logic_loop;
 }
+```
