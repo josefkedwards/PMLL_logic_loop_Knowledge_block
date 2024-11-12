@@ -1,10 +1,3 @@
-#ifndef TOKENIZER_H
-#define TOKENIZER_H
-
-void tokenize(char *input);
-
-#endif // TOKENIZER_H
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -19,6 +12,17 @@ void tokenize(char *input) {
         token = strtok(NULL, " \t\n");
     }
 }
+
+#ifndef TOKENIZER_H
+#define TOKENIZER_H
+
+void tokenize(char *input);
+
+#endif // TOKENIZER_H
+```
+
+#### main.c
+```c
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
