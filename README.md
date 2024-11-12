@@ -51,6 +51,7 @@ Development was independently done by Mr. Edwards thanks to in part by VeniceAI 
 1. Introduction
 2. System Overview
 3.File Structure
+4. Persistence.c
 4.pml_logic_loop.c
 5. novel_topic.c
 6. update_knowledge_graph.c
@@ -144,6 +145,18 @@ This file implements the function responsible for updating the **knowledge graph
 This function ensures that the **knowledge graph** remains up-to-date, adding new data points and ensuring the integrity and consistency of the graph's structure.
 
 ---
+
+## 4. Persistence.c
+The persistence.c file is responsible for managing the persistence of data within the PMLL system. This includes saving and loading data from memory silos, as well as ensuring that data is properly serialized and deserialized.
+
+Key Functions:
+save_data(void* data, size_t size): Saves data to a memory silo.
+load_data(size_t size): Loads data from a memory silo.
+serialize_data(void* data, size_t size): Serializes data for storage.
+deserialize_data(void* data, size_t size): Deserializes data for use.
+Importance:
+The persistence.c file is crucial for ensuring that data is properly stored and retrieved within the PMLL system. By providing a robust and efficient persistence mechanism, the PMLL system can maintain its state across different sessions and ensure that data is not lost.
+
 
 ### 4. **encrypt_knowledge_graph.c**
 
