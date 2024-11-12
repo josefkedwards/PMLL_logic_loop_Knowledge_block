@@ -272,3 +272,42 @@ The PMLL system is based on the work of Josef Kurk Edwards, as discussed in the 
 * [Proposal for Persistent Secure Memory Architecture in Conversational AI](https://www.researchgate.net/publication/385587770_Proposal_for_Persistent_Secure_Memory_Architecture_in_Conversational_AI)
 * [A Formal Proof that P Equals NP Using the PMLL Algorithm](https://www.researchgate.net/publication/385725055_A_Formal_Proof_that_P_Equals_NP_Using_the_PMLL_Algorithm)
 * [The Persistent Memory Logic Loop: A Novel Logic Loop for AI Memory Architecture](https://www.researchgate.net/publication/385707626_The_Persistent_Memory_Logic_Loop_A_Novel_Logic_Loop_for_AI_Memory_Architecture)
+
+
+## Glossary 
+
+1. Adaptive AI: Artificial intelligence that can adapt to changing situations, learn from experience, and improve over time.
+
+2. Embedded Knowledge Graphs: Subgraphs or smaller knowledge graphs that exist within a larger knowledge graph, often representing specific domains or subdomains.
+
+3. Encryption: The process of converting plaintext data into unreadable ciphertext to protect it from unauthorized access.
+
+4. I/O Socket: A software abstraction that enables communication between different processes or systems over a network.
+
+5. Infinite Loop: A programming construct where a loop continues to execute indefinitely, often used in recursive logic loops.
+
+6. Knowledge Graph: A data structure used to represent knowledge as a network of interconnected nodes and edges.
+
+7. Memory Silos: Isolated storage areas used to store data persistently, often used in the PMLL system to store knowledge graphs.
+
+8. Novel Topic: A new topic or concept that is not already present in the knowledge graph.
+
+9. NP-Complete Problem: A problem that is at least as hard as the hardest problems in NP (nondeterministic polynomial time), often used to describe complex computational problems.
+
+10. PMLL (Persistent Memory Logic Loop): An advanced algorithm designed to enhance adaptive, explainable, and secure AI systems by integrating persistent memory structures with knowledge graphs.
+
+11. PMLL/PMRLL Logic Loop: A recursive logic loop used in the PMLL system to update the knowledge graph continuously.
+
+12. RSA Encryption: A public-key encryption algorithm widely used for secure data transmission.
+
+13. Recursive Logic Loop: A programming construct where a function calls itself repeatedly to solve a problem or process data.
+
+14. Recursive Processing: The process of breaking down complex data or problems into smaller, more manageable pieces using recursive logic loops.
+
+15. Secure AI: Artificial intelligence designed to operate securely, protecting sensitive data and preventing unauthorized access.
+
+16. Serialized Memory Structure: A data structure used to store data in a serialized format, often used in the PMLL system to store knowledge graphs.
+
+17. Subgraph: A smaller graph that exists within a larger graph, often representing a specific domain or subdomain.
+
+18. Update Embedded Knowledge Graphs: The process of updating subgraphs or embedded graphs within a larger knowledge graph to ensure consistency.
