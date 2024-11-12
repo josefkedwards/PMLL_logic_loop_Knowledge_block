@@ -27,7 +27,7 @@ void send_graph_node(io_socket_t *io_socket, const char *node_name, pml_metrics_
     memcpy(data + node_name_length, metrics, metrics_size);
 
     // Send the data through the socket
-    if (io_socket_send(io_socket, data, total_size) < 0) {
+    if (io_socket_send(io_socket->socket, data, total_size) < 0) {
         fprintf(stderr, "Failed to send data\n");
     }
 
