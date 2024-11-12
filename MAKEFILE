@@ -10,61 +10,49 @@ TARGETS = pmll arc_agi_benchmark pmll_np_solver
 
 .PHONY: all clean run run_arc_agi_benchmark run_pmll_np_solver
 
-# Default target to build all
 all: $(TARGETS)
 
-# Build the 'pmll' target
-pmll: unified_voice.o pml_logic_loop.o memory_silo.o io_socket.o main.o
+pmll: unified_voice.o pml_logic_loop.o memory_silo.o io_socket.o persistence.o main.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
-# Build the 'pmll_np_solver' target
 pmll_np_solver: pmll_np_solver.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
-# Build the 'arc_agi_benchmark' target
 arc_agi_benchmark: arc_agi_benchmark.o
 	$(CC) $(CFLAGS) $(ARC_AGI_BENCHMARK_CFLAGS) $(LDFLAGS) $(ARC_AGI_BENCHMARK_LDFLAGS) $(INCLUDES) -o $@ $^
 
-# Compile 'unified_voice.o' from 'unified_voice.c'
 unified_voice.o: unified_voice.c memory_silo.h io_socket.h
 	$(CC) $(CFLAGS) $(INCLUDES) -c $<
 
-# Compile 'pml_logic_loop.o' from 'pml_logic_loop.c'
-pml_logic_loop.o: pml_logic_loop.c memory_silo.h io_socket.h unified_voice.h
+pml_logic_loop.o: pml_logic_loop.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c $<
 
-# Compile 'memory_silo.o' from 'memory_silo.c'
-memory_silo.o: memory_silo.c memory_silo.h io_socket.h
+memory_silo.o: memory_silo.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c $<
 
-# Compile 'io_socket.o' from 'io_socket.c'
-io_socket.o: io_socket.c io_socket.h
+io_socket.o: io_socket.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c $<
 
-# Compile 'main.o' from 'main.c'
-main.o: main.c unified_voice.h pml_logic_loop.h memory_silo.h io_socket.h
+persistence.o: persistence.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c $<
 
-# Compile 'arc_agi_benchmark.o' from 'arc_agi_benchmark.c'
-arc_agi_benchmark.o: arc_agi_benchmark.c arc_agi_benchmark.h
+main.o: main.c
+	$(CC) $(CFLAGS) $(INCLUDES) -c $<
+
+arc_agi_benchmark.o: arc_agi_benchmark.c
 	$(CC) $(CFLAGS) $(ARC_AGI_BENCHMARK_CFLAGS) $(INCLUDES) -c $<
 
-# Compile 'pmll_np_solver.o' from 'pmll_np_solver.c'
-pmll_np_solver.o: pmll_np_solver.c pmll_np_solver.h
+pmll_np_solver.o: pmll_np_solver.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c $<
 
-# Clean up all object files and targets
 clean:
 	rm -f *.o $(TARGETS)
 
-# Run the pmll target
 run: pmll
 	./pmll
 
-# Run the arc_agi_benchmark target
 run_arc_agi_benchmark: arc_agi_benchmark
 	./arc_agi_benchmark
 
-# Run the pmll_np_solver target
 run_pmll_np_solver: pmll_np_solver
 	./pmll_np_solver
