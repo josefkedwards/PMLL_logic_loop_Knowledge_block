@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "io_socket.h"
 #include "pml_logic_loop.h"
 #include "memory_silo.h"
@@ -56,6 +57,11 @@ int io_socket_init_wrapper(io_socket_t *io_socket, const char *ip, int port) {
     return io_socket_init(io_socket, ip, port);
 }
 
+// Function to clean up and close the IO socket
+void io_socket_cleanup(io_socket_t *io_socket) {
+    io_socket_close(io_socket);
+}
+
 // Main function to demonstrate persistence with socket and PML logic loop
 int main() {
     // Initialize the IO socket
@@ -80,7 +86,7 @@ int main() {
     }
 
     // Clean up and close the socket
-    io_socket_close(&io_socket);
+    io_socket_cleanup(&io_socket);
 
     return 0;
 }
