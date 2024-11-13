@@ -2,7 +2,7 @@
 TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test
 
 # SAT Test target
-sat_test: SAT_Compare.o Pmll_NP_Solver.o MiniSAT.o generate_3sat_instance.o SAT_Solver.o
+sat_test: SAT_Compare.o Pmll_NP_Solver.o MiniSAT.o generate_3sat_instance.o SAT_Solver.o 3_sat_log.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
 # Compile SAT_Compare.o from SAT_Compare.c
@@ -23,6 +23,10 @@ SAT_Solver.o: SAT_Solver.c SAT_Solver.h
 
 # Compile generate_3sat_instance.o from 3-SAT.c (used for SAT instance generation)
 generate_3sat_instance.o: 3-SAT.c SAT_Solver.h
+	$(CC) $(CFLAGS) $(INCLUDES) -c $<
+
+# Compile 3_sat_log.o from 3_sat_log.c (logging results)
+3_sat_log.o: 3_sat_log.c SAT_Solver.h Pmll_NP_Solver.h MiniSAT.h
 	$(CC) $(CFLAGS) $(INCLUDES) -c $<
 
 # Existing targets
