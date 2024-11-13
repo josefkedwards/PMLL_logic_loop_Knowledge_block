@@ -57,7 +57,7 @@ main.o: main.c
 arc_agi_benchmark.o: arc_agi_benchmark.c
 	$(CC) $(CFLAGS) $(ARC_AGI_BENCHMARK_CFLAGS) $(INCLUDES) -c $<
 
-pmll_np_solver.o: Pmll_NP_Solver.c
+pmll_np_solver.o: pmll_np_solver.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c $<
 
 # Clean up
