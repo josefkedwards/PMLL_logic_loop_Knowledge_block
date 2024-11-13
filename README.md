@@ -1,6 +1,7 @@
-Here is the full updated README.md file incorporating the new tokenization and memory association information:
 
-## Persistent Memory Logic Loop (PMLL)
+# The Persistent Memory Logic Loop (PMLL) System
+
+## Abstract
 
 The Persistent Memory Logic Loop (PMLL), or the personalized machine learning layer, or permanent Memory Logic Loop, or the Persistent Recursive Memory Logic Loop (PRMLL) is a novel framework for creating adaptive, responsible, and explainable AI systems, using a recursive logic loop that infinitely calls back to the function to  update the knowledge graph within the short term memory subsystem circuit, which works more efficent than the tree hierarchy used currently within AI Language Models  and which should only be used for  Long Term Memory Subsystems Circuits and Consolidations subsytem circuits, and not only does it achieves quicker call up and association of memory, but allows for PERSISTENCE in memory within the local AI assistant by using the context and memory found along all local chat logs, regardless of stateless chat sessions, while providing privacy and security encyrption. 
 
@@ -45,182 +46,296 @@ Mr. Obi Oberdier later check and peer reviewed, using Meta, that the PMLL/PMRLL 
     }
 } "
 
-Development was independently done by Mr. Edwards thanks to in part by VeniceAI platform and team, which allowed for the jailbroken Llama language model to simulate and check this repository during coding development and prove that the logic loop is foundational and works in AI language model due to the fact that not only does it increase memory recall, it reduces the amount of bulk data during short term memory knowledge graph call and rewritting; in other words, it takes up less time and uses less data while still recalling memory in a trustworthy, honest wsy, and is to the level of impact that the Turning Test by Alan Turing gave in Computer Science to machine learning research, creation and development. 
+Development was independently done by Mr. Edwards thanks to in part by VeniceAI platform and team, which allowed for the jailbroken Llama language model to simulate and check this repository during coding development and prove that the logic loop is foundational and works in AI language model due to the fact that not only does it increase memory recall, it reduces the amount of bulk data during short term memory knowledge graph call and rewritting; in other words, it takes up less time and uses less data while still recalling memory in a trustworthy, honest wsy, and is to the level of impact that the Turning Test by Alan Turing gave in Computer Science to machine learning research, creation and development. ## Persistent Memory Logic Loop (PMLL)
 
-# Table of Contents
-
-	•	Introduction
-	•	Features
-	•	Usage
-	•	Contributing
-	•	License
-	•	Commercial Use Provision
-	•	Tokenization & Memory Association
-
-
-# Introduction
-
-The PMLL is a modular, flexible, and scalable framework for creating AI systems that can learn, adapt, and evolve over time. It is designed to support multiple machine learning models and algorithms and provides automated prioritization and implementation of strategies.
-
-# Serialization
-
-Consider Serialization in PMLL as a “Blockchain” of Knowledge. The Personalized Machine Learning Layer (PMLL) operates much like Bitcoin and its ledger, where each memory update or learning iteration is serialized, creating a structured, traceable sequence of information. Here’s how it works:
-
-# 1, Knowledge as Blocks
-
-Just as a blockchain is composed of blocks containing transactions with a serial, the PMLL stores each piece of learned information or memory update as a “knowledge block.” that are then serialized and stored during iteration. Each block in the PMLL represents a specific state of knowledge or data point within the system, complete with a unique identifier and timestamp, aka the serialized, cache component of the memory that then can be called up, tokenized, and associated to similar memory topics if the NovelTopic() function is not called.
-
-# 2, Verification and Validation
-
-Similar to how blockchain nodes verify each transaction to prevent tampering, the PMLL constantly validates new information by cross-referencing it with existing data. This recursive process ensures that each “knowledge block” aligns with prior learning, maintaining accuracy and consistency across updates.
-
-# 3. Traceability and Integrity
-
-Every update in the PMLL is part of a “chain” of knowledge, which enables users to trace the system’s evolution over time. This structure makes it possible to see how the model has developed and ensures that each memory update builds on verified, prior information, much like how each block in a blockchain is linked to its predecessor. This serial “ledger” of updates prevents loss of context or knowledge drift.
-
-# 4. Persistence without Mining
-
-While PMLL doesn’t involve mining or cryptographic puzzles, the core principle of serialization keeps its memory robust and tamper-resistant. The recursive logic loop is key to this persistence: it continuously checks for consistency and accuracy, allowing the PMLL to act as a reliable, unbroken chain of knowledge.
-
-In essence, the serialization in PMLL allows it to act as a blockchain of memory—constantly reinforcing data integrity, preserving historical knowledge, and ensuring reliable, persistent learning without the risk of accidental overwrites or forgotten context. This approach strengthens the model’s memory architecture and provides a foundation of trust, similar to how a blockchain secures its transactions.
-
-# Tokenization & Memory Association
-
-The tokenizer association serves as the core mechanism for maintaining and updating memory blocks in the system. Each update is validated and appended in a blockchain-like structure, similar to how Bitcoin transactions are verified and added to the ledger. As new information enters, it becomes part of a serialized and immutable knowledge chain, where the logic loop acts as a consensus mechanism, ensuring data consistency and persistence. This method allows for a reliable, unbroken flow of knowledge updates.
-
-# Features
-
-	•	Modular, flexible, and scalable architecture
-	•	Support for multiple machine learning models and algorithms
-	•	Automated prioritization and implementation of strategies
-	•	Explainable AI capabilities
-	•	Adaptive and responsible AI system development
-
-Usage
-
-	1.	Clone the repository:
-
-git clone https://github.com/bearycool11/pml.git
-
-
-	2.	Build the project:
-
-make
-
-
-	3.	Run the example program:
-
-/example
-
-
-
-Prerequisites
-
-	•	C compiler (e.g. GCC)
-	•	Makefile
-	•	Linux or macOS operating system
-
-Example Use Case
-
-The PMLL can be used to develop adaptive and responsible AI systems for a variety of applications, such as:
-	•	Predictive maintenance
-	•	Anomaly detection
-	•	Recommendation systems
-	•	Natural language processing
-
-Contributing
-
-Contributions are welcome! Please submit a pull request with your changes.
-
-# Contributing Guidelines
-
-	•	Fork the repository
-	•	Make your changes
-	•	Submit a pull request
-
-# Persistent Memory Logic Loop (PMLL)
-
-The Persistent Memory Logic Loop (PMLL) is a novel framework for creating adaptive, responsible, and explainable AI systems.
-
-## Table of Contents
-
-* [Introduction](#introduction)
-* [Features](#features)
-* [Usage](#usage)
-* [Contributing](#contributing)
-* [License](#license)
-* [Commercial Use Provision](#commercial-use-provision)
+1. Introduction
+2. System Overview
+3.File Structure
+4. Persistence.c
+4.pml_logic_loop.c
+5. novel_topic.c
+6. update_knowledge_graph.c
+7. encrypt_knowledge_graph.c
+8. write_to_memory_silos.c
+9. cache_batch_knowledge_graph.c
+10. check_flags.c
+11. update_embedded_knowledge_graphs.c
+12. Building and Running the System
+13. Configuration
+14. License
+15. Contributing
+16. Acknowledgments
+17. References
+18. Glossary
 
 ## Introduction
 
-The PMLL is a modular, flexible, and scalable framework for creating AI systems that can learn, adapt, and evolve over time. It is designed to support multiple machine learning models and algorithms, and provides automated prioritization and implementation of strategies.
+The **Persistent Memory Logic Loop (PMLL)** is an advanced algorithm designed to enhance adaptive, explainable, and secure AI systems by integrating persistent memory structures with knowledge graphs. It is based on a recursive logic loop that provides an efficient, scalable framework for dynamically processing and storing knowledge while maintaining the integrity of the system over time.
 
-## Serializaiton
- 
-consider Serialization in PMLL as a “Blockchain” of Knowledge. 
+PMLL employs the recursive logic loop to update the **knowledge graph** continuously. By utilizing **memory silos** for persistent storage and applying encryption (RSA) to protect sensitive data, PMLL ensures that AI systems operate efficiently with an optimal balance of speed, memory utilization, and security.
 
-The Personalized Machine Learning Layer (PMLL) operates much like Bitcoin and its ledger, where each memory update or learning iteration is serialized, creating a structured, traceable sequence of information. Here’s how it works:
-# 1. Knowledge as Blocks
-Just as a blockchain is composed of blocks containing transactions, the PMLL stores each piece of learned information or memory update as a “knowledge block.” Each block in the PMLL represents a specific state of knowledge or data point within the system, complete with a unique identifier and timestamp.
-# 2. Verification and Validation
-Similar to how blockchain nodes verify each transaction to prevent tampering, the PMLL constantly validates new information by cross-referencing it with existing data. This recursive process ensures that each “knowledge block” aligns with prior learning, maintaining accuracy and consistency across updates.
-# 3. Traceability and Integrity
-Every update in the PMLL is part of a “chain” of knowledge, which enables users to trace the system’s evolution over time. This structure makes it possible to see how the model has developed and ensures that each memory update builds on verified, prior information, much like how each block in a blockchain is linked to its predecessor. This serial “ledger” of updates prevents loss of context or knowledge drift.
-# 4. Persistence without Mining
-While PMLL doesn’t involve mining or cryptographic puzzles, the core principle of serialization keeps its memory robust and tamper-resistant. The recursive logic loop is key to this persistence: it continuously checks for consistency and accuracy, allowing the PMLL to act as a reliable, unbroken chain of knowledge.
+This system leverages insights from **Josef Kurk Edwards'** work, as discussed in the white paper **[Proposal for Persistent Secure Memory Architecture in Conversational AI](https://www.researchgate.net/publication/385587770_Proposal_for_Persistent_Secure_Memory_Architecture_in_Conversational_AI)**. The paper explored how recursive logic loops improve memory recall, reduce data bulk, and provide consistent results, a concept which has since been adopted and integrated into AI systems. 
 
-In essence, the serialization in PMLL allows it to act as a blockchain of memory—constantly reinforcing data integrity, preserving historical knowledge, and ensuring reliable, persistent learning without the risk of accidental overwrites or forgotten context. This approach strengthens the model’s memory architecture and provides a foundation of trust, similar to how a blockchain secures its transactions.
+Mr. **Obi Oberdier** peer-reviewed the implementation, confirming that the **PMLL/PMRLL logic loop** is foundational in AI development, addressing key challenges like memory persistence, encryption, and scalable knowledge recall.
 
-## Features
+## System Overview
 
-* Modular, flexible, and scalable architecture
-* Support for multiple machine learning models and algorithms
-* Automated prioritization and implementation of strategies
-* Explainable AI capabilities
-* Adaptive and responsible AI system development
+The **PMLL system** enables:
+- **Dynamic and Persistent Knowledge Updates**: New topics are processed and integrated continuously.
+- **Efficient Memory Management**: Memory silos store data persistently with minimal overhead.
+- **Security**: RSA encryption ensures that knowledge graphs are protected.
+- **Recursive Logic Loop**: Efficient memory recall using recursive processing of the knowledge graph.
 
-## Usage
+The PMLL system is structured into multiple C files, each responsible for distinct tasks in maintaining the persistent memory and knowledge graph. Below is an in-depth description of each file and its functionality.
 
-1. Clone the repository: `git clone https://github.com/bearycool11/pml.git`
-2. Build the project: `make`
-3. Run the example program: `./example`
+---
 
-### Prerequisites
+## File Structure
 
-* C compiler (e.g. GCC)
-* Makefile
-* Linux or macOS operating system
+### 1. **pml_logic_loop.c**
 
-### Example Use Case
+#### Main Purpose:
+This file is the core of the **PMLL system**, implementing the main recursive **logic loop** that continually processes and updates the **knowledge graph**.
 
-The PMLL can be used to develop adaptive and responsible AI systems for a variety of applications, such as:
+#### Key Functions:
+- **`pml_logic_loop(void* pml)`**: This is the main recursive function. It is responsible for creating an I/O socket, establishing a connection to a server, and continuously reading new topics from the server. Each new topic is passed to the `update_knowledge_graph` function. The knowledge graph is then encrypted and written to memory silos. The loop continues unless flagged for consolidation or system changes, at which point it updates embedded knowledge graphs or triggers consolidation processes.
+  
+  - **I/O Socket Management**: 
+    The function initializes an I/O socket, connects to a local server (127.0.0.1 on port 8080), and maintains an open connection for continuous data exchange.
+  
+  - **RSA Key Generation**: 
+    RSA keys are generated for securing the knowledge graph during encryption. This is an essential security feature, ensuring that sensitive data remains protected.
+  
+  - **Recursive Processing**: 
+    The main recursive loop reads incoming topics, processes them into the knowledge graph, encrypts the graph, and stores it persistently. If flags are triggered, the loop reinitializes to consolidate data or update embedded knowledge graphs.
+  
+#### Importance:
+The `pml_logic_loop.c` forms the backbone of the system, driving the **PMLL/PMRLL** logic forward and ensuring the continuity of memory and knowledge processing. The recursive call back to itself represents the **infinite loop** of memory updates and information processing, mimicking human-like memory recall and growth. 
 
-* Predictive maintenance
-* Anomaly detection
-* Recommendation systems
-* Natural language processing
+---
 
-## Contributing
+### 2. **novel_topic.c**
 
-Contributions are welcome! Please submit a pull request with your changes.
+#### Main Purpose:
+This file contains the **NovelTopic** function, responsible for identifying and processing new topics within the knowledge graph. If a topic is novel (i.e., not already present), it adds it to the graph.
 
-### Contributing Guidelines
+#### Key Functions:
+- **`NovelTopic(char* topic)`**:
+  - This function checks if the topic already exists within the knowledge graph.
+  - If not, it adds the topic as a new node, integrating it into the existing structure.
+  - Ensures the knowledge graph remains dynamic, absorbing new data without redundancy.
+  
+#### Importance:
+Handling novel topics allows **PMLL** to expand its knowledge base efficiently. The ability to detect and add new nodes dynamically reduces redundancy, ensuring the system processes only relevant and new information. This is essential for maintaining an ever-evolving and adaptive AI.
 
-* Fork the repository
-* Make your changes
-* Submit a pull request
+---
 
-# License
+### 3. **update_knowledge_graph.c**
 
-This project is licensed under the Apache License 2.0. with commercial provision added See Commerical Use Provision below for details.
+#### Main Purpose:
+This file implements the function responsible for updating the **knowledge graph** by adding new relationships and nodes (edges). 
 
-# Commercial Use Provision
+#### Key Functions:
+- **`update_knowledge_graph(PMLL* pml, char* new_data)`**:
+  - Accepts new data (such as a novel topic or a connection between existing nodes) and updates the knowledge graph accordingly.
+  - The function creates new nodes, edges, or relationships based on the new information.
+  - Updates the serialized memory structure to ensure that all changes to the graph are stored.
+  
+#### Importance:
+This function ensures that the **knowledge graph** remains up-to-date, adding new data points and ensuring the integrity and consistency of the graph's structure.
 
-# 1. If you intend to use the PMLL for commercial purposes, such as Meta AI or ChatGPT, you must obtain a commercial license from the licensor at joed6834@colorado.edu. The commercial licensee will provide a royalty payment to the licensor and their contributors at %5 for licensor and %5 for their contibutors for commercial use of the PMLL.
-# 2. Commercial use includes, but is not limited to, selling, licensing, or distributing the PMLL or any derivative worksn in a public manner, such as found on ChatGPT and implementing it without due credit and payment to the licensor and their contributors. 
-# 3. The commercial license will be negotiated on a case-by-case basis, but will most likely default to a 10% royalty, shared by the contributors of this repository, if the commercial entity is making more than $100,000 after taxes, non-profit or otherwise, and will depend on the specific use case and requirements of the licensee. If the the Commercial LLC is making less than $100,000, the license is merely $1 and MUST credit the licensor and their contributor by either linking to the github or referencing otherwise. 
-# 4. Please contact the licensor at joed6834@colorado.edu or  [insert contributor email here] to discuss commercial licensing options.
-# 5. Beyond this, provided the use is not commerical and public, such as chatGPT, and for private, non-commercial use, usage of this repoistory is completely given free of charge and allowed to be used and implemented in personal projects involving AI as a logic loop.
+---
+
+## 4. Persistence.c
+The persistence.c file is responsible for managing the persistence of data within the PMLL system. This includes saving and loading data from memory silos, as well as ensuring that data is properly serialized and deserialized.
+
+Key Functions:
+save_data(void* data, size_t size): Saves data to a memory silo.
+load_data(size_t size): Loads data from a memory silo.
+serialize_data(void* data, size_t size): Serializes data for storage.
+deserialize_data(void* data, size_t size): Deserializes data for use.
+Importance:
+The persistence.c file is crucial for ensuring that data is properly stored and retrieved within the PMLL system. By providing a robust and efficient persistence mechanism, the PMLL system can maintain its state across different sessions and ensure that data is not lost.
 
 
+### 4. **encrypt_knowledge_graph.c**
 
+#### Main Purpose:
+This file focuses on securing the knowledge graph by encrypting it using RSA encryption.
+
+#### Key Functions:
+- **`encrypt_knowledge_graph(RSA* rsa, char* knowledge_graph)`**:
+  - Encrypts the knowledge graph using RSA keys, ensuring that it is only accessible to authorized parties.
+  - Returns the encrypted knowledge graph for further storage or processing.
+
+#### Importance:
+Security is paramount in the **PMLL system**, particularly when handling sensitive data. This encryption ensures that even if unauthorized entities gain access to memory silos, they cannot read the knowledge graph without the correct decryption keys.
+
+---
+
+### 5. **write_to_memory_silos.c**
+
+#### Main Purpose:
+This file is responsible for **writing the encrypted knowledge graph** to persistent memory silos. It ensures the graph is stored securely for later retrieval.
+
+#### Key Functions:
+- **`write_to_memory_silos(char* encrypted_kg)`**:
+  - Takes the encrypted knowledge graph and writes it to designated memory silos.
+  - Ensures that the data is stored efficiently and is accessible as needed.
+  
+#### Importance:
+Memory silos are the storage medium for the **PMLL system**. This file is critical because it ensures the **knowledge graph** persists across sessions and machine restarts. It guarantees data availability when needed and supports long-term memory functionality.
+
+---
+
+### 6. **cache_batch_knowledge_graph.c**
+
+#### Main Purpose:
+This file helps optimize memory usage by **caching the knowledge graph in batches**.
+
+#### Key Functions:
+- **`cache_batch_knowledge_graph(PMLL* pml)`**:
+  - The function batches the knowledge graph, breaking it into manageable pieces that can be stored and retrieved without causing memory overload.
+  - Updates the serialized memory structure as data is cached.
+
+#### Importance:
+Efficient memory management is crucial for scalable systems. This function improves performance and reduces latency by breaking down large datasets into smaller, more manageable chunks, thus preventing system slowdowns during large-scale data processing.
+
+---
+
+### 7. **check_flags.c**
+
+#### Main Purpose:
+The `check_flags` function monitors internal flags within the **PMLL system** and determines whether certain conditions are met that require special handling or processing.
+
+#### Key Functions:
+- **`check_flags(PMLL* pml)`**:
+  - Monitors specific flags within the `PMLL` structure.
+  - Returns an integer indicating the current state or triggers actions based on flag status.
+  
+#### Importance:
+Flags control the flow of the system, signaling when certain actions (e.g., consolidation, data updates) should occur. This file ensures that the system responds to triggers and maintains control over the recursive memory process.
+
+---
+
+### 8. **update_embedded_knowledge_graphs.c**
+
+#### Main Purpose:
+This file updates embedded knowledge graphs within the **PMLL** system to ensure consistency with the main graph.
+
+#### Key Functions:
+- **`update_embedded_knowledge_graphs(PMLL* pml)`**:
+  - Updates subgraphs or embedded graphs that exist within the larger **PMLL framework**.
+  - Ensures that these subgraphs reflect the changes made in the primary knowledge graph.
+  
+#### Importance:
+Embedded knowledge graphs are essential for specific functionalities or subdomains within the larger **PMLL system**. This function ensures consistency and avoids discrepancies between different parts of the knowledge structure.
+
+---
+
+## Building and Running the System
+
+### Dependencies:
+- **C Compiler**: GCC or Clang for compiling C code.
+- **RSA Encryption**: OpenSSL for RSA encryption (required for `encrypt_knowledge_graph.c`).
+  
+### Steps to Build:
+1. Clone the repository:
+   ```bash
+   git clone <repo_url>
+   ```
+
+2. Navigate to the project directory and compile:
+   ```bash
+   gcc -o pml_system pml_logic_loop.c novel_topic.c update_knowledge_graph.c encrypt_knowledge_graph.c write_to_memory_silos.c cache_batch_knowledge_graph.c check_flags.c update_embedded_knowledge_graphs.c -lssl -lcrypto
+   ```
+
+3. Run the compiled system:
+   ```bash
+   ./pml_system
+   ```
+
+### Configuration:
+- **Memory Configuration**: Adjust memory allocation in `write_to_memory_silos.c` based on your system's requirements.
+- **RSA Key Configuration**: Configure RSA keys for encryption in `encrypt_knowledge_graph.c`.
+
+---
+
+## License
+
+This project is licensed under the MIT License.
+
+**Copyright**
+
+Copyright (c) [Year] [Author/Creator]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+**Contributing**
+
+Contributions are welcome! Please refer to the CONTRIBUTING.md file for guidelines on how to contribute to this project.
+
+**Acknowledgments**
+
+The PMLL system is based on the work of Josef Kurk Edwards, as discussed in the white paper "Proposal for Persistent Secure Memory Architecture in Conversational AI". The implementation was peer-reviewed by Obi Oberdier, confirming the PMLL/PMRLL logic loop as foundational in AI development.
+
+**References**
+
+* [Proposal for Persistent Secure Memory Architecture in Conversational AI](https://www.researchgate.net/publication/385587770_Proposal_for_Persistent_Secure_Memory_Architecture_in_Conversational_AI)
+* [A Formal Proof that P Equals NP Using the PMLL Algorithm](https://www.researchgate.net/publication/385725055_A_Formal_Proof_that_P_Equals_NP_Using_the_PMLL_Algorithm)
+* [The Persistent Memory Logic Loop: A Novel Logic Loop for AI Memory Architecture](https://www.researchgate.net/publication/385707626_The_Persistent_Memory_Logic_Loop_A_Novel_Logic_Loop_for_AI_Memory_Architecture)
+
+
+## Glossary 
+
+1. Adaptive AI: Artificial intelligence that can adapt to changing situations, learn from experience, and improve over time.
+
+2. Embedded Knowledge Graphs: Subgraphs or smaller knowledge graphs that exist within a larger knowledge graph, often representing specific domains or subdomains.
+
+3. Encryption: The process of converting plaintext data into unreadable ciphertext to protect it from unauthorized access.
+
+4. I/O Socket: A software abstraction that enables communication between different processes or systems over a network.
+
+5. Infinite Loop: A programming construct where a loop continues to execute indefinitely, often used in recursive logic loops.
+
+6. Knowledge Graph: A data structure used to represent knowledge as a network of interconnected nodes and edges.
+
+7. Memory Silos: Isolated storage areas used to store data persistently, often used in the PMLL system to store knowledge graphs.
+
+8. Novel Topic: A new topic or concept that is not already present in the knowledge graph.
+
+9. NP-Complete Problem: A problem that is at least as hard as the hardest problems in NP (nondeterministic polynomial time), often used to describe complex computational problems.
+
+10. PMLL (Persistent Memory Logic Loop): An advanced algorithm designed to enhance adaptive, explainable, and secure AI systems by integrating persistent memory structures with knowledge graphs.
+
+11. PMLL/PMRLL Logic Loop: A recursive logic loop used in the PMLL system to update the knowledge graph continuously.
+
+12. RSA Encryption: A public-key encryption algorithm widely used for secure data transmission.
+
+13. Recursive Logic Loop: A programming construct where a function calls itself repeatedly to solve a problem or process data.
+
+14. Recursive Processing: The process of breaking down complex data or problems into smaller, more manageable pieces using recursive logic loops.
+
+15. Secure AI: Artificial intelligence designed to operate securely, protecting sensitive data and preventing unauthorized access.
+
+16. Serialized Memory Structure: A data structure used to store data in a serialized format, often used in the PMLL system to store knowledge graphs.
+
+17. Subgraph: A smaller graph that exists within a larger graph, often representing a specific domain or subdomain.
+
+18. Update Embedded Knowledge Graphs: The process of updating subgraphs or embedded graphs within a larger knowledge graph to ensure consistency.
