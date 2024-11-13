@@ -1,6 +1,7 @@
 // SAT.c
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define MAX_CLAUSES 100
 #define MAX_LITERALS 10
@@ -31,6 +32,11 @@ int parse_cnf_file(const char* filename, SAT_Instance* sat_instance) {
             char *token = strtok(line, " ");
             while (token != NULL && token[0] != '0') {
                 literal = atoi(token);
+                if (literal < -sat_instance->num_vars || literal > sat_instance->num_vars) {
+                    fprintf(stderr, "Error: Invalid literal %d\n", literal);
+                    fclose(file);
+                    return -1;
+                }
                 sat_instance->clauses[clause_index][literal_index++] = literal;
                 token = strtok(NULL, " ");
             }
@@ -62,6 +68,13 @@ int solve_sat_instance(SAT_Instance* sat_instance) {
     return 1;  // Assuming solution found
 }
 
+// PMLL SAT solver function
+int pmll_sat_solver(SAT_Instance* sat_instance) {
+    // TO DO: Implement the PMLL SAT solver algorithm
+    // For now, just return a placeholder value
+    return 1;
+}
+
 // Main function for SAT testing
 int main() {
     SAT_Instance sat_instance;
@@ -76,7 +89,7 @@ int main() {
     print_sat_instance(&sat_instance);
 
     // Solve the SAT instance using the PMLL algorithm
-    int result = solve_sat_instance(&sat_instance);
+    int result = pmll_sat_solver(&sat_instance);
     if (result) {
         printf("SAT instance is satisfiable.\n");
     } else {
