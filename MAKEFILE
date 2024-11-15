@@ -10,11 +10,10 @@ TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api vector_Ma
 # Deployment and Service Management
 INSTALL_DIR = /opt/pmll
 DEPLOY_BINARIES = silo_manager api logic_loop
-DEPLOY_SCRIPT = deploy.sh
 ORCHESTRATION_SCRIPT = ./Orchestrate.sh
 
 # Default target: Build all
-.PHONY: all clean debug help deploy start_services stop_services restart_services Orchestrate run deploy_script
+.PHONY: all clean debug deploy start_services stop_services restart_services Orchestrate run
 all: $(TARGETS)
 
 # Define each binary and its dependencies
@@ -43,30 +42,19 @@ vector_Matrix: vector_Matrix.o io_socket.o
 %.o: %.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c $<
 
-# Deployment Target using Makefile Deployment Script
+# Deployment Target
 deploy: $(TARGETS)
 	@echo "Deploying binaries to $(INSTALL_DIR)..."
 	@sudo mkdir -p $(INSTALL_DIR)
 	@for binary in $(DEPLOY_BINARIES); do \
-	    if [ -f $$binary ]; then \
-	        sudo cp $$binary $(INSTALL_DIR)/; \
-	        echo "Deployed $$binary to $(INSTALL_DIR)"; \
-	    else \
-	        echo "Binary $$binary not found. Skipping..."; \
-	    fi \
+		if [ -f $$binary ]; then \
+			sudo cp $$binary $(INSTALL_DIR)/; \
+			echo "Deployed $$binary to $(INSTALL_DIR)"; \
+		else \
+			echo "Binary $$binary not found. Skipping..."; \
+		fi \
 	done
 	@echo "Deployment complete."
-
-# Deployment Target Using deploy.sh
-deploy_script: $(DEPLOY_SCRIPT)
-	@echo "Running deployment script $(DEPLOY_SCRIPT)..."
-	@if [ -f $(DEPLOY_SCRIPT) ]; then \
-	    chmod +x $(DEPLOY_SCRIPT); \
-	    ./$(DEPLOY_SCRIPT) || { echo "Deployment script failed. Check logs for details."; exit 1; }; \
-	else \
-	    echo "Deployment script $(DEPLOY_SCRIPT) not found."; \
-	    exit 1; \
-	fi
 
 # Start Services
 start_services:
@@ -80,12 +68,12 @@ start_services:
 stop_services:
 	@echo "Stopping services..."
 	@for pidfile in silo_manager.pid api.pid logic_loop.pid; do \
-	    if [ -f $$pidfile ]; then \
-	        kill `cat $$pidfile` && rm -f $$pidfile; \
-	        echo "Stopped service with PID `cat $$pidfile`"; \
-	    else \
-	        echo "PID file $$pidfile not found. Skipping..."; \
-	    fi \
+		if [ -f $$pidfile ]; then \
+			kill `cat $$pidfile` && rm -f $$pidfile; \
+			echo "Stopped service with PID `cat $$pidfile`"; \
+		else \
+			echo "PID file $$pidfile not found. Skipping..."; \
+		fi \
 	done
 	@echo "Services stopped."
 
@@ -109,31 +97,6 @@ run: pmll
 	@echo "Running the default program: pmll..."
 	./pmll
 
-# Run Commands for Specific Targets
-run_arc_agi_benchmark: arc_agi_benchmark
-	@echo "Running arc_agi_benchmark..."
-	./arc_agi_benchmark
-
-run_pmll_np_solver: pmll_np_solver
-	@echo "Running pmll_np_solver..."
-	./pmll_np_solver
-
-run_sat_test: sat_test
-	@echo "Running sat_test..."
-	./sat_test
-
-run_api_llama: api_llama
-	@echo "Running api_llama..."
-	./api_llama
-
-run_api: api
-	@echo "Running api..."
-	./api
-
-run_vector_Matrix: vector_Matrix
-	@echo "Running vector_Matrix..."
-	./vector_Matrix
-
 # Clean Target
 clean:
 	@echo "Cleaning up..."
@@ -144,24 +107,5 @@ clean:
 debug: CFLAGS += -g -O0
 debug: $(TARGETS)
 
-# Help Target
-help:
-	@echo "Makefile commands:"
-	@echo "  all                  Build all targets."
-	@echo "  clean                Remove all build artifacts."
-	@echo "  debug                Build all targets with debug flags."
-	@echo "  deploy               Deploy binaries to $(INSTALL_DIR)."
-	@echo "  deploy_script        Run deployment using deploy.sh."
-	@echo "  start_services       Start all services."
-	@echo "  stop_services        Stop all services."
-	@echo "  restart_services     Restart all services."
-	@echo "  Orchestrate          Run the orchestration script."
-	@echo "  run                  Build all and run the pmll executable."
-	@echo "  run_arc_agi_benchmark Run the arc_agi_benchmark executable."
-	@echo "  run_pmll_np_solver   Run the Pmll NP Solver."
-	@echo "  run_sat_test         Run the SAT test."
-	@echo "  run_api_llama        Run the API Llama."
-	@echo "  run_api              Run the API."
-	@echo "  run_vector_Matrix    Run the vector_Matrix executable."
 
 
