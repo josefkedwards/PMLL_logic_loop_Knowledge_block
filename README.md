@@ -267,7 +267,7 @@ This project is licensed under the MIT License.
 
 **Copyright**
 
-Copyright (c) [Year] [Author/Creator]
+Copyright (c) [2024] [Josef K. Edwards]
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
