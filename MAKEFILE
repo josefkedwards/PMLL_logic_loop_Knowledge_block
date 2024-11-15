@@ -10,10 +10,10 @@ TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api vector_Ma
 # Deployment and Service Management
 INSTALL_DIR = /opt/pmll
 DEPLOY_BINARIES = silo_manager api logic_loop
-ORCHESTRATION_SCRIPT = ./orchestrate.sh
+ORCHESTRATION_SCRIPT = ./Orchestrate.sh
 
 # Default target: Build all
-.PHONY: all clean debug help deploy start_services stop_services restart_services orchestrate run
+.PHONY: all clean debug help deploy start_services stop_services restart_services Orchestrate run
 all: $(TARGETS)
 
 # SAT Test target
@@ -86,7 +86,7 @@ restart_services: stop_services start_services
 	@echo "Services restarted."
 
 # Run Orchestration Script
-orchestrate:
+Orchestrate:
 	@if [ -f $(ORCHESTRATION_SCRIPT) ]; then \
 		echo "Running orchestration script..."; \
 		chmod +x $(ORCHESTRATION_SCRIPT); \
@@ -146,7 +146,7 @@ help:
 	@echo "  start_services       Start all services."
 	@echo "  stop_services        Stop all services."
 	@echo "  restart_services     Restart all services."
-	@echo "  orchestrate          Run the orchestration script."
+	@echo "  Orchestrate          Run the orchestration script."
 	@echo "  run                  Build all and run the pmll executable."
 	@echo "  run_arc_agi_benchmark Run the arc_agi_benchmark executable."
 	@echo "  run_pmll_np_solver   Run the Pmll NP Solver."
