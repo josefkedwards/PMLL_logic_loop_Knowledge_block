@@ -300,6 +300,10 @@ The PMLL system is based on the work of Josef Kurk Edwards, as discussed in the 
 * [Proposal for Persistent Secure Memory Architecture in Conversational AI](https://www.researchgate.net/publication/385587770_Proposal_for_Persistent_Secure_Memory_Architecture_in_Conversational_AI)
 * [A Formal Proof that P Equals NP Using the PMLL Algorithm](https://www.researchgate.net/publication/385725055_A_Formal_Proof_that_P_Equals_NP_Using_the_PMLL_Algorithm)
 * [The Persistent Memory Logic Loop: A Novel Logic Loop for AI Memory Architecture](https://www.researchgate.net/publication/385707626_The_Persistent_Memory_Logic_Loop_A_Novel_Logic_Loop_for_AI_Memory_Architecture)
+* [P = NP From Proposal, Implementation, to Formal Proof that P = NP]
+(https://www.researchgate.net/publication/385753462_P_NPThe_Persistent_Memory_Logic_Loop_from_Proposal_Design_to_Formal_Proof_of_P_NP_using_the_PMLL_Algorithm_Repository_as_Empirical_Proof/comments)
+*[Yijie  Han, THe Proof that P = NP]
+(https://www.researchgate.net/publication/372374759_The_Proof_of_PNP?_tp=eyJjb250ZXh0Ijp7ImZpcnN0UGFnZSI6InB1YmxpY2F0aW9uIiwicGFnZSI6InNjaWVudGlmaWNDb250cmlidXRpb25zIn19) 
 
 
 ## Glossary 
