@@ -1,31 +1,25 @@
-# Specify the SAT test target and dependencies
+# Compiler and Flags
+CC = gcc
+CFLAGS = -Wall -Wextra -pedantic -std=c99
+LDFLAGS = -lssl -lcrypto
+INCLUDES = -Iinclude
+
+# Targets
 TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test
+
+# Default target: Build all
+.PHONY: all clean debug help
+all: $(TARGETS)
 
 # SAT Test target
 sat_test: SAT_Compare.o Pmll_NP_Solver.o MiniSAT.o generate_3sat_instance.o SAT_Solver.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
-# Compile SAT_Compare.o from SAT_Compare.c
-SAT_Compare.o: SAT_Compare.c SAT_Solver.h Pmll_NP_Solver.h MiniSAT.h
+# Compile Rules
+%.o: %.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c $<
 
-# Compile MiniSAT.o from MiniSAT.c
-MiniSAT.o: MiniSAT.c MiniSAT.h
-	$(CC) $(CFLAGS) $(INCLUDES) -c $<
-
-# Compile Pmll_NP_Solver.o from Pmll_NP_Solver.c
-Pmll_NP_Solver.o: Pmll_NP_Solver.c Pmll_NP_Solver.h
-	$(CC) $(CFLAGS) $(INCLUDES) -c $<
-
-# Compile SAT_Solver.o from SAT_Solver.c
-SAT_Solver.o: SAT_Solver.c SAT_Solver.h
-	$(CC) $(CFLAGS) $(INCLUDES) -c $<
-
-# Compile generate_3sat_instance.o from 3-SAT.c (used for SAT instance generation)
-generate_3sat_instance.o: 3-SAT.c SAT_Solver.h
-	$(CC) $(CFLAGS) $(INCLUDES) -c $<
-
-# Existing targets
+# Existing Targets
 pmll: unified_voice.o pml_logic_loop.o memory_silo.o io_socket.o persistence.o cross_talk.o main.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
@@ -33,50 +27,41 @@ pmll_np_solver: pmll_np_solver.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
 arc_agi_benchmark: arc_agi_benchmark.o
-	$(CC) $(CFLAGS) $(ARC_AGI_BENCHMARK_CFLAGS) $(LDFLAGS) $(ARC_AGI_BENCHMARK_LDFLAGS) $(INCLUDES) -o $@ $^
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
-# Compilation rules for other .o files
-unified_voice.o: unified_voice.c memory_silo.h io_socket.h
-	$(CC) $(CFLAGS) $(INCLUDES) -c $<
-
-pml_logic_loop.o: pml_logic_loop.c
-	$(CC) $(CFLAGS) $(INCLUDES) -c $<
-
-memory_silo.o: memory_silo.c
-	$(CC) $(CFLAGS) $(INCLUDES) -c $<
-
-io_socket.o: io_socket.c
-	$(CC) $(CFLAGS) $(INCLUDES) -c $<
-
-persistence.o: persistence.c
-	$(CC) $(CFLAGS) $(INCLUDES) -c $<
-
-cross_talk.o: cross_talk.c
-	$(CC) $(CFLAGS) $(INCLUDES) -c $<
-
-main.o: main.c
-	$(CC) $(CFLAGS) $(INCLUDES) -c $<
-
-arc_agi_benchmark.o: arc_agi_benchmark.c
-	$(CC) $(CFLAGS) $(ARC_AGI_BENCHMARK_CFLAGS) $(INCLUDES) -c $<
-
-pmll_np_solver.o: pmll_np_solver.c
-	$(CC) $(CFLAGS) $(INCLUDES) -c $<
-
-# Clean up
-clean:
-	rm -f *.o $(TARGETS)
-
-# Run commands
+# Run Commands
 run: pmll
+	@echo "Running pmll..."
 	./pmll
 
 run_arc_agi_benchmark: arc_agi_benchmark
+	@echo "Running arc_agi_benchmark..."
 	./arc_agi_benchmark
 
 run_pmll_np_solver: pmll_np_solver
+	@echo "Running pmll_np_solver..."
 	./pmll_np_solver
 
-# Add a run command for the SAT test
 run_sat_test: sat_test
+	@echo "Running sat_test..."
 	./sat_test
+
+# Clean Target
+clean:
+	@echo "Cleaning up..."
+	-rm -f *.o $(TARGETS)
+
+# Debug Build
+debug: CFLAGS += -g -O0
+debug: $(TARGETS)
+
+# Help Target
+help:
+	@echo "Makefile commands:"
+	@echo "  all                  Build all targets."
+	@echo "  clean                Remove all build artifacts."
+	@echo "  debug                Build all targets with debug flags."
+	@echo "  run                  Run the pmll executable."
+	@echo "  run_arc_agi_benchmark Run the arc_agi_benchmark executable."
+	@echo "  run_pmll_np_solver   Run the Pmll NP Solver."
+	@echo "  run_sat_test         Run the SAT test."
