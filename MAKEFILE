@@ -150,5 +150,3 @@ help:
 	@echo "  run_api_llama        Run the API Llama."
 	@echo "  run_api              Run the API."
 	@echo "  run_vector_Matrix    Run the vector_Matrix executable."
-
-
