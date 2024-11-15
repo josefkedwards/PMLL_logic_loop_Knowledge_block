@@ -10,10 +10,11 @@ TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api vector_Ma
 # Deployment and Service Management
 INSTALL_DIR = /opt/pmll
 DEPLOY_BINARIES = silo_manager api logic_loop
+DEPLOY_SCRIPT = deploy.sh
 ORCHESTRATION_SCRIPT = ./Orchestrate.sh
 
 # Default target: Build all
-.PHONY: all clean debug help deploy start_services stop_services restart_services Orchestrate run
+.PHONY: all clean debug help deploy start_services stop_services restart_services Orchestrate run deploy_script
 all: $(TARGETS)
 
 # Define each binary and its dependencies
@@ -42,7 +43,7 @@ vector_Matrix: vector_Matrix.o io_socket.o
 %.o: %.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c $<
 
-# Deployment Target
+# Deployment Target using Makefile Deployment Script
 deploy: $(TARGETS)
 	@echo "Deploying binaries to $(INSTALL_DIR)..."
 	@sudo mkdir -p $(INSTALL_DIR)
@@ -55,6 +56,17 @@ deploy: $(TARGETS)
 	    fi \
 	done
 	@echo "Deployment complete."
+
+# Deployment Target Using deploy.sh
+deploy_script: $(DEPLOY_SCRIPT)
+	@echo "Running deployment script $(DEPLOY_SCRIPT)..."
+	@if [ -f $(DEPLOY_SCRIPT) ]; then \
+	    chmod +x $(DEPLOY_SCRIPT); \
+	    ./$(DEPLOY_SCRIPT) || { echo "Deployment script failed. Check logs for details."; exit 1; }; \
+	else \
+	    echo "Deployment script $(DEPLOY_SCRIPT) not found."; \
+	    exit 1; \
+	fi
 
 # Start Services
 start_services:
@@ -139,6 +151,7 @@ help:
 	@echo "  clean                Remove all build artifacts."
 	@echo "  debug                Build all targets with debug flags."
 	@echo "  deploy               Deploy binaries to $(INSTALL_DIR)."
+	@echo "  deploy_script        Run deployment using deploy.sh."
 	@echo "  start_services       Start all services."
 	@echo "  stop_services        Stop all services."
 	@echo "  restart_services     Restart all services."
@@ -150,5 +163,6 @@ help:
 	@echo "  run_api_llama        Run the API Llama."
 	@echo "  run_api              Run the API."
 	@echo "  run_vector_Matrix    Run the vector_Matrix executable."
+
 
 
