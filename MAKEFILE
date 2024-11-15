@@ -13,7 +13,7 @@ DEPLOY_BINARIES = silo_manager api logic_loop
 ORCHESTRATION_SCRIPT = ./orchestrate.sh
 
 # Default target: Build all
-.PHONY: all clean debug help deploy start_services stop_services restart_services orchestrate
+.PHONY: all clean debug help deploy start_services stop_services restart_services orchestrate run
 all: $(TARGETS)
 
 # SAT Test target
@@ -96,11 +96,12 @@ orchestrate:
 		exit 1; \
 	fi
 
-# Run Commands
-run: pmll
-	@echo "Running pmll..."
+# Run Default Program (pmll)
+run: all
+	@echo "Running the default program: pmll..."
 	./pmll
 
+# Run Commands for Specific Targets
 run_arc_agi_benchmark: arc_agi_benchmark
 	@echo "Running arc_agi_benchmark..."
 	./arc_agi_benchmark
@@ -146,7 +147,7 @@ help:
 	@echo "  stop_services        Stop all services."
 	@echo "  restart_services     Restart all services."
 	@echo "  orchestrate          Run the orchestration script."
-	@echo "  run                  Run the pmll executable."
+	@echo "  run                  Build all and run the pmll executable."
 	@echo "  run_arc_agi_benchmark Run the arc_agi_benchmark executable."
 	@echo "  run_pmll_np_solver   Run the Pmll NP Solver."
 	@echo "  run_sat_test         Run the SAT test."
