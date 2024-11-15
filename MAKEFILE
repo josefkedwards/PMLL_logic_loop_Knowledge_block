@@ -7,8 +7,12 @@ INCLUDES = -Iinclude
 # Targets
 TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api vector_Matrix
 
+# Deployment and Service Management
+INSTALL_DIR = /opt/pmll
+DEPLOY_BINARIES = silo_manager api logic_loop
+
 # Default target: Build all
-.PHONY: all clean debug help
+.PHONY: all clean debug help deploy start_services stop_services restart_services
 all: $(TARGETS)
 
 # SAT Test target
@@ -40,6 +44,45 @@ pmll_np_solver: pmll_np_solver.o vector_Matrix.o
 
 arc_agi_benchmark: arc_agi_benchmark.o vector_Matrix.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
+
+# Deployment Target
+deploy: $(TARGETS)
+	@echo "Deploying binaries to $(INSTALL_DIR)..."
+	@sudo mkdir -p $(INSTALL_DIR)
+	@for binary in $(DEPLOY_BINARIES); do \
+	    if [ -f $$binary ]; then \
+	        sudo cp $$binary $(INSTALL_DIR)/; \
+	        echo "Deployed $$binary to $(INSTALL_DIR)"; \
+	    else \
+	        echo "Binary $$binary not found. Skipping..."; \
+	    fi \
+	done
+	@echo "Deployment complete."
+
+# Start Services
+start_services:
+	@echo "Starting services..."
+	@$(INSTALL_DIR)/silo_manager & echo $$! > silo_manager.pid
+	@$(INSTALL_DIR)/api & echo $$! > api.pid
+	@$(INSTALL_DIR)/logic_loop & echo $$! > logic_loop.pid
+	@echo "Services started successfully."
+
+# Stop Services
+stop_services:
+	@echo "Stopping services..."
+	@for pidfile in silo_manager.pid api.pid logic_loop.pid; do \
+	    if [ -f $$pidfile ]; then \
+	        kill `cat $$pidfile` && rm -f $$pidfile; \
+	        echo "Stopped service with PID `cat $$pidfile`"; \
+	    else \
+	        echo "PID file $$pidfile not found. Skipping..."; \
+	    fi \
+	done
+	@echo "Services stopped."
+
+# Restart Services
+restart_services: stop_services start_services
+	@echo "Services restarted."
 
 # Run Commands
 run: pmll
@@ -73,7 +116,8 @@ run_vector_Matrix: vector_Matrix
 # Clean Target
 clean:
 	@echo "Cleaning up..."
-	-rm -f *.o $(TARGETS)
+	-rm -f *.o $(TARGETS) *.pid
+	@echo "Clean complete."
 
 # Debug Build
 debug: CFLAGS += -g -O0
@@ -85,6 +129,10 @@ help:
 	@echo "  all                  Build all targets."
 	@echo "  clean                Remove all build artifacts."
 	@echo "  debug                Build all targets with debug flags."
+	@echo "  deploy               Deploy binaries to $(INSTALL_DIR)."
+	@echo "  start_services       Start all services."
+	@echo "  stop_services        Stop all services."
+	@echo "  restart_services     Restart all services."
 	@echo "  run                  Run the pmll executable."
 	@echo "  run_arc_agi_benchmark Run the arc_agi_benchmark executable."
 	@echo "  run_pmll_np_solver   Run the Pmll NP Solver."
@@ -92,4 +140,3 @@ help:
 	@echo "  run_api_llama        Run the API Llama."
 	@echo "  run_api              Run the API."
 	@echo "  run_vector_Matrix    Run the vector_Matrix executable."
-
