@@ -25,8 +25,3 @@ deploy_to_silo() {
 # Deploy to All Silos
 for silo in "${SILOS[@]}"; do
     deploy_to_silo $silo &
-done
-
-# Wait for All Deployments to Complete
-wait
-echo "Deployment to all silos completed!"
