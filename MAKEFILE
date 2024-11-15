@@ -26,7 +26,7 @@ generate_3sat_instance.o: 3-SAT.c SAT_Solver.h
 	$(CC) $(CFLAGS) $(INCLUDES) -c $<
 
 # Existing targets
-pmll: unified_voice.o pml_logic_loop.o memory_silo.o io_socket.o persistence.o main.o
+pmll: unified_voice.o pml_logic_loop.o memory_silo.o io_socket.o persistence.o cross_talk.o main.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
 pmll_np_solver: pmll_np_solver.o
@@ -49,6 +49,9 @@ io_socket.o: io_socket.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c $<
 
 persistence.o: persistence.c
+	$(CC) $(CFLAGS) $(INCLUDES) -c $<
+
+cross_talk.o: cross_talk.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c $<
 
 main.o: main.c
