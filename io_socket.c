@@ -1,159 +1,127 @@
+#include "io_socket.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <unistd.h>
-#include "memory_silo.h"
-#include "io_socket.h"
+#include <time.h> // For monitoring timestamps
 
-// Structure for PML Logic Loop
-typedef struct {
-    int id;
-    int memory_silo_id;
-    int io_socket_id;
-    int free_c_present; // Flag indicating the presence of free.c
-} pml_logic_loop_t;
+#define SERVER_IP "127.0.0.1"
+#define SERVER_PORT 8080
+#define BUFFER_SIZE 1024
+#define RETRY_LIMIT 5
+#define LOG_FILE "io_socket.log"
 
-// Global variables
-pml_logic_loop_t* pml_logic_loop = NULL;
-io_socket_t* io_socket_instance = NULL;
-
-// Initialization of the PML Logic Loop
-void pml_logic_loop_init(int memory_silo_id, int io_socket_id) {
-    pml_logic_loop = malloc(sizeof(pml_logic_loop_t));
-    if (pml_logic_loop == NULL) {
-        perror("Memory allocation for PML logic loop failed");
-        exit(EXIT_FAILURE);
+// Logging utility
+void log_message(const char* level, const char* message) {
+    FILE* log_file = fopen(LOG_FILE, "a");
+    if (log_file) {
+        time_t now = time(NULL);
+        fprintf(log_file, "[%s] [%s] %s\n", level, ctime(&now), message);
+        fclose(log_file);
     }
-    pml_logic_loop->id = 1;
-    pml_logic_loop->memory_silo_id = memory_silo_id;
-    pml_logic_loop->io_socket_id = io_socket_id;
-    pml_logic_loop->free_c_present = 0; // Initialize the flag to indicate absence
-    // Attempt to load persisted state (from persistence.c)
-    load_pml_logic_loop_state(pml_logic_loop); // Assuming this function is in persistence.c
 }
 
-// Processing within the PML Logic Loop
-void pml_logic_loop_process() {
-    if (pml_logic_loop == NULL) {
-        fprintf(stderr, "Error: PML logic loop has not been initialized.\n");
-        return;
-    }
+// Retry mechanism for socket creation
+int create_io_socket() {
+    int io_socket = -1;
+    int retries = 0;
 
-    while (1) {
-        if (pml_logic_loop->free_c_present) {
-            printf("Free.c is detected. Sending signal to the free logic loop...\n");
-            int signal = 1; // Signal to indicate that the condition has been met
-            if (write(io_socket_instance->socket, &signal, sizeof(signal)) < 0) {
-                perror("Failed to write to the socket");
-            }
-            system("./free"); // Trigger the execution of free.c
-            break; // Exit the loop after signaling
-        } else {
-            printf("I am grateful.\n");
-            // Process data or handle other tasks
-            // Example of interacting with memory silo (if needed)
-            void* buffer = malloc(1024);  // Example buffer size
-            io_socket_read(buffer, 1024);
-            // Do processing on the buffer here
+    while (io_socket < 0 && retries < RETRY_LIMIT) {
+        io_socket = socket(AF_INET, SOCK_STREAM, 0);
+        if (io_socket < 0) {
+            log_message("ERROR", "Failed to create IO socket");
+            perror("Error creating IO socket");
+            retries++;
+            sleep(1 << retries); // Exponential backoff
+            continue;
+        }
 
-            // Example: Persist the state periodically
-            save_pml_logic_loop_state(pml_logic_loop); // Assuming this function is in persistence.c
+        struct sockaddr_in server_addr;
+        memset(&server_addr, 0, sizeof(server_addr));
+        server_addr.sin_family = AF_INET;
+        server_addr.sin_port = htons(SERVER_PORT);
+
+        if (inet_pton(AF_INET, SERVER_IP, &server_addr.sin_addr) <= 0) {
+            log_message("ERROR", "Invalid server IP address");
+            perror("Invalid server IP address");
+            close(io_socket);
+            io_socket = -1;
+            retries++;
+            continue;
+        }
+
+        if (connect(io_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
+            log_message("ERROR", "Failed to connect to IO socket");
+            perror("Error connecting to IO socket");
+            close(io_socket);
+            io_socket = -1;
+            retries++;
         }
     }
+
+    if (io_socket < 0) {
+        log_message("FATAL", "Failed to establish connection after retries");
+        fprintf(stderr, "Failed to connect after %d retries\n", RETRY_LIMIT);
+        return -1;
+    }
+
+    log_message("INFO", "Successfully connected to IO socket");
+    printf("Connected to IO socket at %s:%d\n", SERVER_IP, SERVER_PORT);
+    return io_socket;
 }
 
-// Function to initialize the I/O socket
-void io_socket_init(int memory_silo_id) {
-    io_socket_instance = malloc(sizeof(io_socket_t));
-    if (io_socket_instance == NULL) {
-        perror("Failed to allocate memory for IO socket");
-        exit(EXIT_FAILURE);
-    }
-    io_socket_instance->id = 1;
-    io_socket_instance->memory_silo_id = memory_silo_id;
-    io_socket_instance->socket = socket(AF_INET, SOCK_STREAM, 0);
-    if (io_socket_instance->socket < 0) {
-        perror("Failed to create socket");
-        free(io_socket_instance);
-        exit(EXIT_FAILURE);
-    }
-}
-
-// I/O socket functions
-void io_socket_read(void* buffer, int length) {
-    if (io_socket_instance == NULL) {
-        fprintf(stderr, "IO socket not initialized.\n");
+// Send data over the IO socket
+void io_socket_write(int io_socket, void* buffer, size_t length) {
+    if (io_socket < 0 || buffer == NULL || length == 0) {
+        log_message("ERROR", "Invalid parameters for sending data");
+        fprintf(stderr, "Invalid parameters for sending data\n");
         return;
     }
-    ssize_t bytes_read = read(io_socket_instance->socket, buffer, length);
-    if (bytes_read < 0) {
-        perror("Read error");
+
+    ssize_t bytes_sent = send(io_socket, buffer, length, 0);
+    if (bytes_sent < 0) {
+        log_message("ERROR", "Failed to send data over IO socket");
+        perror("Error sending data over IO socket");
+    } else {
+        char log_entry[256];
+        snprintf(log_entry, sizeof(log_entry), "Sent %ld bytes of data", bytes_sent);
+        log_message("INFO", log_entry);
     }
 }
 
-void io_socket_write(void* buffer, int length) {
-    if (io_socket_instance == NULL) {
-        fprintf(stderr, "IO socket not initialized.\n");
+// Receive data from the IO socket
+void io_socket_read(int io_socket, void* buffer, size_t buffer_size) {
+    if (io_socket < 0 || buffer == NULL || buffer_size == 0) {
+        log_message("ERROR", "Invalid parameters for receiving data");
+        fprintf(stderr, "Invalid parameters for receiving data\n");
         return;
     }
-    ssize_t bytes_written = write(io_socket_instance->socket, buffer, length);
-    if (bytes_written < 0) {
-        perror("Write error");
-    }
-}
 
-// Cleanup function to free allocated resources
-void io_socket_cleanup() {
-    if (io_socket_instance != NULL) {
-        close(io_socket_instance->socket);
-        free(io_socket_instance);
-        io_socket_instance = NULL;
-    }
-}
-
-// Placeholder for persistence functions in persistence.c
-void save_pml_logic_loop_state(pml_logic_loop_t* logic_loop) {
-    // Implement the logic to save the state (e.g., to a file or database)
-    // Example: Write the state to a file
-    FILE* file = fopen("pml_logic_loop_state.dat", "wb");
-    if (file != NULL) {
-        fwrite(logic_loop, sizeof(pml_logic_loop_t), 1, file);
-        fclose(file);
+    ssize_t bytes_received = recv(io_socket, buffer, buffer_size - 1, 0);
+    if (bytes_received < 0) {
+        log_message("ERROR", "Failed to receive data over IO socket");
+        perror("Error receiving data over IO socket");
     } else {
-        perror("Failed to save state");
+        ((char*)buffer)[bytes_received] = '\0'; // Null-terminate the data
+        char log_entry[256];
+        snprintf(log_entry, sizeof(log_entry), "Received %ld bytes of data: %s", bytes_received, (char*)buffer);
+        log_message("INFO", log_entry);
     }
 }
 
-void load_pml_logic_loop_state(pml_logic_loop_t* logic_loop) {
-    // Implement the logic to load the state (e.g., from a file or database)
-    // Example: Read the state from a file
-    FILE* file = fopen("pml_logic_loop_state.dat", "rb");
-    if (file != NULL) {
-        fread(logic_loop, sizeof(pml_logic_loop_t), 1, file);
-        fclose(file);
-    } else {
-        perror("Failed to load state");
+// Cleanup resources
+void io_socket_cleanup(int io_socket) {
+    if (io_socket >= 0) {
+        if (close(io_socket) < 0) {
+            log_message("ERROR", "Error closing IO socket");
+            perror("Error closing IO socket");
+        } else {
+            log_message("INFO", "IO socket closed successfully");
+            printf("IO socket closed successfully\n");
+        }
     }
-}
-
-int main() {
-    // Initialize memory silo ID and I/O socket ID as needed
-    int memory_silo_id = 1;
-    int io_socket_id = 1;
-
-    // Initialize IO socket
-    io_socket_init(memory_silo_id);
-
-    // Initialize PML Logic Loop
-    pml_logic_loop_init(memory_silo_id, io_socket_id);
-
-    // Process the PML Logic Loop
-    pml_logic_loop_process();
-
-    // Cleanup
-    io_socket_cleanup();
-    return 0;
 }
