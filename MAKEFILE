@@ -1,11 +1,11 @@
 # Compiler and Flags
 CC = gcc
 CFLAGS = -Wall -Wextra -pedantic -std=c99
-LDFLAGS = -lssl -lcrypto
+LDFLAGS = -lssl -lcrypto -lcurl
 INCLUDES = -Iinclude
 
 # Targets
-TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test
+TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api
 
 # Default target: Build all
 .PHONY: all clean debug help
@@ -13,6 +13,14 @@ all: $(TARGETS)
 
 # SAT Test target
 sat_test: SAT_Compare.o Pmll_NP_Solver.o MiniSAT.o generate_3sat_instance.o SAT_Solver.o
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
+
+# API Llama target
+api_llama: API_Llama.o
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
+
+# API target
+api: API.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
 # Compile Rules
@@ -46,6 +54,14 @@ run_sat_test: sat_test
 	@echo "Running sat_test..."
 	./sat_test
 
+run_api_llama: api_llama
+	@echo "Running api_llama..."
+	./api_llama
+
+run_api: api
+	@echo "Running api..."
+	./api
+
 # Clean Target
 clean:
 	@echo "Cleaning up..."
@@ -65,3 +81,5 @@ help:
 	@echo "  run_arc_agi_benchmark Run the arc_agi_benchmark executable."
 	@echo "  run_pmll_np_solver   Run the Pmll NP Solver."
 	@echo "  run_sat_test         Run the SAT test."
+	@echo "  run_api_llama        Run the API Llama."
+	@echo "  run_api              Run the API."
