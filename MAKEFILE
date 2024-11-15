@@ -6,12 +6,12 @@ INCLUDES = -Iinclude
 
 # Deployment and Service Management
 INSTALL_DIR = /opt/pmll
-DEPLOY_BINARIES = silo_manager api logic_loop
+DEPLOY_BINARIES = silo_manager api logic_loop pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api vector_Matrix
 DEPLOY_SCRIPT = deploy.sh
 ORCHESTRATION_SCRIPT = ./Orchestrate.sh
 
 # Targets
-TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api vector_Matrix
+TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api vector_Matrix silo_manager logic_loop
 
 # Default target: Build all
 .PHONY: all clean debug help deploy start_services stop_services restart_services Orchestrate run deploy_script
@@ -37,6 +37,12 @@ api: API.o vector_Matrix.o io_socket.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
 vector_Matrix: vector_Matrix.o io_socket.o
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
+
+silo_manager: silo_manager.o
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
+
+logic_loop: logic_loop.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
 # Compile Rules
@@ -134,6 +140,14 @@ run_vector_Matrix: vector_Matrix
 	@echo "Running vector_Matrix..."
 	./vector_Matrix
 
+run_silo_manager: silo_manager
+	@echo "Running silo_manager..."
+	./silo_manager
+
+run_logic_loop: logic_loop
+	@echo "Running logic_loop..."
+	./logic_loop
+
 # Clean Target
 clean:
 	@echo "Cleaning up..."
@@ -163,3 +177,5 @@ help:
 	@echo "  run_api_llama        Run the API Llama."
 	@echo "  run_api              Run the API."
 	@echo "  run_vector_Matrix    Run the vector_Matrix executable."
+	@echo "  run_silo_manager     Run the silo_manager executable."
+	@echo "  run_logic_loop       Run the logic_loop executable."
