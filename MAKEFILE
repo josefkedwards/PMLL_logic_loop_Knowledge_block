@@ -5,22 +5,26 @@ LDFLAGS = -lssl -lcrypto -lcurl
 INCLUDES = -Iinclude
 
 # Targets
-TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api
+TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api vector_Matrix
 
 # Default target: Build all
 .PHONY: all clean debug help
 all: $(TARGETS)
 
 # SAT Test target
-sat_test: SAT_Compare.o Pmll_NP_Solver.o MiniSAT.o generate_3sat_instance.o SAT_Solver.o
+sat_test: SAT_Compare.o Pmll_NP_Solver.o MiniSAT.o generate_3sat_instance.o SAT_Solver.o vector_Matrix.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
 # API Llama target
-api_llama: API_Llama.o
+api_llama: API_Llama.o vector_Matrix.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
 # API target
-api: API.o
+api: API.o vector_Matrix.o
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
+
+# Vector Matrix target
+vector_Matrix: vector_Matrix.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
 # Compile Rules
@@ -28,13 +32,13 @@ api: API.o
 	$(CC) $(CFLAGS) $(INCLUDES) -c $<
 
 # Existing Targets
-pmll: unified_voice.o pml_logic_loop.o memory_silo.o io_socket.o persistence.o cross_talk.o main.o
+pmll: unified_voice.o pml_logic_loop.o memory_silo.o io_socket.o persistence.o cross_talk.o main.o vector_Matrix.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
-pmll_np_solver: pmll_np_solver.o
+pmll_np_solver: pmll_np_solver.o vector_Matrix.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
-arc_agi_benchmark: arc_agi_benchmark.o
+arc_agi_benchmark: arc_agi_benchmark.o vector_Matrix.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
 # Run Commands
@@ -62,6 +66,10 @@ run_api: api
 	@echo "Running api..."
 	./api
 
+run_vector_Matrix: vector_Matrix
+	@echo "Running vector_Matrix..."
+	./vector_Matrix
+
 # Clean Target
 clean:
 	@echo "Cleaning up..."
@@ -83,3 +91,5 @@ help:
 	@echo "  run_sat_test         Run the SAT test."
 	@echo "  run_api_llama        Run the API Llama."
 	@echo "  run_api              Run the API."
+	@echo "  run_vector_Matrix    Run the vector_Matrix executable."
+
