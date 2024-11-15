@@ -16,35 +16,31 @@ ORCHESTRATION_SCRIPT = ./Orchestrate.sh
 .PHONY: all clean debug help deploy start_services stop_services restart_services Orchestrate run
 all: $(TARGETS)
 
-# SAT Test target
+# Define each binary and its dependencies
+pmll: unified_voice.o pml_logic_loop.o memory_silo.o io_socket.o persistence.o cross_talk.o main.o vector_Matrix.o
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
+
+arc_agi_benchmark: arc_agi_benchmark.o vector_Matrix.o io_socket.o
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
+
+pmll_np_solver: pmll_np_solver.o vector_Matrix.o io_socket.o
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
+
 sat_test: SAT_Compare.o Pmll_NP_Solver.o MiniSAT.o generate_3sat_instance.o SAT_Solver.o vector_Matrix.o io_socket.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
-# API Llama target
 api_llama: API_Llama.o vector_Matrix.o io_socket.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
-# API target
 api: API.o vector_Matrix.o io_socket.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
-# Vector Matrix target
 vector_Matrix: vector_Matrix.o io_socket.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
 # Compile Rules
 %.o: %.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c $<
-
-# Existing Targets
-pmll: unified_voice.o pml_logic_loop.o memory_silo.o io_socket.o persistence.o cross_talk.o main.o vector_Matrix.o
-	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
-
-pmll_np_solver: pmll_np_solver.o vector_Matrix.o io_socket.o
-	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
-
-arc_agi_benchmark: arc_agi_benchmark.o vector_Matrix.o io_socket.o
-	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
 # Deployment Target
 deploy: $(TARGETS)
@@ -97,7 +93,7 @@ Orchestrate:
 	fi
 
 # Run Default Program (pmll)
-run: all
+run: pmll
 	@echo "Running the default program: pmll..."
 	./pmll
 
@@ -154,3 +150,4 @@ help:
 	@echo "  run_api_llama        Run the API Llama."
 	@echo "  run_api              Run the API."
 	@echo "  run_vector_Matrix    Run the vector_Matrix executable."
+
