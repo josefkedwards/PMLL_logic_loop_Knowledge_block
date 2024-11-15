@@ -14,8 +14,8 @@ ORCHESTRATION_SCRIPT = ./Orchestrate.sh
 TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api vector_Matrix silo_manager logic_loop
 
 # Default target: Build all
-.PHONY: all clean debug help deploy start_services stop_services restart_services Orchestrate run deploy_script
 all: $(TARGETS)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) $(TARGETS) -o all
 
 # Define each binary and its dependencies
 pmll: unified_voice.o pml_logic_loop.o memory_silo.o io_socket.o persistence.o cross_talk.o main.o vector_Matrix.o
@@ -151,7 +151,7 @@ run_logic_loop: logic_loop
 # Clean Target
 clean:
 	@echo "Cleaning up..."
-	-rm -f *.o $(TARGETS) *.pid
+	-rm -f *.o $(TARGETS) *.pid all
 	@echo "Clean complete."
 
 # Debug Build
@@ -161,7 +161,7 @@ debug: $(TARGETS)
 # Help Target
 help:
 	@echo "Makefile commands:"
-	@echo "  all                  Build all targets."
+	@echo "  all                  Build all targets and create executable 'all'."
 	@echo "  clean                Remove all build artifacts."
 	@echo "  debug                Build all targets with debug flags."
 	@echo "  deploy               Deploy binaries to $(INSTALL_DIR)."
