@@ -2,6 +2,7 @@
 #include <string.h>
 #include <openssl/sha.h>
 #include <openssl/aes.h>
+#include <stdlib.h>
 
 // Define wallet address
 #define WALLET_ADDRESS "bc1qskz3k6an86vmzg34xwetz8tuth8tl5ww2p0l0e"
@@ -11,6 +12,12 @@ void PMLL_Hash_Function(const char *input, unsigned char *output);
 void PMLL_Compress_Data(const char *input, unsigned char *output);
 void PMLL_Cache_Data(const char *input, unsigned char *output);
 void send_bitcoin_to_wallet(const char *wallet_address, unsigned char *bitcoin);
+
+// Bitcoin transaction structure
+typedef struct {
+    const char *wallet_address;
+    unsigned char *bitcoin;
+} bitcoin_transaction_t;
 
 // Main function
 int main() {
@@ -48,8 +55,9 @@ void PMLL_Hash_Function(const char *input, unsigned char *output) {
 void PMLL_Compress_Data(const char *input, unsigned char *output) {
     // Bitcoin-specific AES and SHA-256 compression implementation
     AES_KEY aes_key;
-    AES_set_encrypt_key(input, 128, &aes_key);
-    AES_encrypt(input, output, &aes_key);
+    unsigned char key[16] = {0}; // Example key, should be securely generated and stored
+    AES_set_encrypt_key(key, 128, &aes_key);
+    AES_encrypt((unsigned char *)input, output, &aes_key);
     SHA256_CTX sha256;
     SHA256_Init(&sha256);
     SHA256_Update(&sha256, output, 32);
@@ -60,7 +68,7 @@ void PMLL_Cache_Data(const char *input, unsigned char *output) {
     // Simple caching implementation
     static char cache[1024];
     strcpy(cache, input);
-    output = (unsigned char *)cache;
+    memcpy(output, cache, strlen(cache));
 }
 
 void send_bitcoin_to_wallet(const char *wallet_address, unsigned char *bitcoin) {
@@ -73,6 +81,9 @@ void send_bitcoin_to_wallet(const char *wallet_address, unsigned char *bitcoin) 
 
     // Broadcast the transaction to the Bitcoin network
     broadcast_bitcoin_transaction(transaction);
+
+    // Free the transaction
+    free(transaction);
 }
 
 // Bitcoin wallet API implementation
@@ -87,9 +98,11 @@ bitcoin_transaction_t *create_bitcoin_transaction(const char *wallet_address, un
 void sign_bitcoin_transaction(bitcoin_transaction_t *transaction) {
     // Sign the transaction
     // This function will sign the transaction using your private key
+    // Ensure private keys are handled securely
 }
 
 void broadcast_bitcoin_transaction(bitcoin_transaction_t *transaction) {
     // Broadcast the transaction to the Bitcoin network
     // This function will broadcast the transaction to the Bitcoin network
+    // Ensure secure communication with the Bitcoin network
 }
