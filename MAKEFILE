@@ -4,14 +4,10 @@ CFLAGS = -Wall -Wextra -pedantic -std=c99
 LDFLAGS = -lssl -lcrypto -lcurl
 INCLUDES = -Iinclude
 
-# Deployment and Service Management
+# Build Directories
+BUILD_DIR = build
 INSTALL_DIR = /opt/pmll
-DEPLOY_BINARIES = silo_manager api logic_loop pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api vector_Matrix
-DEPLOY_SCRIPT = deploy.sh
-ORCHESTRATION_SCRIPT = ./Orchestrate.sh
-
-# Targets
-TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api vector_Matrix silo_manager logic_loop
+TEST_DIR = test_build
 
 # Source files
 SOURCES = \
@@ -37,6 +33,13 @@ SOURCES = \
 
 # Object files
 OBJECTS = $(SOURCES:.c=.o)
+
+# Targets
+TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api vector_Matrix silo_manager logic_loop
+
+# Deployment and Testing Scripts
+DEPLOY_SCRIPT = deploy.sh
+ORCHESTRATION_SCRIPT = ./Orchestrate.sh
 
 # Default target: Build all
 .PHONY: all
@@ -72,13 +75,21 @@ logic_loop: logic_loop.o
 
 # Compile Rules
 %.o: %.c
-	$(CC) $(CFLAGS) $(INCLUDES) -c $<
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
-# Deployment Target using Makefile Deployment Script
+# Test Build
+.PHONY: test
+test: clean
+	@echo "Building test executables in $(TEST_DIR)..."
+	@mkdir -p $(TEST_DIR)
+	@$(MAKE) all CFLAGS="$(CFLAGS) -g -O0 -DTEST" LDFLAGS="$(LDFLAGS)" BUILD_DIR=$(TEST_DIR)
+
+# Deployment
+.PHONY: deploy
 deploy: $(TARGETS)
 	@echo "Deploying binaries to $(INSTALL_DIR)..."
 	@sudo mkdir -p $(INSTALL_DIR)
-	@for binary in $(DEPLOY_BINARIES); do \
+	@for binary in $(TARGETS); do \
 	    if [ -f $$binary ]; then \
 	        sudo cp $$binary $(INSTALL_DIR)/; \
 	        echo "Deployed $$binary to $(INSTALL_DIR)"; \
@@ -88,18 +99,20 @@ deploy: $(TARGETS)
 	done
 	@echo "Deployment complete."
 
-# Deployment Target Using deploy.sh
+# Deployment with Script
+.PHONY: deploy_script
 deploy_script: $(DEPLOY_SCRIPT)
 	@echo "Running deployment script $(DEPLOY_SCRIPT)..."
 	@if [ -f $(DEPLOY_SCRIPT) ]; then \
 	    chmod +x $(DEPLOY_SCRIPT); \
-	    ./$(DEPLOY_SCRIPT) || { echo "Deployment script failed. Check logs for details."; exit 1; }; \
+	    ./$(DEPLOY_SCRIPT) || { echo "Deployment script failed. Check logs."; exit 1; }; \
 	else \
 	    echo "Deployment script $(DEPLOY_SCRIPT) not found."; \
 	    exit 1; \
 	fi
 
 # Start Services
+.PHONY: start_services
 start_services:
 	@echo "Starting services..."
 	@$(INSTALL_DIR)/silo_manager & echo $$! > silo_manager.pid
@@ -108,6 +121,7 @@ start_services:
 	@echo "Services started successfully."
 
 # Stop Services
+.PHONY: stop_services
 stop_services:
 	@echo "Stopping services..."
 	@for pidfile in silo_manager.pid api.pid logic_loop.pid; do \
@@ -120,11 +134,8 @@ stop_services:
 	done
 	@echo "Services stopped."
 
-# Restart Services
-restart_services: stop_services start_services
-	@echo "Services restarted."
-
-# Run Orchestration Script
+# Orchestration Script
+.PHONY: Orchestrate
 Orchestrate:
 	@if [ -f $(ORCHESTRATION_SCRIPT) ]; then \
 		echo "Running orchestration script..."; \
@@ -135,72 +146,23 @@ Orchestrate:
 		exit 1; \
 	fi
 
-# Run Default Program (pmll)
-run: all
-	@echo "Running the default program: pmll..."
-	./pmll
-
-# Run Commands for Specific Targets
-run_arc_agi_benchmark: arc_agi_benchmark
-	@echo "Running arc_agi_benchmark..."
-	./arc_agi_benchmark
-
-run_pmll_np_solver: pmll_np_solver
-	@echo "Running pmll_np_solver..."
-	./pmll_np_solver
-
-run_sat_test: sat_test
-	@echo "Running sat_test..."
-	./sat_test
-
-run_api_llama: api_llama
-	@echo "Running api_llama..."
-	./api_llama
-
-run_api: api
-	@echo "Running api..."
-	./api
-
-run_vector_Matrix: vector_Matrix
-	@echo "Running vector_Matrix..."
-	./vector_Matrix
-
-run_silo_manager: silo_manager
-	@echo "Running silo_manager..."
-	./silo_manager
-
-run_logic_loop: logic_loop
-	@echo "Running logic_loop..."
-	./logic_loop
-
-# Clean Target
+# Clean Build Artifacts
+.PHONY: clean
 clean:
 	@echo "Cleaning up..."
 	-rm -f *.o $(TARGETS) *.pid
 	@echo "Clean complete."
 
-# Debug Build
-debug: CFLAGS += -g -O0
-debug: $(TARGETS)
-
 # Help Target
+.PHONY: help
 help:
 	@echo "Makefile commands:"
-	@echo "  all                  Build all targets."
-	@echo "  clean                Remove all build artifacts."
-	@echo "  debug                Build all targets with debug flags."
+	@echo "  all                  Build all executables."
+	@echo "  test                 Build test executables with debug flags."
 	@echo "  deploy               Deploy binaries to $(INSTALL_DIR)."
 	@echo "  deploy_script        Run deployment using deploy.sh."
 	@echo "  start_services       Start all services."
 	@echo "  stop_services        Stop all services."
-	@echo "  restart_services     Restart all services."
 	@echo "  Orchestrate          Run the orchestration script."
-	@echo "  run                  Build all and run the pmll executable."
-	@echo "  run_arc_agi_benchmark Run the arc_agi_benchmark executable."
-	@echo "  run_pmll_np_solver   Run the Pmll NP Solver."
-	@echo "  run_sat_test         Run the SAT test."
-	@echo "  run_api_llama        Run the API Llama."
-	@echo "  run_api              Run the API."
-	@echo "  run_vector_Matrix    Run the vector_Matrix executable."
-	@echo "  run_silo_manager     Run the silo_manager executable."
-	@echo "  run_logic_loop       Run the logic_loop executable."
+	@echo "  clean                Remove all build artifacts."
+	@echo "  help                 Show this help message."
