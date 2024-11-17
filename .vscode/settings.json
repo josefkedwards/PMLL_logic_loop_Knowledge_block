@@ -2,5 +2,6 @@
     "githubPullRequests.ignoredPullRequestBranches": [
         "main"
     ],
-    "cmake.sourceDirectory": "/workspaces/pmll/.vscode"
+    "cmake.sourceDirectory": "/workspaces/pmll/.vscode",
+    "cmake.ignoreCMakeListsMissing": true
 }
