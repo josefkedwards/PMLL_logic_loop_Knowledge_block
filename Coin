@@ -1,11 +1,11 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <openssl/sha.h>
 #include <openssl/aes.h>
-#include <stdlib.h>
 
-// Define wallet address
-#define WALLET_ADDRESS "bc1qskz3k6an86vmzg34xwetz8tuth8tl5ww2p0l0e"
+// Define the team wallet address
+#define TEAM_WALLET_ADDRESS "74c8948f671e5b3d8ac5d868c5fbd53c9337f9fafe7698d21a9e88cf5ff3588d"
 
 // Function declarations
 void PMLL_Hash_Function(const char *input, unsigned char *output);
@@ -34,8 +34,8 @@ int main() {
     // Call PMLL_Cache_Data
     PMLL_Cache_Data(input, output);
 
-    // Send mined Bitcoin to wallet
-    send_bitcoin_to_wallet(WALLET_ADDRESS, output);
+    // Send mined Bitcoin to the team wallet
+    send_bitcoin_to_wallet(TEAM_WALLET_ADDRESS, output);
 
     return 0;
 }
@@ -72,23 +72,21 @@ void PMLL_Cache_Data(const char *input, unsigned char *output) {
 }
 
 void send_bitcoin_to_wallet(const char *wallet_address, unsigned char *bitcoin) {
-    // Bitcoin wallet API implementation
-    // Create a new Bitcoin transaction
+    printf("Sending Bitcoin to the team wallet...\n");
+
+    // Create, sign, and broadcast the transaction
     bitcoin_transaction_t *transaction = create_bitcoin_transaction(wallet_address, bitcoin);
-
-    // Sign the transaction
     sign_bitcoin_transaction(transaction);
-
-    // Broadcast the transaction to the Bitcoin network
     broadcast_bitcoin_transaction(transaction);
 
-    // Free the transaction
+    // Free resources and clean up
+    memset(transaction, 0, sizeof(bitcoin_transaction_t)); // Clean sensitive data
     free(transaction);
+    printf("Transaction complete and metadata cleaned.\n");
 }
 
 // Bitcoin wallet API implementation
 bitcoin_transaction_t *create_bitcoin_transaction(const char *wallet_address, unsigned char *bitcoin) {
-    // Create a new Bitcoin transaction
     bitcoin_transaction_t *transaction = malloc(sizeof(bitcoin_transaction_t));
     if (transaction == NULL) {
         fprintf(stderr, "Memory allocation failed\n");
@@ -100,24 +98,16 @@ bitcoin_transaction_t *create_bitcoin_transaction(const char *wallet_address, un
 }
 
 void sign_bitcoin_transaction(bitcoin_transaction_t *transaction) {
-    // Sign the transaction
-    // This function will sign the transaction using your private key
-    // Ensure private keys are handled securely
-    // Example: Use a secure method to sign the transaction
-    // For demonstration purposes, this is a placeholder
-    printf("Signing transaction...\n");
+    printf("Signing transaction for wallet: %s\n", transaction->wallet_address);
+    // Placeholder signing implementation
 }
 
 void broadcast_bitcoin_transaction(bitcoin_transaction_t *transaction) {
-    // Broadcast the transaction to the Bitcoin network
-    // This function will broadcast the transaction to the Bitcoin network
-    // Ensure secure communication with the Bitcoin network
-    // Example: Use a secure method to broadcast the transaction
-    // For demonstration purposes, this is a placeholder
-    printf("Broadcasting transaction...\n");
-}
-void broadcast_bitcoin_transaction(bitcoin_transaction_t *transaction) {
-    // Broadcast the transaction to the Bitcoin network
-    // This function will broadcast the transaction to the Bitcoin network
-    // Ensure secure communication with the Bitcoin network
+    printf("Broadcasting transaction for wallet: %s\n", transaction->wallet_address);
+    // Placeholder broadcasting implementation
+
+    // Clean and expunge metadata
+    memset((void *)transaction->wallet_address, 0, strlen(transaction->wallet_address));
+    memset(transaction->bitcoin, 0, 32);
+    printf("Metadata expunged after broadcasting.\n");
 }
