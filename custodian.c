@@ -33,80 +33,79 @@ size_t write_callback(void* contents, size_t size, size_t nmemb, void* userp) {
     return realsize;
 }
 
-// Function to interact with the LLaMA API
-void interact_with_llama_api(const char* input_prompt, char* llama_response) {
+// Function to interact with an API
+int interact_with_api(const char* url, const char* headers[], const char* payload, char* response) {
     CURL* curl = curl_easy_init();
     if (!curl) {
-        log_message("ERROR", "Failed to initialize cURL for LLaMA API.");
-        return;
+        log_message("ERROR", "Failed to initialize cURL.");
+        return -1;
     }
 
-    char post_fields[BUFFER_SIZE];
-    snprintf(post_fields, sizeof(post_fields), "{\"prompt\": \"%s\", \"max_tokens\": 50}", input_prompt);
+    struct curl_slist* header_list = NULL;
+    for (int i = 0; headers && headers[i]; i++) {
+        header_list = curl_slist_append(header_list, headers[i]);
+    }
 
-    char response_buffer[BUFFER_SIZE] = {0};
-
-    struct curl_slist* headers = NULL;
-    headers = curl_slist_append(headers, "Content-Type: application/json");
-    headers = curl_slist_append(headers, "Authorization: Bearer " LLAMA_API_KEY);
-
-    curl_easy_setopt(curl, CURLOPT_URL, LLAMA_API_URL);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_fields);
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload);
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header_list);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, response_buffer);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, response);
 
     CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
         log_message("ERROR", curl_easy_strerror(res));
-    } else {
-        snprintf(llama_response, BUFFER_SIZE, "%s", response_buffer);
-        log_message("INFO", "Successfully interacted with LLaMA API.");
+        curl_easy_cleanup(curl);
+        curl_slist_free_all(header_list);
+        return -1;
     }
 
-    curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
+    curl_slist_free_all(header_list);
+    return 0;
 }
 
-// Function to interact with the custom API
-void interact_with_custom_api(const char* input_data, char* custom_response) {
-    CURL* curl = curl_easy_init();
-    if (!curl) {
-        log_message("ERROR", "Failed to initialize cURL for custom API.");
-        return;
-    }
+// Wrapper for LLaMA API interaction
+void interact_with_llama_api(const char* input_prompt, char* llama_response) {
+    const char* headers[] = {
+        "Content-Type: application/json",
+        "Authorization: Bearer " LLAMA_API_KEY,
+        NULL
+    };
+    char payload[BUFFER_SIZE];
+    snprintf(payload, sizeof(payload), "{\"prompt\": \"%s\", \"max_tokens\": 50}", input_prompt);
 
-    char post_fields[BUFFER_SIZE];
-    snprintf(post_fields, sizeof(post_fields), "{\"data\": \"%s\"}", input_data);
-
-    char response_buffer[BUFFER_SIZE] = {0};
-
-    curl_easy_setopt(curl, CURLOPT_URL, CUSTOM_API_URL);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_fields);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, response_buffer);
-
-    CURLcode res = curl_easy_perform(curl);
-    if (res != CURLE_OK) {
-        log_message("ERROR", curl_easy_strerror(res));
+    if (interact_with_api(LLAMA_API_URL, headers, payload, llama_response) == 0) {
+        log_message("INFO", "Successfully interacted with LLaMA API.");
     } else {
-        snprintf(custom_response, BUFFER_SIZE, "%s", response_buffer);
-        log_message("INFO", "Successfully interacted with custom API.");
+        log_message("ERROR", "LLaMA API interaction failed.");
     }
+}
 
-    curl_easy_cleanup(curl);
+// Wrapper for custom API interaction
+void interact_with_custom_api(const char* input_data, char* custom_response) {
+    const char* headers[] = {
+        "Content-Type: application/json",
+        NULL
+    };
+    char payload[BUFFER_SIZE];
+    snprintf(payload, sizeof(payload), "{\"data\": \"%s\"}", input_data);
+
+    if (interact_with_api(CUSTOM_API_URL, headers, payload, custom_response) == 0) {
+        log_message("INFO", "Successfully interacted with custom API.");
+    } else {
+        log_message("ERROR", "Custom API interaction failed.");
+    }
 }
 
 // Function to process Bitcoin payments
 void process_bitcoin_payment(const char* recipient, double amount) {
-    log_message("INFO", "Initiating Bitcoin transaction.");
-
     char transaction_command[BUFFER_SIZE];
     snprintf(transaction_command, sizeof(transaction_command),
              "bitcoin-cli sendtoaddress \"%s\" %.8f", recipient, amount);
 
-    int result = system(transaction_command);
-    if (result == 0) {
+    log_message("INFO", "Initiating Bitcoin transaction.");
+    if (system(transaction_command) == 0) {
         log_message("INFO", "Bitcoin transaction successful.");
     } else {
         log_message("ERROR", "Bitcoin transaction failed.");
@@ -155,8 +154,7 @@ void run_custodian() {
     // Step 3: Interact with APIs
     char llama_response[BUFFER_SIZE] = {0};
     char custom_response[BUFFER_SIZE] = {0};
-    const char* llama_input = "Hello, LLaMA!";
-    interact_with_llama_api(llama_input, llama_response);
+    interact_with_llama_api("Hello, LLaMA!", llama_response);
     interact_with_custom_api(llama_response, custom_response);
 
     // Step 4: Execute PML Logic Loop
@@ -164,7 +162,6 @@ void run_custodian() {
     pml_logic_loop_process(io_socket.socket, silo->memory, silo->size);
 
     // Step 5: Process Bitcoin transaction
-    log_message("INFO", "Processing Bitcoin payment.");
     process_bitcoin_payment(BITCOIN_WALLET, 0.1);
 
     // Step 6: Sync with memory silo
