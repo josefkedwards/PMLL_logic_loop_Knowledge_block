@@ -11,6 +11,11 @@ io_socket_t io_socket;
 
 // Function to send knowledge graph data (e.g., metrics)
 void send_graph_node(io_socket_t *io_socket, const char *node_name, pml_metrics_t *metrics) {
+    if (!io_socket || !node_name || !metrics) {
+        fprintf(stderr, "Error: Invalid parameters for sending graph node\n");
+        return;
+    }
+
     size_t node_name_length = strlen(node_name) + 1; // Include null terminator
     size_t metrics_size = sizeof(pml_metrics_t);
     size_t total_size = node_name_length + metrics_size;
@@ -29,24 +34,31 @@ void send_graph_node(io_socket_t *io_socket, const char *node_name, pml_metrics_
     // Send the data through the socket
     if (io_socket_send(io_socket->socket, data, total_size) < 0) {
         fprintf(stderr, "Failed to send data\n");
+    } else {
+        printf("Knowledge graph data sent successfully\n");
     }
 
     free(data);
 }
 
 // Function to initialize the PML logic loop
-void pml_logic_loop_init(io_socket_t *io_socket, int memory_silo_id) {
+void pml_logic_loop_init_wrapper(io_socket_t *io_socket, int memory_silo_id) {
+    if (!io_socket) {
+        fprintf(stderr, "Error: IO socket instance is null\n");
+        return;
+    }
     pml_logic_loop_init(memory_silo_id, io_socket->socket);
 }
 
 // Function to handle the main PML logic loop with socket communication
-void pml_logic_loop_process(io_socket_t *io_socket) {
-    // Assuming we are using the knowledge graph and PML metrics
-    pml_metrics_t metrics = {0.12, 0.85, 0.95}; // Example metrics
-    const char *node_name = "Model A";
+void pml_logic_loop_process_wrapper(io_socket_t *io_socket, memory_silo_t *silo) {
+    if (!io_socket || !silo) {
+        fprintf(stderr, "Error: Invalid parameters for PML logic loop processing\n");
+        return;
+    }
 
-    // Send knowledge graph data through the socket
-    send_graph_node(io_socket, node_name, &metrics);
+    // Assuming the silo contains knowledge graph or state data
+    send_graph_node(io_socket, "Model A", &silo->metrics);
 
     // Process the PML logic loop
     pml_logic_loop_process(io_socket->socket, NULL, 0);
@@ -59,42 +71,18 @@ int io_socket_init_wrapper(io_socket_t *io_socket, const char *ip, int port) {
 
 // Function to clean up and close the IO socket
 void io_socket_cleanup(io_socket_t *io_socket) {
-    io_socket_close(io_socket);
-}
-
-// Function to save the state of the PML logic loop
-void save_pml_logic_loop(const char* filename, pml_logic_loop_t* pml_logic_loop) {
-    FILE* file = fopen(filename, "wb");
-    if (file == NULL) {
-        perror("Failed to open file for saving PML Logic Loop");
-        return;
+    if (io_socket) {
+        io_socket_close(io_socket);
+        printf("IO socket cleaned up successfully\n");
     }
-    fwrite(pml_logic_loop, sizeof(pml_logic_loop_t), 1, file);
-    fclose(file);
-}
-
-// Function to load the state of the PML logic loop
-pml_logic_loop_t* load_pml_logic_loop(const char* filename) {
-    FILE* file = fopen(filename, "rb");
-    if (file == NULL) {
-        perror("Failed to open file for loading PML Logic Loop");
-        return NULL;
-    }
-
-    pml_logic_loop_t* pml_logic_loop = malloc(sizeof(pml_logic_loop_t));
-    if (pml_logic_loop == NULL) {
-        perror("Memory allocation failed for PML Logic Loop");
-        fclose(file);
-        return NULL;
-    }
-    fread(pml_logic_loop, sizeof(pml_logic_loop_t), 1, file);
-    fclose(file);
-
-    return pml_logic_loop;
 }
 
 // Function to save the state of the memory silo
 void save_memory_silo(const char* filename, memory_silo_t* memory_silo) {
+    if (!memory_silo) {
+        fprintf(stderr, "Error: Memory silo is null, cannot save\n");
+        return;
+    }
     FILE* file = fopen(filename, "wb");
     if (file == NULL) {
         perror("Failed to open file for saving Memory Silo");
@@ -102,6 +90,7 @@ void save_memory_silo(const char* filename, memory_silo_t* memory_silo) {
     }
     fwrite(memory_silo, sizeof(memory_silo_t), 1, file);
     fclose(file);
+    printf("Memory silo state saved to %s\n", filename);
 }
 
 // Function to load the state of the memory silo
@@ -121,38 +110,8 @@ memory_silo_t* load_memory_silo(const char* filename) {
     fread(memory_silo, sizeof(memory_silo_t), 1, file);
     fclose(file);
 
+    printf("Memory silo state loaded from %s\n", filename);
     return memory_silo;
-}
-
-// Function to save the state of the IO socket
-void save_io_socket(const char* filename, io_socket_t* io_socket) {
-    FILE* file = fopen(filename, "wb");
-    if (file == NULL) {
-        perror("Failed to open file for saving IO Socket");
-        return;
-    }
-    fwrite(io_socket, sizeof(io_socket_t), 1, file);
-    fclose(file);
-}
-
-// Function to load the state of the IO socket
-io_socket_t* load_io_socket(const char* filename) {
-    FILE* file = fopen(filename, "rb");
-    if (file == NULL) {
-        perror("Failed to open file for loading IO Socket");
-        return NULL;
-    }
-
-    io_socket_t* io_socket = malloc(sizeof(io_socket_t));
-    if (io_socket == NULL) {
-        perror("Memory allocation failed for IO Socket");
-        fclose(file);
-        return NULL;
-    }
-    fread(io_socket, sizeof(io_socket_t), 1, file);
-    fclose(file);
-
-    return io_socket;
 }
 
 // Main function to demonstrate persistence with socket and PML logic loop
@@ -164,39 +123,29 @@ int main() {
     }
 
     // Initialize memory silo and PML logic loop
-    int memory_silo_id = 1;  // Example silo ID
-    pml_logic_loop_init(&io_socket, memory_silo_id);
+    memory_silo_t silo = {0}; // Example memory silo
+    pml_logic_loop_init_wrapper(&io_socket, silo.id);
 
     // Load previous state from files if needed
-    pml_logic_loop_t* loaded_pml_logic_loop = load_pml_logic_loop("pml_logic_loop_state.dat");
     memory_silo_t* loaded_memory_silo = load_memory_silo("memory_silo_state.dat");
-    io_socket_t* loaded_io_socket = load_io_socket("io_socket_state.dat");
-
-    // Main loop for processing
-    while (1) {
-        pml_logic_loop_process(&io_socket);
-
-        // Example condition to break the loop after some time or condition
-        // You can adjust this as per your system's logic
-        if (some_condition_to_exit()) {
-            break;
-        }
+    if (loaded_memory_silo) {
+        printf("Loaded memory silo ID: %d\n", loaded_memory_silo->id);
+        free(loaded_memory_silo); // Free after use
     }
 
-    // Save state before exiting
-    save_pml_logic_loop("pml_logic_loop_state.dat", loaded_pml_logic_loop);
-    save_memory_silo("memory_silo_state.dat", loaded_memory_silo);
-    save_io_socket("io_socket_state.dat", loaded_io_socket);
+    // Main loop for processing
+    int iterations = 0;
+    while (iterations < 5) { // Example limited loop
+        printf("Processing iteration %d\n", iterations + 1);
+        pml_logic_loop_process_wrapper(&io_socket, &silo);
+        iterations++;
+    }
+
+    // Save memory silo state before exiting
+    save_memory_silo("memory_silo_state.dat", &silo);
 
     // Clean up and close the socket
     io_socket_cleanup(&io_socket);
 
     return 0;
-}
-
-// Placeholder function for the exit condition of the loop
-int some_condition_to_exit() {
-    static int count = 0;
-    count++;
-    return count > 5;  // For example, stop after 5 iterations
 }

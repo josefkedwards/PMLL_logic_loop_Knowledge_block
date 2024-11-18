@@ -3,12 +3,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <curl/curl.h>
 #include <time.h> // For timestamps in logging
 
-#define CHATGPT_SERVER_IP "127.0.0.1"
-#define CHATGPT_SERVER_PORT 8080
-#define LLAMA_SERVER_IP "127.0.0.1"
-#define LLAMA_SERVER_PORT 9090
+#define LLAMA_API_URL "https://api.llama.ai/v1/chat" // LLaMA API endpoint
+#define LLAMA_API_KEY "LA-8c4003a74c5040b2b735866f22e754ed55c2ab712b0346b3bca0f1993362704a" // Replace with your LLaMA API Key
+#define CUSTOM_API_URL "http://127.0.0.1:8080/api/v1" // Custom API endpoint
 #define BUFFER_SIZE 1024
 #define LOG_FILE "cross_talk.log"
 
@@ -22,66 +22,96 @@ void log_message(const char* level, const char* message) {
     }
 }
 
-// Serialize data into JSON format
-void serialize_data(void* raw_data, char* output_buffer, size_t buffer_size) {
-    snprintf(output_buffer, buffer_size, "{\"prompt\": \"%s\", \"max_tokens\": 50}", (char*)raw_data);
-    log_message("INFO", "Serialized data for ChatGPT.");
+// CURL Write callback for capturing API responses
+size_t write_callback(void* contents, size_t size, size_t nmemb, void* userp) {
+    size_t realsize = size * nmemb;
+    strncat((char*)userp, (char*)contents, realsize);
+    return realsize;
 }
 
-// Deserialize data from JSON format
-void deserialize_data(const char* input_buffer, void* output_structure) {
-    printf("Deserialized data: %s\n", input_buffer);
-    char log_entry[256];
-    snprintf(log_entry, sizeof(log_entry), "Deserialized data: %s", input_buffer);
-    log_message("INFO", log_entry);
+// Function to interact with the LLaMA API
+void interact_with_llama_api(const char* input_prompt, char* llama_response) {
+    CURL* curl = curl_easy_init();
+    if (!curl) {
+        log_message("ERROR", "Failed to initialize cURL for LLaMA API.");
+        return;
+    }
+
+    char post_fields[BUFFER_SIZE];
+    snprintf(post_fields, sizeof(post_fields), "{\"prompt\": \"%s\", \"max_tokens\": 50}", input_prompt);
+
+    char response_buffer[BUFFER_SIZE] = {0};
+
+    struct curl_slist* headers = NULL;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    headers = curl_slist_append(headers, "Authorization: Bearer " LLAMA_API_KEY);
+
+    curl_easy_setopt(curl, CURLOPT_URL, LLAMA_API_URL);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_fields);
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, response_buffer);
+
+    CURLcode res = curl_easy_perform(curl);
+    if (res != CURLE_OK) {
+        log_message("ERROR", curl_easy_strerror(res));
+    } else {
+        snprintf(llama_response, BUFFER_SIZE, "%s", response_buffer);
+        log_message("INFO", "Successfully interacted with LLaMA API.");
+    }
+
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
+}
+
+// Function to interact with the custom API
+void interact_with_custom_api(const char* input_data, char* custom_response) {
+    CURL* curl = curl_easy_init();
+    if (!curl) {
+        log_message("ERROR", "Failed to initialize cURL for custom API.");
+        return;
+    }
+
+    char post_fields[BUFFER_SIZE];
+    snprintf(post_fields, sizeof(post_fields), "{\"data\": \"%s\"}", input_data);
+
+    char response_buffer[BUFFER_SIZE] = {0};
+
+    curl_easy_setopt(curl, CURLOPT_URL, CUSTOM_API_URL);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_fields);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, response_buffer);
+
+    CURLcode res = curl_easy_perform(curl);
+    if (res != CURLE_OK) {
+        log_message("ERROR", curl_easy_strerror(res));
+    } else {
+        snprintf(custom_response, BUFFER_SIZE, "%s", response_buffer);
+        log_message("INFO", "Successfully interacted with custom API.");
+    }
+
+    curl_easy_cleanup(curl);
 }
 
 // Main cross-talk logic
 void process_cross_talk() {
     log_message("INFO", "Starting cross-talk process.");
-    
-    // Step 1: Create sockets for ChatGPT and LLaMA
-    int chatgpt_socket = create_io_socket();
-    if (chatgpt_socket < 0) {
-        log_message("FATAL", "Failed to establish connection to ChatGPT.");
-        return;
-    }
 
-    int llama_socket = create_io_socket();
-    if (llama_socket < 0) {
-        log_message("FATAL", "Failed to establish connection to LLaMA.");
-        io_socket_cleanup(chatgpt_socket);
-        return;
-    }
+    char llama_response[BUFFER_SIZE] = {0};
+    char custom_response[BUFFER_SIZE] = {0};
 
-    char serialized_data[BUFFER_SIZE];
-    char buffer[BUFFER_SIZE];
+    // Step 1: Interact with LLaMA API
+    const char* llama_input = "Hello, LLaMA!";
+    log_message("INFO", "Sending input to LLaMA API.");
+    interact_with_llama_api(llama_input, llama_response);
+    log_message("INFO", "Received response from LLaMA API.");
 
-    // Step 2: Send input data to ChatGPT
-    char* input_data = "Hello, ChatGPT!";
-    serialize_data(input_data, serialized_data, sizeof(serialized_data));
-    log_message("INFO", "Sending serialized data to ChatGPT.");
-    io_socket_write(chatgpt_socket, serialized_data, strlen(serialized_data));
+    // Step 2: Forward response to custom API
+    log_message("INFO", "Sending LLaMA API response to custom API.");
+    interact_with_custom_api(llama_response, custom_response);
+    log_message("INFO", "Received response from custom API.");
 
-    // Step 3: Receive response from ChatGPT
-    log_message("INFO", "Waiting for response from ChatGPT.");
-    io_socket_read(chatgpt_socket, buffer, sizeof(buffer));
-    log_message("INFO", "Received response from ChatGPT.");
-
-    // Step 4: Forward ChatGPT response to LLaMA
-    log_message("INFO", "Forwarding ChatGPT response to LLaMA.");
-    io_socket_write(llama_socket, buffer, strlen(buffer));
-
-    // Step 5: Receive final response from LLaMA
-    log_message("INFO", "Waiting for final response from LLaMA.");
-    io_socket_read(llama_socket, buffer, sizeof(buffer));
-    printf("Final response from LLaMA: %s\n", buffer);
-    log_message("INFO", "Received final response from LLaMA.");
-
-    // Step 6: Clean up sockets
-    log_message("INFO", "Cleaning up sockets.");
-    io_socket_cleanup(chatgpt_socket);
-    io_socket_cleanup(llama_socket);
-
+    // Step 3: Process and log results
+    printf("Final response from Custom API:\n%s\n", custom_response);
     log_message("INFO", "Cross-talk process completed.");
 }

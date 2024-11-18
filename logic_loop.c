@@ -1,162 +1,152 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
-#include <fcntl.h>
-#include <json-c/json.h>
+#include <time.h>
+#include <string.h>
+#include "log_loop.h"
+#include "cluster_manager.h"
+#include "memory_silo.h"
+#include "io_socket.h"
+#include "cross_talk.h"
 
-// Define the PMLL structure
-typedef struct PMLL {
-    // Metrics
-    int user_adoption_rate;
-    int security_incident_rate;
-    int user_satisfaction_rate;
-    int authentication_success_rate;
-    int authorization_success_rate;
-    int data_protection_effectiveness;
-    int response_time;
-    int system_performance;
-    int user_engagement;
-    int feature_utilization;
-    int behavioral_analytics;
-    int security_compliance;
+#define MAX_ITERATIONS 100
+#define BUFFER_SIZE 1024
+#define API_ENDPOINT_CHATGPT "http://127.0.0.1:8080/api/chatgpt"
+#define API_ENDPOINT_LLAMA "http://127.0.0.1:8081/api/llama"
 
-    // Machine learning model
-    void* model;
-
-    // Functions for ML
-    void (*predict)(struct PMLL*);
-    void (*train)(struct PMLL*);
-    void (*deploy)(struct PMLL*);
-    void (*monitor)(struct PMLL*);
-    void (*maintain)(struct PMLL*);
-    void (*automate)(struct PMLL*);
-    void (*evaluate)(struct PMLL*);
-} PMLL;
-
-// Function prototypes
-PMLL* pml_init();
-void predict(PMLL* pml);
-void train(PMLL* pml);
-void deploy(PMLL* pml);
-void monitor(PMLL* pml);
-void maintain(PMLL* pml);
-void automate(PMLL* pml);
-void evaluate(PMLL* pml);
-void write_to_memory_silos(const char* buffer, int silo_socket);
-void consolidate_memory(PMLL* pml, int pipefd[2]);
-void update_consolidated_memory_graph(PMLL* pml, const char* buffer);
-
-// Function to save PMLL metrics to a JSON file (Persistent Storage)
-void save_pml_metrics(PMLL* pml) {
-    json_object *metrics = json_object_new_object();
-
-    // Add metrics to the JSON object
-    json_object_object_add(metrics, "user_adoption_rate", json_object_new_int(pml->user_adoption_rate));
-    json_object_object_add(metrics, "security_incident_rate", json_object_new_int(pml->security_incident_rate));
-    json_object_object_add(metrics, "user_satisfaction_rate", json_object_new_int(pml->user_satisfaction_rate));
-    json_object_object_add(metrics, "authentication_success_rate", json_object_new_int(pml->authentication_success_rate));
-    json_object_object_add(metrics, "authorization_success_rate", json_object_new_int(pml->authorization_success_rate));
-    json_object_object_add(metrics, "data_protection_effectiveness", json_object_new_int(pml->data_protection_effectiveness));
-    json_object_object_add(metrics, "response_time", json_object_new_int(pml->response_time));
-    json_object_object_add(metrics, "system_performance", json_object_new_int(pml->system_performance));
-    json_object_object_add(metrics, "user_engagement", json_object_new_int(pml->user_engagement));
-    json_object_object_add(metrics, "feature_utilization", json_object_new_int(pml->feature_utilization));
-    json_object_object_add(metrics, "behavioral_analytics", json_object_new_int(pml->behavioral_analytics));
-    json_object_object_add(metrics, "security_compliance", json_object_new_int(pml->security_compliance));
-
-    // Write the JSON object to a file
-    FILE* file = fopen("pml_metrics.json", "w");
-    if (file) {
-        fprintf(file, "%s\n", json_object_to_json_string(metrics));
-        fclose(file);
-    } else {
-        perror("Failed to save PML metrics to file");
+// Function to initialize the logic loop
+int initialize_logic_loop(PMLL* pml) {
+    if (!pml) {
+        fprintf(stderr, "Error: PMLL instance is null\n");
+        return -1;
     }
 
-    // Free the JSON object
-    json_object_put(metrics);
+    printf("Initializing logic loop...\n");
+
+    // Load metrics from persistent storage
+    load_pml_metrics(pml);
+
+    printf("Logic loop initialized successfully.\n");
+    return 0;
 }
 
-// Function to load PMLL metrics from a JSON file
-void load_pml_metrics(PMLL* pml) {
-    FILE* file = fopen("pml_metrics.json", "r");
-    if (!file) {
-        perror("Failed to load PML metrics from file");
+// Main execution of the logic loop
+void execute_logic_loop(PMLL* pml) {
+    if (!pml) {
+        fprintf(stderr, "Error: PMLL instance is null\n");
         return;
     }
 
-    char buffer[2048];
-    size_t len = fread(buffer, 1, sizeof(buffer) - 1, file);
-    buffer[len] = '\0';
+    printf("Starting logic loop...\n");
 
-    json_object *metrics = json_tokener_parse(buffer);
-    if (metrics) {
-        json_object *value;
+    int iterations = 0;
+    while (iterations < MAX_ITERATIONS) {
+        printf("\nIteration %d:\n", iterations + 1);
 
-        // Load metrics from the JSON object
-        if (json_object_object_get_ex(metrics, "user_adoption_rate", &value)) pml->user_adoption_rate = json_object_get_int(value);
-        if (json_object_object_get_ex(metrics, "security_incident_rate", &value)) pml->security_incident_rate = json_object_get_int(value);
-        if (json_object_object_get_ex(metrics, "user_satisfaction_rate", &value)) pml->user_satisfaction_rate = json_object_get_int(value);
-        if (json_object_object_get_ex(metrics, "authentication_success_rate", &value)) pml->authentication_success_rate = json_object_get_int(value);
-        if (json_object_object_get_ex(metrics, "authorization_success_rate", &value)) pml->authorization_success_rate = json_object_get_int(value);
-        if (json_object_object_get_ex(metrics, "data_protection_effectiveness", &value)) pml->data_protection_effectiveness = json_object_get_int(value);
-        if (json_object_object_get_ex(metrics, "response_time", &value)) pml->response_time = json_object_get_int(value);
-        if (json_object_object_get_ex(metrics, "system_performance", &value)) pml->system_performance = json_object_get_int(value);
-        if (json_object_object_get_ex(metrics, "user_engagement", &value)) pml->user_engagement = json_object_get_int(value);
-        if (json_object_object_get_ex(metrics, "feature_utilization", &value)) pml->feature_utilization = json_object_get_int(value);
-        if (json_object_object_get_ex(metrics, "behavioral_analytics", &value)) pml->behavioral_analytics = json_object_get_int(value);
-        if (json_object_object_get_ex(metrics, "security_compliance", &value)) pml->security_compliance = json_object_get_int(value);
+        // Measure start time for performance metrics
+        clock_t start_time = clock();
 
-        // Free the JSON object
-        json_object_put(metrics);
+        // Step 1: Monitor system performance
+        pml->monitor(pml);
+
+        // Step 2: Consolidate memory across silos
+        int pipefd[2];
+        if (pipe(pipefd) == -1) {
+            perror("Pipe creation failed");
+            continue; // Skip to next iteration
+        }
+        consolidate_memory(pml, pipefd);
+        close(pipefd[0]);
+        close(pipefd[1]);
+
+        // Step 3: Evaluate the ML model's performance
+        pml->evaluate(pml);
+
+        // Step 4: Automate and prioritize next steps
+        pml->automate(pml);
+
+        // Step 5: Update consolidated memory graph
+        char buffer[BUFFER_SIZE] = "Memory graph update data";
+        update_consolidated_memory_graph(pml, buffer);
+
+        // Step 6: Cross-talk with APIs
+        char chatgpt_response[BUFFER_SIZE];
+        char llama_response[BUFFER_SIZE];
+
+        printf("Sending API request to ChatGPT...\n");
+        if (send_api_request(API_ENDPOINT_CHATGPT, "Hello, ChatGPT!", chatgpt_response, sizeof(chatgpt_response)) == 0) {
+            printf("Received response from ChatGPT: %s\n", chatgpt_response);
+
+            printf("Forwarding ChatGPT response to LLaMA...\n");
+            if (send_api_request(API_ENDPOINT_LLAMA, chatgpt_response, llama_response, sizeof(llama_response)) == 0) {
+                printf("Received response from LLaMA: %s\n", llama_response);
+            } else {
+                fprintf(stderr, "Error: Failed to send request to LLaMA.\n");
+            }
+        } else {
+            fprintf(stderr, "Error: Failed to send request to ChatGPT.\n");
+        }
+
+        // Step 7: Save metrics for persistence
+        save_pml_metrics(pml);
+
+        // Measure end time for performance metrics
+        clock_t end_time = clock();
+        double elapsed_time = ((double)(end_time - start_time)) / CLOCKS_PER_SEC;
+        printf("Iteration %d completed in %.2f seconds.\n", iterations + 1, elapsed_time);
+
+        // Simulate work
+        usleep(100000); // Sleep for 100ms
+
+        iterations++;
     }
 
-    fclose(file);
+    printf("Logic loop completed after %d iterations.\n", iterations);
 }
 
-// Initialize the PMLL logic loop
-PMLL* pml_init() {
-    PMLL* pml = (PMLL*)malloc(sizeof(PMLL));
+// Cleanup function for the logic loop
+void cleanup_logic_loop(PMLL* pml) {
     if (!pml) {
-        perror("Failed to allocate memory for PMLL");
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "Error: PMLL instance is null\n");
+        return;
     }
 
-    // Initialize metrics
-    pml->user_adoption_rate = 0;
-    pml->security_incident_rate = 0;
-    pml->user_satisfaction_rate = 0;
-    pml->authentication_success_rate = 0;
-    pml->authorization_success_rate = 0;
-    pml->data_protection_effectiveness = 0;
-    pml->response_time = 0;
-    pml->system_performance = 0;
-    pml->user_engagement = 0;
-    pml->feature_utilization = 0;
-    pml->behavioral_analytics = 0;
-    pml->security_compliance = 0;
+    printf("Cleaning up logic loop resources...\n");
 
-    // Initialize machine learning model
-    pml->model = NULL;
+    // Save final metrics to persistent storage
+    save_pml_metrics(pml);
 
-    // Assign functions for ML
-    pml->predict = predict;
-    pml->train = train;
-    pml->deploy = deploy;
-    pml->monitor = monitor;
-    pml->maintain = maintain;
-    pml->automate = automate;
-    pml->evaluate = evaluate;
-
-    return pml;
+    printf("Logic loop cleanup complete.\n");
 }
 
-// Dummy functions for machine learning operations
-void predict(PMLL* pml) { printf("Predicting potential issues and improvements...\n"); }
-void train(PMLL* pml) { printf("Training the machine learning model on historical data...\n"); }
-void deploy(PMLL* pml) { printf("Deploying the machine learning model in a production environment...\n"); }
-void monitor(PMLL* pml) { printf("Monitoring the machine learning model's performance...\n"); }
-void maintain(PMLL* pml) { printf("Maintaining the machine learning model...\n"); }
-void automate(PMLL* pml) { printf("Automating the prioritization and implementation of strategies...\n"); }
-void evaluate(PMLL* pml)
+// Helper function to consolidate memory across silos
+void consolidate_memory(PMLL* pml, int pipefd[2]) {
+    if (!pml) {
+        fprintf(stderr, "Error: PMLL instance is null\n");
+        return;
+    }
+
+    printf("Consolidating memory across silos...\n");
+
+    // Simulated memory consolidation process
+    const char* data = "Consolidated memory data";
+    if (write(pipefd[1], data, strlen(data)) == -1) {
+        perror("Failed to write to pipe");
+        return;
+    }
+    printf("Memory consolidation completed.\n");
+}
+
+// Helper function to update consolidated memory graph
+void update_consolidated_memory_graph(PMLL* pml, const char* buffer) {
+    if (!pml || !buffer) {
+        fprintf(stderr, "Error: Invalid parameters for updating memory graph\n");
+        return;
+    }
+
+    printf("Updating memory graph with: %s\n", buffer);
+
+    // Simulate graph update process
+    // Here you can integrate GPU acceleration if necessary
+    printf("Memory graph updated successfully.\n");
+}

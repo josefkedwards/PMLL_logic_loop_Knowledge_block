@@ -3,6 +3,7 @@ CC = gcc
 CFLAGS = -Wall -Wextra -pedantic -std=c99
 LDFLAGS = -lssl -lcrypto -lcurl
 INCLUDES = -Iinclude
+DEBUG_CFLAGS = -g -DDEBUG
 
 # Build Directories
 BUILD_DIR = build
@@ -31,15 +32,12 @@ SOURCES = \
     silo_manager.c \
     logic_loop.c
 
-# Object files
+# Object and Dependency files
 OBJECTS = $(SOURCES:.c=.o)
+DEPFILES = $(SOURCES:.c=.d)
 
 # Targets
 TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api vector_Matrix silo_manager logic_loop
-
-# Deployment and Testing Scripts
-DEPLOY_SCRIPT = deploy.sh
-ORCHESTRATION_SCRIPT = ./Orchestrate.sh
 
 # Default target: Build all
 .PHONY: all
@@ -75,7 +73,14 @@ logic_loop: logic_loop.o
 
 # Compile Rules
 %.o: %.c
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $(BUILD_DIR)/$@
+
+# Dependency Generation
+%.d: %.c
+	$(CC) -M $(CFLAGS) $(INCLUDES) $< > $@
+
+include $(DEPFILES)
 
 # Test Build
 .PHONY: test
@@ -87,70 +92,20 @@ test: clean
 # Deployment
 .PHONY: deploy
 deploy: $(TARGETS)
-	@echo "Deploying binaries to $(INSTALL_DIR)..."
 	@sudo mkdir -p $(INSTALL_DIR)
-	@for binary in $(TARGETS); do \
-	    if [ -f $$binary ]; then \
-	        sudo cp $$binary $(INSTALL_DIR)/; \
-	        echo "Deployed $$binary to $(INSTALL_DIR)"; \
-	    else \
-	        echo "Binary $$binary not found. Skipping..."; \
-	    fi \
-	done
-	@echo "Deployment complete."
+	@sudo install -m 755 $(TARGETS) $(INSTALL_DIR)/
+	@echo "Deployment complete to $(INSTALL_DIR)."
 
-# Deployment with Script
-.PHONY: deploy_script
-deploy_script: $(DEPLOY_SCRIPT)
-	@echo "Running deployment script $(DEPLOY_SCRIPT)..."
-	@if [ -f $(DEPLOY_SCRIPT) ]; then \
-	    chmod +x $(DEPLOY_SCRIPT); \
-	    ./$(DEPLOY_SCRIPT) || { echo "Deployment script failed. Check logs."; exit 1; }; \
-	else \
-	    echo "Deployment script $(DEPLOY_SCRIPT) not found."; \
-	    exit 1; \
-	fi
-
-# Start Services
-.PHONY: start_services
-start_services:
-	@echo "Starting services..."
-	@$(INSTALL_DIR)/silo_manager & echo $$! > silo_manager.pid
-	@$(INSTALL_DIR)/api & echo $$! > api.pid
-	@$(INSTALL_DIR)/logic_loop & echo $$! > logic_loop.pid
-	@echo "Services started successfully."
-
-# Stop Services
-.PHONY: stop_services
-stop_services:
-	@echo "Stopping services..."
-	@for pidfile in silo_manager.pid api.pid logic_loop.pid; do \
-	    if [ -f $$pidfile ]; then \
-	        kill `cat $$pidfile` && rm -f $$pidfile; \
-	        echo "Stopped service with PID `cat $$pidfile`"; \
-	    else \
-	        echo "PID file $$pidfile not found. Skipping..."; \
-	    fi \
-	done
-	@echo "Services stopped."
-
-# Orchestration Script
-.PHONY: Orchestrate
-Orchestrate:
-	@if [ -f $(ORCHESTRATION_SCRIPT) ]; then \
-		echo "Running orchestration script..."; \
-		chmod +x $(ORCHESTRATION_SCRIPT); \
-		$(ORCHESTRATION_SCRIPT); \
-	else \
-		echo "Error: Orchestration script $(ORCHESTRATION_SCRIPT) not found."; \
-		exit 1; \
-	fi
+# Debug Build
+.PHONY: debug
+debug: CFLAGS += $(DEBUG_CFLAGS)
+debug: all
 
 # Clean Build Artifacts
 .PHONY: clean
 clean:
 	@echo "Cleaning up..."
-	-rm -f *.o $(TARGETS) *.pid
+	-rm -f $(BUILD_DIR)/*.o $(TARGETS) $(DEPFILES) *.pid
 	@echo "Clean complete."
 
 # Help Target

@@ -1,159 +1,181 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include "memory_silo.h"
+#include <stdbool.h>
 #include "io_socket.h"
+#include "memory_silo.h"
+#include "knowledge.h"
+#include "pml_logic_loop.h"
+#include "utf8_tokenizer.h"
 
-// Unified Voice Structure
+// Define a unified voice structure
 typedef struct {
-    int id;
-    int memory_silo_id;
-    int io_socket_id;
+    io_socket_t io_socket;
+    memory_silo_t *memory_silo;
+    pml_logic_loop_t *pml_logic_loop;
+    Graph *knowledge_graph;
 } unified_voice_t;
 
-// Unified Voice Functions
-unified_voice_t* unified_voice_init(int memory_silo_id);
-void unified_voice_read(int io_socket_id, void* buffer, int length);
-void unified_voice_write(int io_socket_id, void* buffer, int length);
-unified_voice_t* get_unified_voice(int io_socket_id);
-
-// IO Socket Functions
-void io_socket_init(int* io_socket_id);
-void io_socket_read(int io_socket_id, void* buffer, int length);
-void io_socket_write(int io_socket_id, void* buffer, int length);
-
-// Diagnosis Window Functions
-void diagnosis_window_init(int io_socket_id);
-void diagnosis_window_update(int io_socket_id, void* buffer, int length);
-void diagnosis_window_close(int io_socket_id);
-
-// Unified Voice Initialization
-unified_voice_t* unified_voice_init(int memory_silo_id) {
-    unified_voice_t* unified_voice = malloc(sizeof(unified_voice_t));
-    if (!unified_voice) {
-        perror("Failed to allocate memory for unified voice");
-        exit(EXIT_FAILURE);
-    }
-    
-    unified_voice->id = 1;
-    unified_voice->memory_silo_id = memory_silo_id;
-
-    // Initialize the IO socket
-    io_socket_init(&unified_voice->io_socket_id);
-
-    return unified_voice;
-}
-
-void unified_voice_read(int io_socket_id, void* buffer, int length) {
-    unified_voice_t* unified_voice = get_unified_voice(io_socket_id);
-    memory_silo_read(unified_voice->memory_silo_id, buffer, length);
-}
-
-void unified_voice_write(int io_socket_id, void* buffer, int length) {
-    unified_voice_t* unified_voice = get_unified_voice(io_socket_id);
-    memory_silo_write(unified_voice->memory_silo_id, buffer, length);
-}
-
-// Get Unified Voice Function
-unified_voice_t* get_unified_voice(int io_socket_id) {
-    unified_voice_t* unified_voice = malloc(sizeof(unified_voice_t));
-    if (!unified_voice) {
-        perror("Failed to allocate memory for unified voice");
-        exit(EXIT_FAILURE);
-    }
-    unified_voice->id = 1;
-    unified_voice->memory_silo_id = 1;
-    unified_voice->io_socket_id = io_socket_id;
-    return unified_voice;
-}
-
-// IO Socket Initialization
-void io_socket_init(int* io_socket_id) {
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock == -1) {
-        perror("Error creating socket");
-        exit(EXIT_FAILURE);
-    }
-    *io_socket_id = sock;
-
-    // Set up the server address
-    struct sockaddr_in server_addr;
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(8080);
-    inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr);
-
-    // Bind the socket to the server address
-    if (bind(sock, (struct sockaddr*)&server_addr, sizeof(server_addr)) == -1) {
-        perror("Error binding socket");
-        close(sock);
+// Function to initialize the unified voice system
+unified_voice_t* init_unified_voice(const char *ip, int port, int silo_id) {
+    unified_voice_t *uv = malloc(sizeof(unified_voice_t));
+    if (!uv) {
+        perror("Failed to allocate unified voice instance");
         exit(EXIT_FAILURE);
     }
 
-    // Listen for incoming connections
-    if (listen(sock, 1) == -1) {
-        perror("Error listening on socket");
-        close(sock);
-        exit(EXIT_FAILURE);
+    // Initialize IO socket
+    if (io_socket_init(&uv->io_socket, ip, port) < 0) {
+        fprintf(stderr, "Failed to initialize IO socket\n");
+        free(uv);
+        return NULL;
     }
-}
 
-void io_socket_read(int io_socket_id, void* buffer, int length) {
-    if (read(io_socket_id, buffer, length) == -1) {
-        perror("Error reading from IO socket");
+    // Initialize memory silo
+    uv->memory_silo = memory_silo_init(silo_id);
+    if (!uv->memory_silo) {
+        fprintf(stderr, "Failed to initialize memory silo\n");
+        io_socket_cleanup(&uv->io_socket);
+        free(uv);
+        return NULL;
     }
-}
 
-void io_socket_write(int io_socket_id, void* buffer, int length) {
-    if (write(io_socket_id, buffer, length) == -1) {
-        perror("Error writing to IO socket");
+    // Initialize PML logic loop
+    uv->pml_logic_loop = pml_logic_loop_init(silo_id, uv->io_socket.socket);
+    if (!uv->pml_logic_loop) {
+        fprintf(stderr, "Failed to initialize PML logic loop\n");
+        memory_silo_free(uv->memory_silo);
+        io_socket_cleanup(&uv->io_socket);
+        free(uv);
+        return NULL;
     }
+
+    // Initialize knowledge graph
+    uv->knowledge_graph = create_graph(1024);
+    if (!uv->knowledge_graph) {
+        fprintf(stderr, "Failed to initialize knowledge graph\n");
+        pml_logic_loop_cleanup(uv->pml_logic_loop);
+        memory_silo_free(uv->memory_silo);
+        io_socket_cleanup(&uv->io_socket);
+        free(uv);
+        return NULL;
+    }
+
+    return uv;
 }
 
-// Diagnosis Window Functions
-void diagnosis_window_init(int io_socket_id) {
-    // Initialize the diagnosis window
-    // (Implementation detail)
-}
+// Function to process UTF-8 input and update knowledge graph
+void process_utf8_and_update_knowledge(unified_voice_t *uv, const char *input) {
+    if (!uv || !input) {
+        fprintf(stderr, "Invalid parameters for process_utf8_and_update_knowledge\n");
+        return;
+    }
 
-void diagnosis_window_update(int io_socket_id, void* buffer, int length) {
-    // Update the diagnosis window
-    io_socket_read(io_socket_id, buffer, length);
-    // (Implementation detail to update the window)
-}
+    printf("Processing input: \"%s\"\n", input);
 
-void diagnosis_window_close(int io_socket_id) {
-    close(io_socket_id);
-}
+    const char *delimiters = " \t\n";
+    const char *start = input;
+    const char *current = input;
 
-int main() {
-    // Initialize the unified voice
-    unified_voice_t* unified_voice = unified_voice_init(1);
+    while (*current) {
+        if (strchr(delimiters, *current) != NULL) {
+            if (current > start) {
+                // Extract token
+                size_t token_len = current - start;
+                char *token = strndup(start, token_len);
 
-    // Initialize the diagnosis window
-    diagnosis_window_init(unified_voice->io_socket_id);
+                // Add token to the knowledge graph
+                Node *node = create_node(token, 0);
+                add_node(uv->knowledge_graph, node);
+                printf("Added token to knowledge graph: %s\n", token);
 
-    // Main loop
-    while (1) {
-        void* buffer = malloc(1024);
-        if (!buffer) {
-            perror("Failed to allocate buffer");
-            break;
+                free(token);
+            }
+            current++;
+            start = current;
+        } else {
+            if (is_utf8_start_byte((unsigned char)*current)) {
+                current++;
+                while (*current && (*current & 0xC0) == 0x80) {
+                    current++;
+                }
+            } else {
+                current++;
+            }
         }
-
-        io_socket_read(unified_voice->io_socket_id, buffer, 1024);
-        diagnosis_window_update(unified_voice->io_socket_id, buffer, 1024);
-        io_socket_write(unified_voice->io_socket_id, buffer, 1024);
-
-        free(buffer);
     }
 
-    // Close the diagnosis window
-    diagnosis_window_close(unified_voice->io_socket_id);
-    free(unified_voice);
+    if (current > start) {
+        // Add last token
+        size_t token_len = current - start;
+        char *token = strndup(start, token_len);
 
-    return 0;
+        Node *node = create_node(token, 0);
+        add_node(uv->knowledge_graph, node);
+        printf("Added token to knowledge graph: %s\n", token);
+
+        free(token);
+    }
+}
+
+// Function to handle cross-talk communication
+void cross_talk(unified_voice_t *uv, const char *message) {
+    if (!uv || !message) {
+        fprintf(stderr, "Invalid parameters for cross-talk\n");
+        return;
+    }
+
+    printf("Sending message to cross-talk socket: %s\n", message);
+    io_socket_write(uv->io_socket.socket, message, strlen(message));
+
+    char buffer[1024];
+    io_socket_read(uv->io_socket.socket, buffer, sizeof(buffer));
+    printf("Received response: %s\n", buffer);
+
+    // Update the knowledge graph with the response
+    process_utf8_and_update_knowledge(uv, buffer);
+}
+
+// Function to run the unified voice system
+void run_unified_voice(unified_voice_t *uv) {
+    if (!uv) {
+        fprintf(stderr, "Unified voice instance is NULL\n");
+        return;
+    }
+
+    const char *test_input = "This is a test input for cross-talk";
+    process_utf8_and_update_knowledge(uv, test_input);
+
+    cross_talk(uv, "Hello from Unified Voice");
+
+    // Simulate PML logic loop execution
+    printf("Executing PML logic loop...\n");
+    pml_logic_loop_process(&uv->io_socket);
+
+    printf("Unified voice processing completed.\n");
+}
+
+// Cleanup function for the unified voice system
+void cleanup_unified_voice(unified_voice_t *uv) {
+    if (!uv) return;
+
+    pml_logic_loop_cleanup(uv->pml_logic_loop);
+    memory_silo_free(uv->memory_silo);
+    destroy_graph(uv->knowledge_graph);
+    io_socket_cleanup(&uv->io_socket);
+    free(uv);
+}
+
+// Main function
+int main() {
+    unified_voice_t *uv = init_unified_voice("127.0.0.1", 8080, 1);
+    if (!uv) {
+        fprintf(stderr, "Failed to initialize unified voice system\n");
+        return EXIT_FAILURE;
+    }
+
+    run_unified_voice(uv);
+    cleanup_unified_voice(uv);
+
+    return EXIT_SUCCESS;
 }

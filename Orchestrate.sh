@@ -1,89 +1,84 @@
 #!/bin/bash
 
-# Configuration Variables
-PROJECT_DIR="/workspaces/pmll"
-INSTALL_DIR="/opt/pmll"
-LOG_FILE="/var/log/pmll_orchestration.log"
+# Define configurations
+VECTOR_MATRIX="./vector_matrix"
+MEMORY_SILO="./memory_silo"
+KNOWLEDGE="./knowledge"
+IO_SOCKET="./io_socket"
+PML_LOGIC_LOOP="./pml_logic_loop"
+UNIFIED_VOICE="./unified_voice"
+CROSS_TALK="./cross_talk"
+PERSISTENCE="./persistence"
+LOG_DIR="./logs"
+PORT_BASE=8080
 
-# Helper function for logging
+# Ensure logs directory exists
+mkdir -p $LOG_DIR
+
+# Logging utility
 log() {
-    echo "$(date +'%Y-%m-%d %H:%M:%S') $1" | tee -a "$LOG_FILE"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_DIR/orchestra.log"
 }
 
-# Function to deploy binaries
-deploy() {
-    log "Deploying binaries to $INSTALL_DIR..."
-    sudo mkdir -p "$INSTALL_DIR" || { log "Failed to create install directory"; exit 1; }
-    make deploy || { log "Deployment failed"; exit 1; }
-    log "Deployment successful."
+# Start a component
+start_component() {
+    local component=$1
+    local port=$2
+
+    log "Starting $component on port $port..."
+    $component $port > "$LOG_DIR/${component}_log.txt" 2>&1 &
+    local pid=$!
+    echo $pid
 }
 
-# Function to start services
-start_services() {
-    log "Starting services..."
-    make start_services || { log "Failed to start services"; exit 1; }
-    log "Services started successfully."
+# Check if a component is running
+check_pid() {
+    local pid=$1
+    if kill -0 $pid 2>/dev/null; then
+        return 0
+    else
+        return 1
+    fi
 }
 
-# Function to stop services
-stop_services() {
-    log "Stopping services..."
-    make stop_services || { log "Failed to stop services"; exit 1; }
-    log "Services stopped successfully."
+# Kill all running components
+cleanup() {
+    log "Cleaning up all running processes..."
+    for pid in "${PIDS[@]}"; do
+        if check_pid $pid; then
+            log "Stopping process $pid..."
+            kill $pid
+        fi
+    done
+    log "Cleanup complete."
 }
 
-# Function to restart services
-restart_services() {
-    log "Restarting services..."
-    make restart_services || { log "Failed to restart services"; exit 1; }
-    log "Services restarted successfully."
-}
+# Trap exit signal to ensure cleanup
+trap cleanup EXIT
 
-# Function to clean the environment
-clean() {
-    log "Cleaning the environment..."
-    make clean || { log "Failed to clean environment"; exit 1; }
-    log "Clean complete."
-}
+# Start all components
+PIDS=()
+COMPONENTS=($VECTOR_MATRIX $MEMORY_SILO $KNOWLEDGE $IO_SOCKET $PML_LOGIC_LOOP $UNIFIED_VOICE $CROSS_TALK $PERSISTENCE)
+PORT=$PORT_BASE
 
-# Function to build the project
-build() {
-    log "Building the project..."
-    make all || { log "Build failed"; exit 1; }
-    log "Build successful."
-}
-
-# Menu for orchestrating tasks
-log "Starting orchestration script..."
-PS3="Select a task: "
-options=("Build All" "Deploy" "Start Services" "Stop Services" "Restart Services" "Clean" "Quit")
-select opt in "${options[@]}"
-do
-    case $opt in
-        "Build All")
-            build
-            ;;
-        "Deploy")
-            deploy
-            ;;
-        "Start Services")
-            start_services
-            ;;
-        "Stop Services")
-            stop_services
-            ;;
-        "Restart Services")
-            restart_services
-            ;;
-        "Clean")
-            clean
-            ;;
-        "Quit")
-            log "Exiting orchestration script."
-            break
-            ;;
-        *)
-            echo "Invalid option. Please select a valid task."
-            ;;
-    esac
+for component in "${COMPONENTS[@]}"; do
+    pid=$(start_component $component $PORT)
+    PIDS+=($pid)
+    log "$component started with PID $pid on port $PORT"
+    PORT=$((PORT + 1))
 done
+
+# Monitor the components
+log "All components started successfully. Monitoring processes..."
+
+while true; do
+    sleep 5
+    for i in "${!PIDS[@]}"; do
+        if ! check_pid "${PIDS[$i]}"; then
+            log "Process ${PIDS[$i]} (Component: ${COMPONENTS[$i]}) has stopped unexpectedly."
+            cleanup
+            exit 1
+        fi
+    done
+done
+

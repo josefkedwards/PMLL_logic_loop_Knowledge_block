@@ -1,23 +1,22 @@
-#include "io_socket.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <unistd.h>
-#include <time.h> // For monitoring timestamps
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <time.h>
+#include "io_socket.h"
+#include "knowledge.h"
+#include "memory_silo.h"
+#include "pml_logic_loop.h"
 
-#define SERVER_IP "127.0.0.1"
-#define SERVER_PORT 8080
-#define BUFFER_SIZE 1024
+// Constants for buffer sizes and retry limits
+#define BUFFER_SIZE 2048
 #define RETRY_LIMIT 5
-#define LOG_FILE "io_socket.log"
 
-// Logging utility
+// Logging utility function
 void log_message(const char* level, const char* message) {
-    FILE* log_file = fopen(LOG_FILE, "a");
+    FILE* log_file = fopen("io_socket.log", "a");
     if (log_file) {
         time_t now = time(NULL);
         fprintf(log_file, "[%s] [%s] %s\n", level, ctime(&now), message);
@@ -25,103 +24,176 @@ void log_message(const char* level, const char* message) {
     }
 }
 
-// Retry mechanism for socket creation
-int create_io_socket() {
-    int io_socket = -1;
-    int retries = 0;
+// Function to initialize an IO socket
+int io_socket_init(io_socket_t *io_socket, const char *ip, int port) {
+    if (!io_socket || !ip) {
+        fprintf(stderr, "Invalid parameters for IO socket initialization\n");
+        return -1;
+    }
 
-    while (io_socket < 0 && retries < RETRY_LIMIT) {
-        io_socket = socket(AF_INET, SOCK_STREAM, 0);
-        if (io_socket < 0) {
+    int retries = 0;
+    while (retries < RETRY_LIMIT) {
+        io_socket->socket = socket(AF_INET, SOCK_STREAM, 0);
+        if (io_socket->socket < 0) {
             log_message("ERROR", "Failed to create IO socket");
             perror("Error creating IO socket");
             retries++;
-            sleep(1 << retries); // Exponential backoff
+            sleep(1);  // Retry delay
             continue;
         }
 
         struct sockaddr_in server_addr;
         memset(&server_addr, 0, sizeof(server_addr));
         server_addr.sin_family = AF_INET;
-        server_addr.sin_port = htons(SERVER_PORT);
+        server_addr.sin_port = htons(port);
 
-        if (inet_pton(AF_INET, SERVER_IP, &server_addr.sin_addr) <= 0) {
+        if (inet_pton(AF_INET, ip, &server_addr.sin_addr) <= 0) {
             log_message("ERROR", "Invalid server IP address");
             perror("Invalid server IP address");
-            close(io_socket);
-            io_socket = -1;
+            close(io_socket->socket);
             retries++;
             continue;
         }
 
-        if (connect(io_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
-            log_message("ERROR", "Failed to connect to IO socket");
-            perror("Error connecting to IO socket");
-            close(io_socket);
-            io_socket = -1;
+        if (connect(io_socket->socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
+            log_message("ERROR", "Failed to connect to server");
+            perror("Error connecting to server");
+            close(io_socket->socket);
             retries++;
+        } else {
+            log_message("INFO", "Successfully connected to server");
+            return 0;
         }
     }
 
-    if (io_socket < 0) {
-        log_message("FATAL", "Failed to establish connection after retries");
-        fprintf(stderr, "Failed to connect after %d retries\n", RETRY_LIMIT);
+    log_message("FATAL", "Failed to establish connection after retries");
+    return -1;
+}
+
+// Function to send data through the socket
+int io_socket_send(int socket, const void *data, size_t length) {
+    if (!data || length == 0) {
+        fprintf(stderr, "Invalid parameters for sending data\n");
         return -1;
     }
 
-    log_message("INFO", "Successfully connected to IO socket");
-    printf("Connected to IO socket at %s:%d\n", SERVER_IP, SERVER_PORT);
-    return io_socket;
-}
-
-// Send data over the IO socket
-void io_socket_write(int io_socket, void* buffer, size_t length) {
-    if (io_socket < 0 || buffer == NULL || length == 0) {
-        log_message("ERROR", "Invalid parameters for sending data");
-        fprintf(stderr, "Invalid parameters for sending data\n");
-        return;
-    }
-
-    ssize_t bytes_sent = send(io_socket, buffer, length, 0);
+    ssize_t bytes_sent = send(socket, data, length, 0);
     if (bytes_sent < 0) {
-        log_message("ERROR", "Failed to send data over IO socket");
-        perror("Error sending data over IO socket");
-    } else {
-        char log_entry[256];
-        snprintf(log_entry, sizeof(log_entry), "Sent %ld bytes of data", bytes_sent);
-        log_message("INFO", log_entry);
+        log_message("ERROR", "Failed to send data");
+        perror("Error sending data");
+        return -1;
+    }
+
+    char log_entry[256];
+    snprintf(log_entry, sizeof(log_entry), "Sent %ld bytes of data", bytes_sent);
+    log_message("INFO", log_entry);
+
+    return bytes_sent;
+}
+
+// Function to receive data from the socket
+int io_socket_receive(int socket, void *buffer, size_t buffer_size) {
+    if (!buffer || buffer_size == 0) {
+        fprintf(stderr, "Invalid parameters for receiving data\n");
+        return -1;
+    }
+
+    ssize_t bytes_received = recv(socket, buffer, buffer_size - 1, 0);
+    if (bytes_received < 0) {
+        log_message("ERROR", "Failed to receive data");
+        perror("Error receiving data");
+        return -1;
+    }
+
+    ((char*)buffer)[bytes_received] = '\0';  // Null-terminate the data
+    char log_entry[256];
+    snprintf(log_entry, sizeof(log_entry), "Received %ld bytes of data: %s", bytes_received, (char*)buffer);
+    log_message("INFO", log_entry);
+
+    return bytes_received;
+}
+
+// Function to close the IO socket
+void io_socket_close(io_socket_t *io_socket) {
+    if (io_socket && io_socket->socket >= 0) {
+        close(io_socket->socket);
+        io_socket->socket = -1;
+        log_message("INFO", "IO socket closed successfully");
     }
 }
 
-// Receive data from the IO socket
-void io_socket_read(int io_socket, void* buffer, size_t buffer_size) {
-    if (io_socket < 0 || buffer == NULL || buffer_size == 0) {
-        log_message("ERROR", "Invalid parameters for receiving data");
-        fprintf(stderr, "Invalid parameters for receiving data\n");
+// Function to handle cross-talk communication with APIs
+void cross_talk_with_apis(io_socket_t *io_socket, const char *message) {
+    if (!io_socket || !message) {
+        fprintf(stderr, "Invalid parameters for cross-talk\n");
         return;
     }
 
-    ssize_t bytes_received = recv(io_socket, buffer, buffer_size - 1, 0);
-    if (bytes_received < 0) {
-        log_message("ERROR", "Failed to receive data over IO socket");
-        perror("Error receiving data over IO socket");
-    } else {
-        ((char*)buffer)[bytes_received] = '\0'; // Null-terminate the data
-        char log_entry[256];
-        snprintf(log_entry, sizeof(log_entry), "Received %ld bytes of data: %s", bytes_received, (char*)buffer);
-        log_message("INFO", log_entry);
+    // Send request to API
+    printf("Sending message to API: %s\n", message);
+    if (io_socket_send(io_socket->socket, message, strlen(message)) < 0) {
+        fprintf(stderr, "Failed to send message to API\n");
+        return;
     }
+
+    // Receive response from API
+    char buffer[BUFFER_SIZE];
+    if (io_socket_receive(io_socket->socket, buffer, sizeof(buffer)) < 0) {
+        fprintf(stderr, "Failed to receive response from API\n");
+        return;
+    }
+
+    // Update knowledge graph with API response
+    Graph *knowledge_graph = create_graph(1024);  // Assume a knowledge graph is used
+    Node *node = create_node(buffer, 0);
+    add_node(knowledge_graph, node);
+    printf("Updated knowledge graph with response: %s\n", buffer);
 }
 
-// Cleanup resources
-void io_socket_cleanup(int io_socket) {
-    if (io_socket >= 0) {
-        if (close(io_socket) < 0) {
-            log_message("ERROR", "Error closing IO socket");
-            perror("Error closing IO socket");
-        } else {
-            log_message("INFO", "IO socket closed successfully");
-            printf("IO socket closed successfully\n");
-        }
+// Function to integrate with PML Logic Loop and Memory Silo
+void integrate_pml_memory(io_socket_t *io_socket, memory_silo_t *memory_silo) {
+    if (!io_socket || !memory_silo) {
+        fprintf(stderr, "Invalid parameters for PML Memory integration\n");
+        return;
     }
+
+    printf("Integrating PML logic loop and memory silo...\n");
+
+    // Example: Send siloed data to the PML logic loop
+    char siloed_data[BUFFER_SIZE] = "Example siloed data";
+    io_socket_send(io_socket->socket, siloed_data, strlen(siloed_data));
+
+    // Simulate processing within PML logic loop
+    pml_logic_loop_process(io_socket);
+    printf("Integration completed.\n");
+}
+
+// Main function for testing
+int main() {
+    // Initialize IO socket
+    io_socket_t io_socket;
+    if (io_socket_init(&io_socket, "127.0.0.1", 8080) < 0) {
+        fprintf(stderr, "Failed to initialize IO socket\n");
+        return EXIT_FAILURE;
+    }
+
+    // Initialize memory silo
+    memory_silo_t *memory_silo = memory_silo_init(1);
+    if (!memory_silo) {
+        fprintf(stderr, "Failed to initialize memory silo\n");
+        io_socket_close(&io_socket);
+        return EXIT_FAILURE;
+    }
+
+    // Perform cross-talk with APIs
+    cross_talk_with_apis(&io_socket, "Hello from IO Socket");
+
+    // Integrate with PML logic loop and memory silo
+    integrate_pml_memory(&io_socket, memory_silo);
+
+    // Cleanup
+    memory_silo_free(memory_silo);
+    io_socket_close(&io_socket);
+
+    return EXIT_SUCCESS;
 }

@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <memory_silo.h>
+#include "knowledge.h" // Include knowledge graph operations
+#include "io_socket.h" // Include IO socket for API communication
 
 // Memory Silo Structure
 typedef struct {
@@ -69,6 +72,15 @@ void memory_silo_write(int io_socket, void* buffer, size_t length) {
         return;
     }
     memcpy(silo->memory, buffer, length);
+
+    // Update the knowledge graph with written data
+    Graph* knowledge_graph = get_global_knowledge_graph();
+    if (knowledge_graph) {
+        char* node_name = "Silo Update";
+        Node* node = create_node(node_name, silo->id);
+        add_node(knowledge_graph, node);
+        printf("Knowledge graph updated with silo write operation.\n");
+    }
 }
 
 // Function to Read from Memory Silo
@@ -83,6 +95,42 @@ void memory_silo_read(int io_socket, void* buffer, size_t length) {
         return;
     }
     memcpy(buffer, silo->memory, length);
+
+    // Log the read operation to the knowledge graph
+    Graph* knowledge_graph = get_global_knowledge_graph();
+    if (knowledge_graph) {
+        char* node_name = "Silo Read";
+        Node* node = create_node(node_name, silo->id);
+        add_node(knowledge_graph, node);
+        printf("Knowledge graph updated with silo read operation.\n");
+    }
+}
+
+// Function to Sync Memory Silo with API via Socket
+void sync_memory_silo_with_api(io_socket_t* api_socket, int silo_id) {
+    memory_silo_t* silo = get_memory_silo(api_socket->socket);
+    if (!silo) {
+        fprintf(stderr, "No silo found for socket %d\n", api_socket->socket);
+        return;
+    }
+
+    // Send silo data to the API
+    printf("Syncing memory silo %d with API...\n", silo_id);
+    if (io_socket_send(api_socket->socket, silo->memory, silo->size) < 0) {
+        fprintf(stderr, "Failed to sync memory silo with API\n");
+        return;
+    }
+
+    // Receive response from API and update knowledge graph
+    char buffer[1024];
+    if (io_socket_receive(api_socket->socket, buffer, sizeof(buffer)) > 0) {
+        Graph* knowledge_graph = get_global_knowledge_graph();
+        if (knowledge_graph) {
+            Node* node = create_node(buffer, silo_id);
+            add_node(knowledge_graph, node);
+            printf("Knowledge graph updated with API response: %s\n", buffer);
+        }
+    }
 }
 
 // Function to Cleanup Memory Silos
@@ -97,19 +145,33 @@ void cleanup_memory_silos() {
 
 // Main function for testing
 int main() {
-    int io_socket1 = 1;
-    int io_socket2 = 2;
+    // Initialize IO Sockets for two APIs
+    io_socket_t api_socket1, api_socket2;
+    io_socket_init(&api_socket1, "127.0.0.1", 8081);  // API 1
+    io_socket_init(&api_socket2, "127.0.0.1", 8082);  // API 2
 
-    memory_silo_init(io_socket1);
-    memory_silo_init(io_socket2);
+    // Initialize Memory Silos for each API
+    memory_silo_init(api_socket1.socket);
+    memory_silo_init(api_socket2.socket);
 
-    char data[] = "Hello, Memory Silo!";
-    memory_silo_write(io_socket1, data, sizeof(data));
+    // Write data to API 1 Silo
+    char data[] = "Hello, API 1 Memory Silo!";
+    memory_silo_write(api_socket1.socket, data, sizeof(data));
 
-    char buffer[1024];
-    memory_silo_read(io_socket1, buffer, sizeof(data));
-    printf("Read from Memory Silo 1: %s\n", buffer);
+    // Sync API 1 Silo with its API
+    sync_memory_silo_with_api(&api_socket1, 1);
 
+    // Write data to API 2 Silo
+    char data2[] = "Hello, API 2 Memory Silo!";
+    memory_silo_write(api_socket2.socket, data2, sizeof(data2));
+
+    // Sync API 2 Silo with its API
+    sync_memory_silo_with_api(&api_socket2, 2);
+
+    // Cleanup
     cleanup_memory_silos();
+    io_socket_close(&api_socket1);
+    io_socket_close(&api_socket2);
+
     return 0;
 }
