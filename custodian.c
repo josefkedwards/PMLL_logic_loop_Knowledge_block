@@ -1,9 +1,13 @@
-#include "io_socket.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <curl/curl.h>
-#include <time.h> // For logging timestamps
+#include <time.h>
+#include "io_socket.h"
+#include "memory_silo.h"
+#include "pml_logic_loop.h"
+#include "knowledge.h"
 
 #define LLAMA_API_URL "https://api.llama.ai/v1/chat" // LLaMA API endpoint
 #define LLAMA_API_KEY "LA-8c4003a74c5040b2b735866f22e754ed55c2ab712b0346b3bca0f1993362704a"
@@ -109,29 +113,70 @@ void process_bitcoin_payment(const char* recipient, double amount) {
     }
 }
 
+// Function to sync with memory silo
+void sync_with_memory_silo(io_socket_t* io_socket, memory_silo_t* silo) {
+    if (!io_socket || !silo) {
+        log_message("ERROR", "Invalid parameters for memory silo synchronization.");
+        return;
+    }
+
+    if (io_socket_send(io_socket->socket, silo->memory, silo->size) < 0) {
+        log_message("ERROR", "Failed to sync memory silo data.");
+    } else {
+        log_message("INFO", "Memory silo data synced successfully.");
+    }
+
+    char response[BUFFER_SIZE];
+    if (io_socket_receive(io_socket->socket, response, sizeof(response)) > 0) {
+        log_message("INFO", "Response received from memory silo synchronization.");
+    }
+}
+
 // Main custodian logic
 void run_custodian() {
     log_message("INFO", "Starting custodian process.");
 
+    // Step 1: Initialize IO socket
+    io_socket_t io_socket;
+    if (io_socket_init(&io_socket, "127.0.0.1", 8080) < 0) {
+        log_message("ERROR", "Failed to initialize IO socket.");
+        return;
+    }
+
+    // Step 2: Initialize memory silo
+    memory_silo_t* silo = malloc(sizeof(memory_silo_t));
+    if (!silo) {
+        log_message("ERROR", "Failed to allocate memory for silo.");
+        io_socket_cleanup(&io_socket);
+        return;
+    }
+    memory_silo_init(silo->io_socket);
+
+    // Step 3: Interact with APIs
     char llama_response[BUFFER_SIZE] = {0};
     char custom_response[BUFFER_SIZE] = {0};
-
-    // Step 1: Interact with LLaMA API
     const char* llama_input = "Hello, LLaMA!";
-    log_message("INFO", "Sending input to LLaMA API.");
     interact_with_llama_api(llama_input, llama_response);
-
-    // Step 2: Forward response to custom API
-    log_message("INFO", "Forwarding LLaMA response to custom API.");
     interact_with_custom_api(llama_response, custom_response);
 
-    // Step 3: Initiate Bitcoin transaction
+    // Step 4: Execute PML Logic Loop
+    log_message("INFO", "Executing PML Logic Loop.");
+    pml_logic_loop_process(io_socket.socket, silo->memory, silo->size);
+
+    // Step 5: Process Bitcoin transaction
     log_message("INFO", "Processing Bitcoin payment.");
-    const char* recipient_wallet = "bc1qd4w0hy62c0ulcuwla6kxh7ct64wtunz03pkf0v"; // Example recipient wallet
-    double amount_to_transfer = 1.0; // Example amount in BTC
-    process_bitcoin_payment(recipient_wallet, amount_to_transfer);
+    process_bitcoin_payment(BITCOIN_WALLET, 0.1);
+
+    // Step 6: Sync with memory silo
+    sync_with_memory_silo(&io_socket, silo);
+
+    // Cleanup resources
+    free(silo);
+    io_socket_cleanup(&io_socket);
+    log_message("INFO", "Custodian process completed.");
 }
 
+// Main function
 int main() {
     run_custodian();
     return 0;
