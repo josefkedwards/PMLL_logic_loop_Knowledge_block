@@ -5,7 +5,7 @@
 #include <openssl/aes.h>
 
 // Define the team wallet address
-#define TEAM_WALLET_ADDRESS "74c8948f671e5b3d8ac5d868c5fbd53c9337f9fafe7698d21a9e88cf5ff3588d"
+#define TEAM_WALLET_ADDRESS "bc1qetkudft7hlsl3k7nhrg6zrkufpu6q3rdnx5ag5"
 
 // Function declarations
 void PMLL_Hash_Function(const char *input, unsigned char *output);
