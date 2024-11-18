@@ -18,6 +18,7 @@ SOURCES = \
     io_socket.c \
     persistence.c \
     cross_talk.c \
+    custodian.c \
     main.c \
     vector_Matrix.c \
     arc_agi_benchmark.c \
@@ -37,14 +38,14 @@ OBJECTS = $(SOURCES:.c=.o)
 DEPFILES = $(SOURCES:.c=.d)
 
 # Targets
-TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api vector_Matrix silo_manager logic_loop
+TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api vector_Matrix silo_manager logic_loop custodian
 
 # Default target: Build all
 .PHONY: all
 all: $(TARGETS)
 
 # Define each binary and its dependencies
-pmll: unified_voice.o pml_logic_loop.o memory_silo.o io_socket.o persistence.o cross_talk.o main.o vector_Matrix.o
+pmll: unified_voice.o pml_logic_loop.o memory_silo.o io_socket.o persistence.o cross_talk.o custodian.o main.o vector_Matrix.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
 arc_agi_benchmark: arc_agi_benchmark.o vector_Matrix.o io_socket.o
@@ -69,6 +70,9 @@ silo_manager: silo_manager.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
 logic_loop: logic_loop.o
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
+
+custodian: custodian.o io_socket.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
 # Compile Rules
