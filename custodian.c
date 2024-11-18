@@ -4,13 +4,12 @@
 #include <unistd.h>
 #include <curl/curl.h>
 #include <time.h>
+#include <bitcoin/bitcoin.h>  // Include Bitcoin library for signing transactions
 #include "io_socket.h"
 #include "memory_silo.h"
 #include "pml_logic_loop.h"
 #include "knowledge.h"
-#include <bitcoin/bitcoin.h>  // Include Bitcoin library for signing transactions
 
-// Bitcoin-related definitions
 #define BITCOIN_WALLET "bc1qetkudft7hlsl3k7nhrg6zrkufpu6q3rdnx5ag5"  // Example Bitcoin address
 #define BITCOIN_RPC_URL "http://127.0.0.1:8332"  // Your Bitcoin RPC URL
 #define BUFFER_SIZE 1024
@@ -33,41 +32,9 @@ size_t write_callback(void* contents, size_t size, size_t nmemb, void* userp) {
     return realsize;
 }
 
-// Function to interact with an API
-int interact_with_api(const char* url, const char* headers[], const char* payload, char* response) {
-    CURL* curl = curl_easy_init();
-    if (!curl) {
-        log_message("ERROR", "Failed to initialize cURL.");
-        return -1;
-    }
-
-    struct curl_slist* header_list = NULL;
-    for (int i = 0; headers && headers[i]; i++) {
-        header_list = curl_slist_append(header_list, headers[i]);
-    }
-
-    curl_easy_setopt(curl, CURLOPT_URL, url);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload);
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header_list);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, response);
-
-    CURLcode res = curl_easy_perform(curl);
-    if (res != CURLE_OK) {
-        log_message("ERROR", curl_easy_strerror(res));
-        curl_easy_cleanup(curl);
-        curl_slist_free_all(header_list);
-        return -1;
-    }
-
-    curl_easy_cleanup(curl);
-    curl_slist_free_all(header_list);
-    return 0;
-}
-
-// Function to retrieve private key from an environment variable
+// Function to retrieve private key from an environment variable or directly from user input
 const char* get_private_key() {
-    const char* private_key = getenv("boat garment lawsuit useless fortune version all try ignore steel gospel vendor");
+    const char* private_key = getenv("PRIVATE_KEY");  // Alternatively, you could pass this securely through an argument or configuration file.
     if (private_key == NULL) {
         log_message("ERROR", "Private key not found in environment variable.");
         return NULL;
@@ -83,9 +50,7 @@ void sign_bitcoin_transaction(char* tx_hex, const char* private_key) {
     }
 
     // Use libbitcoin or other Bitcoin library to sign the transaction
-    libbitcoin::wallet::payment_address sender_address;
     libbitcoin::wallet::secret_key secret_key;
-
     if (!secret_key.from_base58(private_key)) {
         log_message("ERROR", "Invalid private key.");
         return;
@@ -94,6 +59,7 @@ void sign_bitcoin_transaction(char* tx_hex, const char* private_key) {
     // Create a dummy transaction for the purpose of demonstration
     libbitcoin::transaction tx;
     // Add inputs, outputs, etc., to the transaction
+    // For real transaction signing, you should add proper inputs and outputs here.
 
     // Sign the transaction
     libbitcoin::wallet::sign(tx, secret_key);
