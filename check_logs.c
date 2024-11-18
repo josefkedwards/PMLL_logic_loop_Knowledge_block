@@ -15,7 +15,7 @@
 #define BITCOIN_RPC_URL "http://127.0.0.1:8332"  // Your Bitcoin RPC URL
 #define BUFFER_SIZE 1024
 
-// Logging utility for logging check logs activities
+// Logging utility for logging activities
 void log_message(const char* level, const char* message) {
     FILE* log_file = fopen(LOG_FILE, "a");
     if (log_file) {
@@ -227,7 +227,5 @@ void check_logs_and_perform_checks() {
 
     // Step 1: Read log file and print to console
     printf("Reading log file: %s\n", LOG_FILE);
-    read_log_file(LOG_FILE);
+    read
 
-    // Step 2: Check for issues in logs via the system API
-    log_message("INFO", "
