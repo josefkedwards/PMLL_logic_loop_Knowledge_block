@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include <time.h>
 #include "io_socket.h"
+#include "unified_voice.h"
 #include "knowledge.h"
 #include "memory_silo.h"
 #include "logic_loop.h" // Updated from pml_logic_loop.h to logic_loop.h
