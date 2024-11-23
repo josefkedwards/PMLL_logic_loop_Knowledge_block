@@ -26,86 +26,84 @@ echo "Consent Request Log - $(date)" > "$INTERNAL_LOG_FILE"
 echo "Consent Request Log - $(date)" > "$EXTERNAL_LOG_FILE"
 echo "Error Log - $(date)" > "$ERROR_LOG_FILE"
 
-# Function to dynamically discover endpoints
-discover_endpoints() {
-  for i in {1..7500}; do
-    INTERNAL_SILOS+=("https://silo$i.internal")
-  done
-  for i in {1..144000}; do
-    EXTERNAL_SILOS+=("https://silo$i.external")
-  done
-  echo "Discovered Internal Silos:" >> "$LOG_DIR/internal_endpoints.log"
-  printf "%s\n" "${INTERNAL_SILOS[@]}" >> "$LOG_DIR/internal_endpoints.log"
-  echo "Discovered External Silos:" >> "$LOG_DIR/external_endpoints.log"
-  printf "%s\n" "${EXTERNAL_SILOS[@]}" >> "$LOG_DIR/external_endpoints.log"
-}
-
-# Function to send consent requests with retries and notifications
-send_request() {
-  local SILO="$1"
+# Function to resolve URL to IP and send consent request
+resolve_and_send_request() {
+  local URL="$1"
   local LOG_FILE="$2"
-  local MAX_RETRIES=3
-  local RETRY_DELAY=2
-  local attempt=1
+  local TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 
-  # Extract IP or hostname from the URL
-  local SILO_HOST=$(echo "$SILO" | awk -F[/:] '{print $4}')
+  # Resolve the IP address using dig
+  local IP=$(dig +short "$URL" | tail -n1)
+  if [ -z "$IP" ]; then
+    echo "[$TIMESTAMP] ERROR: Failed to resolve $URL" >> "$ERROR_LOG_FILE"
+    return 1
+  fi
 
-  # Ping the IP address or hostname to check connectivity
-  echo "Pinging $SILO_HOST to check connectivity..."
-  if ping -c 1 "$SILO_HOST" > /dev/null 2>&1; then
-    echo "Ping to $SILO_HOST succeeded. Host reachable."
-    # Notify UI server
-    curl -s -X POST "https://ui-server.internal/notify" \
-      -H "Content-Type: application/json" \
-      --data "{\"message\": \"Ping to $SILO_HOST succeeded\", \"status\": \"reachable\"}" > /dev/null
+  # Ping the resolved IP to check connectivity
+  if ping -c 1 "$IP" > /dev/null 2>&1; then
+    echo "[$TIMESTAMP] SUCCESS: Ping succeeded for $URL (masked IP)" >> "$LOG_FILE"
   else
-    echo "Ping to $SILO_HOST failed. Host unreachable." >> "$ERROR_LOG_FILE"
-    curl -s -X POST "https://ui-server.internal/notify" \
-      -H "Content-Type: application/json" \
-      --data "{\"message\": \"Ping to $SILO_HOST failed\", \"status\": \"unreachable\"}" > /dev/null
+    echo "[$TIMESTAMP] ERROR: Ping failed for $URL (masked IP)" >> "$ERROR_LOG_FILE"
     return 1
   fi
 
   # Send consent request
+  local attempt=1
+  local MAX_RETRIES=3
+  local RETRY_DELAY=2
+
   while [ $attempt -le $MAX_RETRIES ]; do
-    echo "Sending request to $SILO Attempt $attempt/$MAX_RETRIES..."
-    RESPONSE=$(curl -s -X POST "$SILO/consent" \
+    RESPONSE=$(curl -s -X POST "https://$IP/consent" \
       -H "Content-Type: application/json" \
       --data "$CONSENT_PAYLOAD")
     CURL_STATUS=$?
 
     if [ $CURL_STATUS -eq 0 ] && [[ "$RESPONSE" != "" ]]; then
-      echo "[$SILO] Response: $RESPONSE" >> "$LOG_FILE"
-      curl -s -X POST "https://ui-server.internal/notify" \
-        -H "Content-Type: application/json" \
-        --data "{\"message\": \"Consent request to $SILO succeeded\", \"status\": \"success\"}" > /dev/null
+      echo "[$TIMESTAMP] SUCCESS: Consent request succeeded for $URL (masked IP)" >> "$LOG_FILE"
       return 0
     else
-      echo "[$SILO] Failed to send request (Attempt $attempt). Response: $RESPONSE" >> "$ERROR_LOG_FILE"
-      curl -s -X POST "https://ui-server.internal/notify" \
-        -H "Content-Type: application/json" \
-        --data "{\"message\": \"Consent request to $SILO failed (Attempt $attempt)\", \"status\": \"failure\"}" > /dev/null
+      echo "[$TIMESTAMP] ERROR: Consent request failed for $URL (masked IP) [Attempt $attempt]" >> "$ERROR_LOG_FILE"
       sleep $RETRY_DELAY
       RETRY_DELAY=$((RETRY_DELAY * 2)) # Exponential backoff
       attempt=$((attempt + 1))
     fi
   done
 
-  echo "[$SILO] Request failed after $MAX_RETRIES attempts." >> "$ERROR_LOG_FILE"
-  curl -s -X POST "https://ui-server.internal/notify" \
-    -H "Content-Type: application/json" \
-    --data "{\"message\": \"Consent request to $SILO failed after $MAX_RETRIES attempts\", \"status\": \"failure\"}" > /dev/null
+  echo "[$TIMESTAMP] ERROR: Consent request failed after retries for $URL (masked IP)" >> "$ERROR_LOG_FILE"
   return 1
 }
 
-# Discover endpoints dynamically
-INTERNAL_SILOS=()
-EXTERNAL_SILOS=()
-discover_endpoints
+# Discover and process internal and external silos
+process_silos() {
+  local START=$1
+  local END=$2
+  local DOMAIN=$3
+  local LOG_FILE=$4
 
-# Process consent requests with limited parallel jobs
-echo "${INTERNAL_SILOS[@]}" | tr ' ' '\n' | xargs -P 10 -n 1 bash -c 'send_request "$@"' _ "$INTERNAL_LOG_FILE"
-echo "${EXTERNAL_SILOS[@]}" | tr ' ' '\n' | xargs -P 20 -n 1 bash -c 'send_request "$@"' _ "$EXTERNAL_LOG_FILE"
+  echo "Processing silos: $DOMAIN..."
 
-echo "Consent requests sent. Check $INTERNAL_LOG_FILE, $EXTERNAL_LOG_FILE, and $ERROR_LOG_FILE for responses or errors."
+  for i in $(seq $START $END); do
+    resolve_and_send_request "silo$i.$DOMAIN" "$LOG_FILE" &
+  done
+
+  wait
+}
+
+# Process internal silos (1-7500)
+process_silos 1 7500 "internal" "$INTERNAL_LOG_FILE"
+
+# Process external silos (1-144000)
+process_silos 1 144000 "external" "$EXTERNAL_LOG_FILE"
+
+# Summarize results
+SUCCESS_COUNT_INTERNAL=$(grep -c "SUCCESS" "$INTERNAL_LOG_FILE")
+FAILURE_COUNT_INTERNAL=$(grep -c "ERROR" "$ERROR_LOG_FILE")
+
+SUCCESS_COUNT_EXTERNAL=$(grep -c "SUCCESS" "$EXTERNAL_LOG_FILE")
+FAILURE_COUNT_EXTERNAL=$(grep -c "ERROR" "$ERROR_LOG_FILE")
+
+echo "SUMMARY:"
+echo "Internal Silos - Success: $SUCCESS_COUNT_INTERNAL, Failures: $FAILURE_COUNT_INTERNAL"
+echo "External Silos - Success: $SUCCESS_COUNT_EXTERNAL, Failures: $FAILURE_COUNT_EXTERNAL"
+
+echo "Consent requests sent. Check $INTERNAL_LOG_FILE, $EXTERNAL_LOG_FILE, and $ERROR_LOG_FILE for summaries."
