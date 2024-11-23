@@ -15,19 +15,25 @@
 #define RETRY_LIMIT 5
 
 // Logging utility function
+#define LOG_FILE "io_socket.log"
+
 void log_message(const char* level, const char* message) {
-    FILE* log_file = fopen("io_socket.log", "a");
+    FILE* log_file = fopen(LOG_FILE, "a");
     if (log_file) {
         time_t now = time(NULL);
-        fprintf(log_file, "[%s] [%s] %s\n", level, ctime(&now), message);
+        char* timestamp = ctime(&now);
+        timestamp[strlen(timestamp) - 1] = '\0'; // Remove newline
+        fprintf(log_file, "[%s] [%s] %s\n", level, timestamp, message);
         fclose(log_file);
+    } else {
+        fprintf(stderr, "Failed to open log file: %s\n", LOG_FILE);
     }
 }
 
 // Function to initialize an IO socket
 int io_socket_init(io_socket_t *io_socket, const char *ip, int port) {
     if (!io_socket || !ip) {
-        fprintf(stderr, "Invalid parameters for IO socket initialization\n");
+        log_message("ERROR", "Invalid parameters for IO socket initialization");
         return -1;
     }
 
@@ -73,7 +79,7 @@ int io_socket_init(io_socket_t *io_socket, const char *ip, int port) {
 // Function to send data through the socket
 int io_socket_send(int socket, const void *data, size_t length) {
     if (!data || length == 0) {
-        fprintf(stderr, "Invalid parameters for sending data\n");
+        log_message("ERROR", "Invalid parameters for sending data");
         return -1;
     }
 
@@ -94,7 +100,7 @@ int io_socket_send(int socket, const void *data, size_t length) {
 // Function to receive data from the socket
 int io_socket_receive(int socket, void *buffer, size_t buffer_size) {
     if (!buffer || buffer_size == 0) {
-        fprintf(stderr, "Invalid parameters for receiving data\n");
+        log_message("ERROR", "Invalid parameters for receiving data");
         return -1;
     }
 
@@ -125,21 +131,21 @@ void io_socket_close(io_socket_t *io_socket) {
 // Function to handle cross-talk communication with APIs
 void cross_talk_with_apis(io_socket_t *io_socket, const char *message) {
     if (!io_socket || !message) {
-        fprintf(stderr, "Invalid parameters for cross-talk\n");
+        log_message("ERROR", "Invalid parameters for cross-talk");
         return;
     }
 
     // Send request to API
     printf("Sending message to API: %s\n", message);
     if (io_socket_send(io_socket->socket, message, strlen(message)) < 0) {
-        fprintf(stderr, "Failed to send message to API\n");
+        log_message("ERROR", "Failed to send message to API");
         return;
     }
 
     // Receive response from API
     char buffer[BUFFER_SIZE];
     if (io_socket_receive(io_socket->socket, buffer, sizeof(buffer)) < 0) {
-        fprintf(stderr, "Failed to receive response from API\n");
+        log_message("ERROR", "Failed to receive response from API");
         return;
     }
 
@@ -153,7 +159,7 @@ void cross_talk_with_apis(io_socket_t *io_socket, const char *message) {
 // Function to integrate with PML Logic Loop and Memory Silo
 void integrate_pml_memory(io_socket_t *io_socket, memory_silo_t *memory_silo) {
     if (!io_socket || !memory_silo) {
-        fprintf(stderr, "Invalid parameters for PML Memory integration\n");
+        log_message("ERROR", "Invalid parameters for PML Memory integration");
         return;
     }
 
