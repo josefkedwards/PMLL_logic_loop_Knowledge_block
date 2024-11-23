@@ -2,10 +2,16 @@
 # File: Orchestrate.sh
 # Description: Integrates consent collection, health checks, payload distribution, and binary deployment.
 
-# Determine the directory of this script
+# Determine the directory of this script (Dynamically resolve the script location)
 SCRIPT_DIR="${SCRIPT_DIR:-$(dirname "$0")}"
 
-# Paths and Configuration
+# Ensure the directory where Orchestrate.sh is located exists
+if [ ! -d "$SCRIPT_DIR" ]; then
+    echo "ERROR: The directory for Orchestrate.sh does not exist! Exiting."
+    exit 1
+fi
+
+# Define paths dynamically based on SCRIPT_DIR
 LOG_DIR="$SCRIPT_DIR/logs"
 BUILD_LOG="$LOG_DIR/build.log"
 ORCHESTRA_LOG="$LOG_DIR/orchestra.log"
@@ -32,12 +38,13 @@ PAYLOAD_MESSAGE=$(cat <<EOF
 EOF
 )
 
-# Ensure directories exist
-mkdir -p "$LOG_DIR" "$BINARIES_DIR"
+# Ensure directories exist before using them
+mkdir -p "$LOG_DIR" "$BINARIES_DIR"  # Ensure log and binary directories exist
 
-# Logging utility
+# Logging utility with a digital ones and zeros pattern
 log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$ORCHESTRA_LOG"
+    echo "01001001 01100100 01100101 01101110 01110100 01101001 01100101" >> "$ORCHESTRA_LOG"  # Visual binary signature
 }
 
 # Initialize counters
@@ -96,7 +103,7 @@ for component in "${COMPONENTS[@]}"; do
 done
 log "All components validated and prepared for distribution."
 
-# Function to send payload message
+# Function to send payload message with digital theme
 send_payload() {
     local silo=$1
     local attempt=1
@@ -109,6 +116,7 @@ send_payload() {
         if [ $? -eq 0 ] && [[ "$RESPONSE" == *"ACKNOWLEDGED"* ]]; then
             SUCCESS_PAYLOAD=$((SUCCESS_PAYLOAD + 1))
             echo "Payload sent to silo$silo.$SILO_DOMAIN"
+            echo "01100011 01100101 01100100 01101001 01110100 01100101 01101100 01100101"  # Binary signature for success
             return 0
         fi
 
@@ -117,10 +125,11 @@ send_payload() {
     done
 
     FAILED_PAYLOAD=$((FAILED_PAYLOAD + 1))
+    echo "01101001 01110011 00100000 01100110 01100001 01101100 01100101 01100100"  # Binary for "is failed"
     return 1
 }
 
-# Function to deploy binaries
+# Function to deploy binaries with digital signature
 deploy_binaries() {
     local silo=$1
     local binary=$2
@@ -134,6 +143,7 @@ deploy_binaries() {
         if [ $? -eq 0 ]; then
             SUCCESS_BINARY=$((SUCCESS_BINARY + 1))
             echo "Binary deployed to silo$silo.$SILO_DOMAIN"
+            echo "01101110 01101001 01100101 01100100 00100000 01100010 01101001 01101110 01100001 01110010 01111001"  # Binary for "needed binary"
             return 0
         fi
 
@@ -142,6 +152,7 @@ deploy_binaries() {
     done
 
     FAILED_BINARY=$((FAILED_BINARY + 1))
+    echo "01000110 01100001 01101001 01101100 01100101 01100100"  # Binary for "Failed"
     return 1
 }
 
