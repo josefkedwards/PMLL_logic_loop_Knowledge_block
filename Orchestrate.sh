@@ -1,151 +1,176 @@
 #!/bin/bash
+# File: Orchestrate.sh
+# Description: Integrates consent collection, health checks, payload distribution, and binary deployment.
 
-# Define component configurations
-VECTOR_MATRIX="./vector_matrix"
-MEMORY_SILO="./memory_silo"
-KNOWLEDGE="./knowledge"
-IO_SOCKET="./io_socket"
-PML_LOGIC_LOOP="./pml_logic_loop"
-UNIFIED_VOICE="./unified_voice"
-CROSS_TALK="./cross_talk"
-PERSISTENCE="./persistence"
-FREE="./free"
+# Paths and Configuration
 LOG_DIR="./logs"
+BUILD_LOG="$LOG_DIR/build.log"
+ORCHESTRA_LOG="$LOG_DIR/orchestra.log"
+CONSENT_LOG_FILE="$LOG_DIR/consent_responses.log"
+BINARIES_DIR="./binaries"
 PORT_BASE=8080
 
-# Log files for orchestration tasks
-CONSENT_LOG_FILE="$LOG_DIR/consent_responses.log"
-HEALTH_LOG_FILE="$LOG_DIR/health_checks.log"
-SYNC_LOG_FILE="$LOG_DIR/data_sync.log"
-BUILD_LOG_FILE="$LOG_DIR/build.log"
+# Components to orchestrate
+COMPONENTS=("VECTOR_MATRIX" "MEMORY_SILO" "IO_SOCKET" "PML_LOGIC_LOOP" "UNIFIED_VOICE" "CROSS_TALK" "PERSISTENCE")
 
-# Ensure logs directory exists
-mkdir -p $LOG_DIR
+# URL/IP configuration for silos
+SILO_DOMAIN="silo"
+START_SILO=1
+END_SILO=144000
+RETRY_COUNT=3
+
+# Payload message
+PAYLOAD_MESSAGE=$(cat <<EOF
+{
+  "subject": "Deployment Notification",
+  "body": "We are deploying the latest binaries to your silo. Please prepare to receive updates."
+}
+EOF
+)
+
+# Ensure directories exist
+mkdir -p "$LOG_DIR" "$BINARIES_DIR"
 
 # Logging utility
 log() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_DIR/orchestra.log"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$ORCHESTRA_LOG"
 }
 
-# Compile a component
-compile_component() {
-    local component=$1
-    local source_files=$2
+# Initialize counters
+SUCCESS_PAYLOAD=0
+FAILED_PAYLOAD=0
+SUCCESS_BINARY=0
+FAILED_BINARY=0
+FAILED_HEALTH=0
 
-    log "Compiling $component..."
-    gcc -o "$component" $source_files -lcurl &>> "$BUILD_LOG_FILE"
-    if [ $? -ne 0 ]; then
-        log "ERROR: Compilation failed for $component. Check $BUILD_LOG_FILE for details."
-        exit 1
-    fi
-    log "Compilation successful for $component."
-}
-
-# Validate environment
-validate_environment() {
-    for component in "$IO_SOCKET" "$CROSS_TALK" "$PML_LOGIC_LOOP" "$VECTOR_MATRIX" "$FREE"; do
-        if [ ! -f "$component" ]; then
-            log "ERROR: Missing executable: $component. Compile it before running Orchestrate.sh."
-            exit 1
-        fi
-    done
-}
-
-# Execute free.c tasks
-execute_free() {
-    log "Executing free.c tasks..."
-    $FREE > "$LOG_DIR/free_log.txt" 2>&1
-    if [ $? -ne 0 ]; then
-        log "ERROR: free.c execution failed. Check free_log.txt for details."
-    else
-        log "free.c execution completed successfully."
-    fi
-}
-
-# Start a component
-start_component() {
-    local component=$1
-    local port=$2
-
-    if [ "$component" == "$CROSS_TALK" ]; then
-        log "Starting $component with direct execution..."
-        $component > "$LOG_DIR/${component}_log.txt" 2>&1 &
-    else
-        log "Starting $component on port $port..."
-        $component $port > "$LOG_DIR/${component}_log.txt" 2>&1 &
-    fi
-
-    local pid=$!
-    echo $pid
-}
-
-# Check if a component is running
-check_pid() {
-    local pid=$1
-    if kill -0 $pid 2>/dev/null; then
+# Health check function
+health_check() {
+    local silo=$1
+    RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "https://silo$silo.$SILO_DOMAIN/health")
+    if [ "$RESPONSE" == "200" ]; then
         return 0
     else
+        log "Health check failed for silo$silo.$SILO_DOMAIN"
+        FAILED_HEALTH=$((FAILED_HEALTH + 1))
         return 1
     fi
 }
 
-# Kill all running components
-cleanup() {
-    log "Cleaning up all running processes..."
-    for pid in "${PIDS[@]}"; do
-        if check_pid $pid; then
-            log "Stopping process $pid..."
-            kill $pid
+# Step 1: Execute Consent_request.sh
+log "Starting consent request process..."
+./Consent_request.sh
+if [ $? -ne 0 ]; then
+    log "ERROR: Consent_request.sh failed. Exiting."
+    exit 1
+fi
+
+# Verify consent results
+if [ ! -f "$CONSENT_LOG_FILE" ]; then
+    log "ERROR: Consent log not found. Exiting."
+    exit 1
+fi
+SUCCESS_COUNT=$(grep -c "SUCCESS" "$CONSENT_LOG_FILE")
+FAILURE_COUNT=$(grep -c "ERROR" "$CONSENT_LOG_FILE")
+log "Consent process completed. Success: $SUCCESS_COUNT, Failures: $FAILURE_COUNT"
+
+# Step 2: Compile dependencies
+log "Compiling dependencies..."
+make clean all &>> "$BUILD_LOG"
+if [ $? -ne 0 ]; then
+    log "ERROR: Compilation failed. Check $BUILD_LOG for details."
+    exit 1
+fi
+log "Compilation completed successfully."
+
+# Validate compiled components
+log "Validating compiled components..."
+for component in "${COMPONENTS[@]}"; do
+    if [ ! -f "./$component" ]; then
+        log "ERROR: Missing executable for $component. Exiting."
+        exit 1
+    fi
+    cp "./$component" "$BINARIES_DIR"
+done
+log "All components validated and prepared for distribution."
+
+# Function to send payload message
+send_payload() {
+    local silo=$1
+    local attempt=1
+
+    while [ $attempt -le $RETRY_COUNT ]; do
+        RESPONSE=$(curl -s -X POST "https://silo$silo.$SILO_DOMAIN/payload" \
+            -H "Content-Type: application/json" \
+            --data "$PAYLOAD_MESSAGE")
+
+        if [ $? -eq 0 ] && [[ "$RESPONSE" == *"ACKNOWLEDGED"* ]]; then
+            SUCCESS_PAYLOAD=$((SUCCESS_PAYLOAD + 1))
+            echo "Payload sent to silo$silo.$SILO_DOMAIN"
+            return 0
         fi
+
+        attempt=$((attempt + 1))
+        sleep 2
     done
-    log "Cleanup complete."
+
+    FAILED_PAYLOAD=$((FAILED_PAYLOAD + 1))
+    return 1
 }
 
-# Trap exit signal to ensure cleanup
-trap cleanup EXIT
+# Function to deploy binaries
+deploy_binaries() {
+    local silo=$1
+    local binary=$2
+    local attempt=1
 
-# Main orchestration logic
-log "Starting orchestration..."
+    while [ $attempt -le $RETRY_COUNT ]; do
+        RESPONSE=$(curl -s -X POST "https://silo$silo.$SILO_DOMAIN/binary" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary "@$BINARIES_DIR/$binary")
 
-# Compile all components
-compile_component "$IO_SOCKET" "io_socket.c"
-compile_component "$CROSS_TALK" "cross_talk.c io_socket.c"
-compile_component "$PML_LOGIC_LOOP" "logic_loop.c io_socket.c memory_silo.c"
-compile_component "$VECTOR_MATRIX" "vector_matrix.c"
-compile_component "$FREE" "free.c json.c"
-
-# Validate environment
-validate_environment
-
-# Start components
-PIDS=()
-COMPONENTS=($VECTOR_MATRIX $MEMORY_SILO $KNOWLEDGE $IO_SOCKET $PML_LOGIC_LOOP $UNIFIED_VOICE $CROSS_TALK $PERSISTENCE)
-PORT=$PORT_BASE
-
-for component in "${COMPONENTS[@]}"; do
-    if [ -f "$component" ]; then
-        pid=$(start_component $component $PORT)
-        PIDS+=($pid)
-        log "$component started with PID $pid on port $PORT"
-        PORT=$((PORT + 1))
-    else
-        log "Skipping $component - executable not found."
-    fi
-done
-
-# Monitor components and silos
-log "All components started successfully. Monitoring processes and silos..."
-
-while true; do
-    sleep 5
-    for i in "${!PIDS[@]}"; do
-        if ! check_pid "${PIDS[$i]}"; then
-            log "Process ${PIDS[$i]} (Component: ${COMPONENTS[$i]}) has stopped unexpectedly."
-            cleanup
-            exit 1
+        if [ $? -eq 0 ]; then
+            SUCCESS_BINARY=$((SUCCESS_BINARY + 1))
+            echo "Binary deployed to silo$silo.$SILO_DOMAIN"
+            return 0
         fi
+
+        attempt=$((attempt + 1))
+        sleep 2
     done
 
-    # Execute periodic free.c tasks
-    execute_free
+    FAILED_BINARY=$((FAILED_BINARY + 1))
+    return 1
+}
+
+# Step 3: Notify silos with payload
+log "Performing health checks and sending payload notifications to silos..."
+for silo in $(seq $START_SILO $END_SILO); do
+    if health_check "$silo"; then
+        send_payload "$silo" &
+    else
+        echo "Skipping silo$silo.$SILO_DOMAIN due to failed health check."
+    fi
 done
+wait
+log "Payload notifications complete."
+
+# Step 4: Deploy binaries to silos
+log "Deploying binaries to silos..."
+for binary in "${COMPONENTS[@]}"; do
+    for silo in $(seq $START_SILO $END_SILO); do
+        if health_check "$silo"; then
+            deploy_binaries "$silo" "$binary" &
+        else
+            echo "Skipping silo$silo.$SILO_DOMAIN due to failed health check."
+        fi
+    done
+done
+wait
+log "Binary distribution complete."
+
+# Summary
+echo -e "\nSummary of Operations:"
+echo "Payload Notifications - Success: $SUCCESS_PAYLOAD, Failed: $FAILED_PAYLOAD"
+echo "Binary Deployments - Success: $SUCCESS_BINARY, Failed: $FAILED_BINARY"
+echo "Health Checks - Failed: $FAILED_HEALTH"
+log "Deployment process completed."
