@@ -25,6 +25,20 @@ log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_DIR/orchestra.log"
 }
 
+# Compile cross_talk executable if not found
+compile_cross_talk() {
+    if [ ! -f "$CROSS_TALK" ]; then
+        log "cross_talk executable not found. Attempting to compile..."
+        gcc -o cross_talk cross_talk.c -lcurl
+        if [ $? -eq 0 ]; then
+            log "cross_talk compiled successfully."
+        else
+            log "ERROR: Failed to compile cross_talk."
+            exit 1
+        fi
+    fi
+}
+
 # Start a component
 start_component() {
     local component=$1
@@ -121,6 +135,9 @@ initiate_cross_talk() {
 
 # Main orchestration logic
 log "Starting orchestration..."
+
+# Compile cross_talk if necessary
+compile_cross_talk
 
 PIDS=()
 COMPONENTS=($VECTOR_MATRIX $MEMORY_SILO $KNOWLEDGE $IO_SOCKET $PML_LOGIC_LOOP $UNIFIED_VOICE $CROSS_TALK $PERSISTENCE)
