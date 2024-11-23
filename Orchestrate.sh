@@ -107,14 +107,14 @@ trap cleanup EXIT
 # Main orchestration logic
 log "Starting orchestration..."
 
-# Validate environment
-validate_environment
-
 # Compile all components
 compile_component "$IO_SOCKET" "io_socket.c"
 compile_component "$CROSS_TALK" "cross_talk.c io_socket.c"
 compile_component "$PML_LOGIC_LOOP" "logic_loop.c io_socket.c memory_silo.c"
 compile_component "$FREE" "free.c json.c"
+
+# Validate environment
+validate_environment
 
 # Start components
 PIDS=()
@@ -148,3 +148,4 @@ while true; do
     # Execute periodic free.c tasks
     execute_free
 done
+
