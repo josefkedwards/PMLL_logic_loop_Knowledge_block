@@ -106,4 +106,7 @@ echo "SUMMARY:"
 echo "Internal Silos - Success: $SUCCESS_COUNT_INTERNAL, Failures: $FAILURE_COUNT_INTERNAL"
 echo "External Silos - Success: $SUCCESS_COUNT_EXTERNAL, Failures: $FAILURE_COUNT_EXTERNAL"
 
-echo "Consent requests sent. Check $INTERNAL_LOG_FILE, $EXTERNAL_LOG_FILE, 
+echo "Consent requests sent. Check $INTERNAL_LOG_FILE, $EXTERNAL_LOG_FILE, and $ERROR_LOG_FILE for summaries."
+
+# Add a "Finished" message
+printf "\nAll processing completed. Finished!\n"
