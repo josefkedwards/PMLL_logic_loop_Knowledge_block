@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "pml_logic_loop.h" // Ensures that PMLL structure is correctly included
 
 // Function to retrieve general knowledge graph data
 void retrieve_general_knowledge(char* buffer, size_t buffer_size) {
