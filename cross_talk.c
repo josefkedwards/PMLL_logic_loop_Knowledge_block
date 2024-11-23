@@ -126,3 +126,10 @@ void process_cross_talk() {
     printf("Final response from Custom API:\n%s\n", custom_response);
     log_message("INFO", "Cross-talk process completed.");
 }
+
+// Main function to enable compilation
+int main() {
+    process_cross_talk();
+    return 0;
+}
+
