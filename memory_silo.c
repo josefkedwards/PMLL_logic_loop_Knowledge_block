@@ -1,9 +1,9 @@
+#include "memory_silo.h"
+#include "knowledge.h" // Include knowledge graph operations
+#include "io_socket.h" // Include IO socket for API communication
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <memory_silo.h>
-#include "knowledge.h" // Include knowledge graph operations
-#include "io_socket.h" // Include IO socket for API communication
 
 // Memory Silo Structure
 typedef struct {
