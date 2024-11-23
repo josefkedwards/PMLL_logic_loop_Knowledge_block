@@ -32,10 +32,10 @@ resolve_and_send_request() {
   local LOG_FILE="$2"
   local TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 
-  # Resolve the IP address using dig
-  local IP=$(dig +short "$URL" | tail -n1)
+  # Resolve the IP address using host
+  local IP=$(host "$URL" | awk '/has address/ { print $4 }' | head -n1)
   if [ -z "$IP" ]; then
-    echo "[$TIMESTAMP] ERROR: Failed to resolve $URL" >> "$ERROR_LOG_FILE"
+    echo "[$TIMESTAMP] ERROR: Failed to resolve $URL using host" >> "$ERROR_LOG_FILE"
     return 1
   fi
 
