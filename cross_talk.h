@@ -10,6 +10,13 @@
 #define BUFFER_SIZE 1024                               // Buffer size for API responses
 #define LOG_FILE "cross_talk.log"                      // Log file for cross-talk events
 
+// Macros for safety
+#define SAFE_STRNCAT(dest, src, size) do { \
+    if (strlen(dest) + strlen(src) + 1 <= size) { \
+        strncat(dest, src, size - strlen(dest) - 1); \
+    } \
+} while(0)
+
 // Function Declarations
 
 /**
@@ -25,7 +32,7 @@ void log_message(const char* level, const char* message);
  * @param output_buffer The buffer where the serialized JSON string will be stored.
  * @param buffer_size The size of the output buffer.
  */
-void serialize_data(void* raw_data, char* output_buffer, size_t buffer_size);
+void serialize_data(const void* raw_data, char* output_buffer, size_t buffer_size);
 
 /**
  * Deserialize data from JSON format.
