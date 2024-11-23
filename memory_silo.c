@@ -1,6 +1,7 @@
 #include "memory_silo.h"
 #include "knowledge.h" // Include knowledge graph operations
 #include "io_socket.h" // Include IO socket for API communication
+#include "unified_voice.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
