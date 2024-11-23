@@ -1,9 +1,43 @@
 #!/bin/bash
 
-# Define Silos and Deployment Details
-SILOS=("silo1.example.com" "silo2.example.com" "silo3.example.com" ... "silo300.example.com")
+# Configuration
 INSTALL_DIR="/opt/pmll"
 DEPLOY_DIR="path/to/binaries"
+LOG_DIR="./logs"
+CONSENT_PAYLOAD='{
+    "subject": "Request for Consent",
+    "body": "We are deploying PMLL components. Do you consent to participate? Respond AGREE or DENY.",
+    "action_required": true
+}'
+
+# Ensure logs directory exists
+mkdir -p $LOG_DIR
+
+# Silos discovery
+discover_silos() {
+    echo "Discovering silos..."
+    # Replace with dynamic discovery logic
+    SILOS=()
+    for i in {1..300}; do
+        SILOS+=("silo$i.example.com")
+    done
+    echo "Discovered ${#SILOS[@]} silos."
+}
+
+# Function to Send Consent Request
+send_consent_request() {
+    local silo=$1
+    echo "Sending consent request to $silo..."
+    RESPONSE=$(curl -s -X POST "http://$silo/consent" \
+        -H "Content-Type: application/json" \
+        -d "$CONSENT_PAYLOAD" 2>/dev/null)
+
+    if [ $? -eq 0 ]; then
+        echo "[$silo] Response: $RESPONSE" >> "$LOG_DIR/consent_responses.log"
+    else
+        echo "[$silo] Failed to send request." >> "$LOG_DIR/consent_responses.log"
+    fi
+}
 
 # Function to Deploy to a Single Silo
 deploy_to_silo() {
@@ -22,6 +56,26 @@ deploy_to_silo() {
     echo "Deployment successful on $silo"
 }
 
-# Deploy to All Silos
+# Discover Silos
+discover_silos
+
+# Consent and Deployment
 for silo in "${SILOS[@]}"; do
-    deploy_to_silo $silo &
+    # Send consent request
+    send_consent_request $silo &
+
+    # Deploy if consent is granted
+    if grep -q "AGREE" "$LOG_DIR/consent_responses.log"; then
+        deploy_to_silo $silo &
+    else
+        echo "Consent not received for $silo. Skipping deployment."
+    fi
+
+    # Wait a moment before the next iteration to avoid overloading
+    sleep 0.1
+done
+
+wait
+
+echo "Deployment process completed. Check $LOG_DIR for logs."
+
