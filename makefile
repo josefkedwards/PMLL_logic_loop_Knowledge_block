@@ -20,7 +20,7 @@ SOURCES = \
     cross_talk.c \
     custodian.c \
     main.c \
-    vector_Matrix.c \
+    vector_matrix.c \
     arc_agi_benchmark.c \
     pmll_np_solver.c \
     SAT_Compare.c \
@@ -34,57 +34,62 @@ SOURCES = \
     logic_loop.c
 
 # Object and Dependency files
-OBJECTS = $(SOURCES:.c=.o)
-DEPFILES = $(SOURCES:.c=.d)
+OBJECTS = $(patsubst %.c, $(BUILD_DIR)/%.o, $(SOURCES))
+DEPFILES = $(patsubst %.c, $(BUILD_DIR)/%.d, $(SOURCES))
 
 # Targets
-TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api vector_Matrix silo_manager logic_loop custodian
+TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api vector_matrix silo_manager logic_loop custodian
 
 # Default target: Build all
 .PHONY: all
 all: $(TARGETS)
 
 # Define each binary and its dependencies
-pmll: unified_voice.o pml_logic_loop.o memory_silo.o io_socket.o persistence.o cross_talk.o custodian.o main.o vector_Matrix.o
+pmll: $(BUILD_DIR)/unified_voice.o $(BUILD_DIR)/pml_logic_loop.o $(BUILD_DIR)/memory_silo.o \
+      $(BUILD_DIR)/io_socket.o $(BUILD_DIR)/persistence.o $(BUILD_DIR)/cross_talk.o \
+      $(BUILD_DIR)/custodian.o $(BUILD_DIR)/main.o $(BUILD_DIR)/vector_matrix.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
-arc_agi_benchmark: arc_agi_benchmark.o vector_Matrix.o io_socket.o
+arc_agi_benchmark: $(BUILD_DIR)/arc_agi_benchmark.o $(BUILD_DIR)/vector_matrix.o $(BUILD_DIR)/io_socket.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
-pmll_np_solver: pmll_np_solver.o vector_Matrix.o io_socket.o
+pmll_np_solver: $(BUILD_DIR)/pmll_np_solver.o $(BUILD_DIR)/vector_matrix.o $(BUILD_DIR)/io_socket.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
-sat_test: SAT_Compare.o Pmll_NP_Solver.o MiniSAT.o generate_3sat_instance.o SAT_Solver.o vector_Matrix.o io_socket.o
+sat_test: $(BUILD_DIR)/SAT_Compare.o $(BUILD_DIR)/Pmll_NP_Solver.o $(BUILD_DIR)/MiniSAT.o \
+          $(BUILD_DIR)/generate_3sat_instance.o $(BUILD_DIR)/SAT_Solver.o $(BUILD_DIR)/vector_matrix.o \
+          $(BUILD_DIR)/io_socket.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
-api_llama: API_Llama.o vector_Matrix.o io_socket.o
+api_llama: $(BUILD_DIR)/API_Llama.o $(BUILD_DIR)/vector_matrix.o $(BUILD_DIR)/io_socket.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
-api: API.o vector_Matrix.o io_socket.o
+api: $(BUILD_DIR)/API.o $(BUILD_DIR)/vector_matrix.o $(BUILD_DIR)/io_socket.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
-vector_Matrix: vector_Matrix.o io_socket.o
+vector_matrix: $(BUILD_DIR)/vector_matrix.o $(BUILD_DIR)/io_socket.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
-silo_manager: silo_manager.o
+silo_manager: $(BUILD_DIR)/silo_manager.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
-logic_loop: logic_loop.o
+logic_loop: $(BUILD_DIR)/logic_loop.o $(BUILD_DIR)/pml_logic_loop.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
-custodian: custodian.o io_socket.o
+custodian: $(BUILD_DIR)/custodian.o $(BUILD_DIR)/io_socket.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
 # Compile Rules
-%.o: %.c
+$(BUILD_DIR)/%.o: %.c
 	@mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $(BUILD_DIR)/$@
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 # Dependency Generation
-%.d: %.c
+$(BUILD_DIR)/%.d: %.c
+	@mkdir -p $(BUILD_DIR)
 	$(CC) -M $(CFLAGS) $(INCLUDES) $< > $@
 
-include $(DEPFILES)
+include $(wildcard $(DEPFILES))
 
 # Test Build
 .PHONY: test
@@ -119,9 +124,6 @@ help:
 	@echo "  all                  Build all executables."
 	@echo "  test                 Build test executables with debug flags."
 	@echo "  deploy               Deploy binaries to $(INSTALL_DIR)."
-	@echo "  deploy_script        Run deployment using deploy.sh."
-	@echo "  start_services       Start all services."
-	@echo "  stop_services        Stop all services."
-	@echo "  Orchestrate          Run the orchestration script."
+	@echo "  debug                Build with debug flags."
 	@echo "  clean                Remove all build artifacts."
 	@echo "  help                 Show this help message."
