@@ -19,8 +19,11 @@ HEALTH_LOG_FILE="$LOG_DIR/health_checks.log"
 SYNC_LOG_FILE="$LOG_DIR/data_sync.log"
 BUILD_LOG_FILE="$LOG_DIR/build.log"
 
-# Ensure logs directory exists
-mkdir -p $LOG_DIR
+# Ensure logs directory exists with proper permissions
+if [ ! -d "$LOG_DIR" ]; then
+    mkdir -p $LOG_DIR || { echo "ERROR: Failed to create logs directory."; exit 1; }
+    chmod 755 $LOG_DIR
+fi
 
 # Logging utility
 log() {
@@ -43,12 +46,17 @@ compile_component() {
 
 # Validate environment
 validate_environment() {
+    local missing_components=()
     for component in "$IO_SOCKET" "$CROSS_TALK" "$PML_LOGIC_LOOP" "$FREE"; do
         if [ ! -f "$component" ]; then
-            log "ERROR: Missing executable: $component. Compile it before running orchestrate.sh."
-            exit 1
+            missing_components+=("$component")
         fi
     done
+
+    if [ ${#missing_components[@]} -ne 0 ]; then
+        log "ERROR: Missing executables: ${missing_components[*]}. Ensure they are compiled before running."
+        exit 1
+    fi
 }
 
 # Execute free.c tasks
@@ -148,4 +156,3 @@ while true; do
     # Execute periodic free.c tasks
     execute_free
 done
-
