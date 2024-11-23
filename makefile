@@ -31,14 +31,16 @@ SOURCES = \
     API_Llama.c \
     API.c \
     silo_manager.c \
-    logic_loop.c
+    logic_loop.c \
+    free.c \
+    json.c
 
 # Object and Dependency files
 OBJECTS = $(patsubst %.c, $(BUILD_DIR)/%.o, $(SOURCES))
 DEPFILES = $(patsubst %.c, $(BUILD_DIR)/%.d, $(SOURCES))
 
 # Targets
-TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api vector_matrix silo_manager logic_loop custodian
+TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api vector_matrix silo_manager logic_loop custodian free
 
 # Default target: Build all
 .PHONY: all
@@ -77,6 +79,9 @@ logic_loop: $(BUILD_DIR)/logic_loop.o $(BUILD_DIR)/pml_logic_loop.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
 custodian: $(BUILD_DIR)/custodian.o $(BUILD_DIR)/io_socket.o
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
+
+free: $(BUILD_DIR)/free.o $(BUILD_DIR)/json.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) -o $@ $^
 
 # Compile Rules
@@ -127,3 +132,4 @@ help:
 	@echo "  debug                Build with debug flags."
 	@echo "  clean                Remove all build artifacts."
 	@echo "  help                 Show this help message."
+
