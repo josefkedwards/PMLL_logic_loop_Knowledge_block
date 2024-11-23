@@ -9,6 +9,7 @@ PML_LOGIC_LOOP="./pml_logic_loop"
 UNIFIED_VOICE="./unified_voice"
 CROSS_TALK="./cross_talk"
 PERSISTENCE="./persistence"
+FREE="./free"
 LOG_DIR="./logs"
 PORT_BASE=8080
 
@@ -38,6 +39,27 @@ compile_component() {
         exit 1
     fi
     log "Compilation successful for $component."
+}
+
+# Validate environment
+validate_environment() {
+    for component in "$IO_SOCKET" "$CROSS_TALK" "$PML_LOGIC_LOOP" "$FREE"; do
+        if [ ! -f "$component" ]; then
+            log "ERROR: Missing executable: $component. Compile it before running orchestrate.sh."
+            exit 1
+        fi
+    done
+}
+
+# Execute free.c tasks
+execute_free() {
+    log "Executing free.c tasks..."
+    $FREE > "$LOG_DIR/free_log.txt" 2>&1
+    if [ $? -ne 0 ]; then
+        log "ERROR: free.c execution failed. Check free_log.txt for details."
+    else
+        log "free.c execution completed successfully."
+    fi
 }
 
 # Start a component
@@ -82,73 +104,23 @@ cleanup() {
 # Trap exit signal to ensure cleanup
 trap cleanup EXIT
 
-# Dynamic silo discovery
-discover_endpoints() {
-    log "Discovering internal and external silos..."
-
-    # Internal silos
-    for i in {1..7500}; do
-        INTERNAL_SILOS+=("https://silo$i.internal")
-    done
-
-    # External silos
-    for i in {1..144000}; do
-        EXTERNAL_SILOS+=("https://silo$i.external")
-    done
-
-    # Log discovered silos
-    log "Discovered ${#INTERNAL_SILOS[@]} internal silos."
-    log "Discovered ${#EXTERNAL_SILOS[@]} external silos."
-}
-
-# Consent request
-send_consent_request() {
-    local SILO="$1"
-    local LOG_FILE="$CONSENT_LOG_FILE"
-
-    log "Sending consent request to $SILO..."
-    RESPONSE=$(curl -s -X POST "$SILO/consent" \
-        -H "Content-Type: application/json" \
-        -d '{
-            "subject": "Request for Consent",
-            "body": "Do you agree to participate? Respond AGREE or DENY.",
-            "action_required": true
-        }')
-
-    if [ $? -eq 0 ]; then
-        echo "[$SILO] Response: $RESPONSE" >> "$LOG_FILE"
-    else
-        echo "[$SILO] Failed to send request." >> "$LOG_FILE"
-    fi
-}
-
-# Initiate cross-talk logic
-initiate_cross_talk() {
-    local llama_input="Hello, LLaMA!"
-    log "Initiating cross-talk process..."
-    RESPONSE=$($CROSS_TALK "$llama_input")
-    if [ $? -eq 0 ]; then
-        log "Cross-talk completed successfully. Response: $RESPONSE"
-    else
-        log "Cross-talk failed. Check cross_talk.log for details."
-    fi
-}
-
 # Main orchestration logic
 log "Starting orchestration..."
+
+# Validate environment
+validate_environment
 
 # Compile all components
 compile_component "$IO_SOCKET" "io_socket.c"
 compile_component "$CROSS_TALK" "cross_talk.c io_socket.c"
+compile_component "$PML_LOGIC_LOOP" "logic_loop.c io_socket.c memory_silo.c"
+compile_component "$FREE" "free.c json.c"
 
-# Add other components as needed
-# compile_component "$VECTOR_MATRIX" "vector_matrix.c"
-
+# Start components
 PIDS=()
 COMPONENTS=($VECTOR_MATRIX $MEMORY_SILO $KNOWLEDGE $IO_SOCKET $PML_LOGIC_LOOP $UNIFIED_VOICE $CROSS_TALK $PERSISTENCE)
 PORT=$PORT_BASE
 
-# Start components
 for component in "${COMPONENTS[@]}"; do
     if [ -f "$component" ]; then
         pid=$(start_component $component $PORT)
@@ -159,22 +131,6 @@ for component in "${COMPONENTS[@]}"; do
         log "Skipping $component - executable not found."
     fi
 done
-
-# Discover silos
-INTERNAL_SILOS=()
-EXTERNAL_SILOS=()
-discover_endpoints
-
-# Send consent requests to all silos
-log "Sending consent requests to silos..."
-for SILO in "${INTERNAL_SILOS[@]}"; do
-    send_consent_request "$SILO" &
-done
-for SILO in "${EXTERNAL_SILOS[@]}"; do
-    send_consent_request "$SILO" &
-done
-wait
-log "Consent requests completed."
 
 # Monitor components and silos
 log "All components started successfully. Monitoring processes and silos..."
@@ -189,7 +145,6 @@ while true; do
         fi
     done
 
-    # Trigger periodic cross-talk
-    initiate_cross_talk
+    # Execute periodic free.c tasks
+    execute_free
 done
-
