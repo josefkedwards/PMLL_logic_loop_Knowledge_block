@@ -5,6 +5,7 @@
 #include <string.h>
 #include <curl/curl.h>
 #include <time.h> // For timestamps in logging
+#include "unified_voice.h"
 
 #define LLAMA_API_URL "https://api.llama.ai/v1/chat" // LLaMA API endpoint
 #define LLAMA_API_KEY "LA-8c4003a74c5040b2b735866f22e754ed55c2ab712b0346b3bca0f1993362704a" // Replace with your LLaMA API Key
