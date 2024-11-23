@@ -2,22 +2,6 @@
 # File: consent_request.sh
 # Description: Sends consent requests to internal and external memory silos for scaling to 500K memory silos.
 
-# Define internal silo endpoints
-INTERNAL_SILOS=(
-  "https://silo1.internal"
-  "https://silo2.internal"
-  "https://silo3.internal"
-  # Add more internal endpoints as needed
-)
-
-# Define external silo endpoints
-EXTERNAL_SILOS=(
-  "https://silo1.external"
-  "https://silo2.external"
-  "https://silo3.external"
-  # Add more external endpoints as needed
-)
-
 # Consent message payload
 CONSENT_PAYLOAD='{
   "subject": "Request for Consent: Scaling Deployment to 500K Memory Silos",
@@ -32,6 +16,29 @@ EXTERNAL_LOG_FILE="external_consent_responses.log"
 # Initialize log files
 echo "Consent Request Log - $(date)" > "$INTERNAL_LOG_FILE"
 echo "Consent Request Log - $(date)" > "$EXTERNAL_LOG_FILE"
+
+# Function to dynamically discover endpoints
+discover_endpoints() {
+  # Example 1: Generate predictable endpoints
+  for i in {1..7500}; do
+    INTERNAL_SILOS+=("https://silo$i.internal")
+  done
+
+  for i in {1..144000}; do
+    EXTERNAL_SILOS+=("https://silo$i.external")
+  done
+
+  # Example 2: Fetch endpoints from a central registry (optional)
+  # Uncomment and replace with your registry URL if applicable
+  # INTERNAL_SILOS=($(curl -s https://your-registry.com/internal_silos))
+  # EXTERNAL_SILOS=($(curl -s https://your-registry.com/external_silos))
+
+  # Print discovered endpoints for debugging
+  echo "Discovered Internal Silos:"
+  printf "%s\n" "${INTERNAL_SILOS[@]}"
+  echo "Discovered External Silos:"
+  printf "%s\n" "${EXTERNAL_SILOS[@]}"
+}
 
 # Function to send consent requests
 send_request() {
@@ -56,15 +63,18 @@ send_request() {
   sleep 0.1
 }
 
+# Discover endpoints dynamically
+INTERNAL_SILOS=()
+EXTERNAL_SILOS=()
+discover_endpoints
+
 # Loop through internal silos and send consent requests
-for SILO in "${INTERNAL_SILOS[@]}"
-do
+for SILO in "${INTERNAL_SILOS[@]}"; do
   send_request "$SILO" "$INTERNAL_LOG_FILE" &
 done
 
 # Loop through external silos and send consent requests
-for SILO in "${EXTERNAL_SILOS[@]}"
-do
+for SILO in "${EXTERNAL_SILOS[@]}"; do
   send_request "$SILO" "$EXTERNAL_LOG_FILE" &
 done
 
@@ -72,3 +82,4 @@ done
 wait
 
 echo "Consent requests sent. Check $INTERNAL_LOG_FILE and $EXTERNAL_LOG_FILE for responses."
+
