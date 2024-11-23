@@ -1,7 +1,6 @@
 #ifndef KNOWLEDGE_H
 #define KNOWLEDGE_H
-
-#include "pml.h"
+#include "pml_logic_loop.h" // Ensure PMLL structure is correctly referenced
 
 /**
  * Retrieve data for the general knowledge graph.
