@@ -30,8 +30,14 @@ start_component() {
     local component=$1
     local port=$2
 
-    log "Starting $component on port $port..."
-    $component $port > "$LOG_DIR/${component}_log.txt" 2>&1 &
+    if [ "$component" == "$CROSS_TALK" ]; then
+        log "Starting $component with custom input..."
+        $component > "$LOG_DIR/${component}_log.txt" 2>&1 &
+    else
+        log "Starting $component on port $port..."
+        $component $port > "$LOG_DIR/${component}_log.txt" 2>&1 &
+    fi
+
     local pid=$!
     echo $pid
 }
@@ -101,6 +107,18 @@ send_consent_request() {
     fi
 }
 
+# Initiate cross-talk logic
+initiate_cross_talk() {
+    local llama_input="Hello, LLaMA!"
+    log "Initiating cross-talk process..."
+    RESPONSE=$($CROSS_TALK "$llama_input")
+    if [ $? -eq 0 ]; then
+        log "Cross-talk completed successfully. Response: $RESPONSE"
+    else
+        log "Cross-talk failed. Check cross_talk.log for details."
+    fi
+}
+
 # Main orchestration logic
 log "Starting orchestration..."
 
@@ -143,6 +161,7 @@ while true; do
             exit 1
         fi
     done
+
+    # Trigger periodic cross-talk
+    initiate_cross_talk
 done
-
-
