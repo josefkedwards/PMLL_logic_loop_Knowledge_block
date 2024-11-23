@@ -41,8 +41,8 @@ discover_endpoints() {
 send_request() {
   local SILO="$1"
   local LOG_FILE="$2"
-  local MAX_RETRIES=5
-  local RETRY_DELAY=2
+  local MAX_RETRIES=2
+  local RETRY_DELAY=1
   local attempt=1
 
   while [ $attempt -le $MAX_RETRIES ]; do
