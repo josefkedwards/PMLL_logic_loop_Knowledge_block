@@ -10,8 +10,8 @@ CONSENT_PAYLOAD='{
 }'
 
 # Log files for responses
-INTERNAL_LOG_FILE="internal_consent_responses.log"
-EXTERNAL_LOG_FILE="external_consent_responses.log"
+INTERNAL_LOG_FILE="./logs/internal_consent_responses.log"
+EXTERNAL_LOG_FILE="./logs/external_consent_responses.log"
 
 # Initialize log files
 echo "Consent Request Log - $(date)" > "$INTERNAL_LOG_FILE"
@@ -28,16 +28,11 @@ discover_endpoints() {
     EXTERNAL_SILOS+=("https://silo$i.external")
   done
 
-  # Example 2: Fetch endpoints from a central registry (optional)
-  # Uncomment and replace with your registry URL if applicable
-  # INTERNAL_SILOS=($(curl -s https://your-registry.com/internal_silos))
-  # EXTERNAL_SILOS=($(curl -s https://your-registry.com/external_silos))
-
   # Print discovered endpoints for debugging
   echo "Discovered Internal Silos:"
-  printf "%s\n" "${INTERNAL_SILOS[@]}"
+  printf "%s\n" "${INTERNAL_SILOS[@]}" > ./logs/internal_endpoints.log
   echo "Discovered External Silos:"
-  printf "%s\n" "${EXTERNAL_SILOS[@]}"
+  printf "%s\n" "${EXTERNAL_SILOS[@]}" > ./logs/external_endpoints.log
 }
 
 # Function to send consent requests
