@@ -132,4 +132,3 @@ int main() {
     process_cross_talk();
     return 0;
 }
-
