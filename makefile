@@ -9,6 +9,7 @@ DEBUG_CFLAGS = -g -DDEBUG
 BUILD_DIR = build
 INSTALL_DIR = /opt/pmll
 TEST_DIR = test_build
+LOG_DIR = logs
 
 # Source files
 SOURCES = \
@@ -96,6 +97,13 @@ $(BUILD_DIR)/%.d: %.c
 
 include $(wildcard $(DEPFILES))
 
+# Orchestrate Health Check, Payload, and Binary Deployment
+.PHONY: orchestrate
+orchestrate: all
+	@echo "Running orchestration..."
+	bash Orchestrate.sh
+	@echo "Orchestration completed."
+
 # Test Build
 .PHONY: test
 test: clean
@@ -128,8 +136,8 @@ help:
 	@echo "Makefile commands:"
 	@echo "  all                  Build all executables."
 	@echo "  test                 Build test executables with debug flags."
+	@echo "  orchestrate          Run orchestration script (Orchestrate.sh)."
 	@echo "  deploy               Deploy binaries to $(INSTALL_DIR)."
 	@echo "  debug                Build with debug flags."
 	@echo "  clean                Remove all build artifacts."
 	@echo "  help                 Show this help message."
-
