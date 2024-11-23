@@ -12,20 +12,31 @@
 #define BUFFER_SIZE 1024
 #define LOG_FILE "cross_talk.log"
 
+// Ensure safe concatenation with strncat by checking space availability
+#define SAFE_STRNCAT(dest, src, size) do { \
+    if (strlen(dest) + strlen(src) + 1 <= size) { \
+        strncat(dest, src, size - strlen(dest) - 1); \
+    } \
+} while(0)
+
 // Logging utility
 void log_message(const char* level, const char* message) {
     FILE* log_file = fopen(LOG_FILE, "a");
     if (log_file) {
         time_t now = time(NULL);
-        fprintf(log_file, "[%s] [%s] %s\n", level, ctime(&now), message);
+        char* timestamp = ctime(&now);
+        timestamp[strlen(timestamp) - 1] = '\0'; // Remove newline
+        fprintf(log_file, "[%s] [%s] %s\n", level, timestamp, message);
         fclose(log_file);
+    } else {
+        fprintf(stderr, "Failed to open log file: %s\n", LOG_FILE);
     }
 }
 
 // CURL Write callback for capturing API responses
 size_t write_callback(void* contents, size_t size, size_t nmemb, void* userp) {
     size_t realsize = size * nmemb;
-    strncat((char*)userp, (char*)contents, realsize);
+    SAFE_STRNCAT((char*)userp, (char*)contents, BUFFER_SIZE);
     return realsize;
 }
 
