@@ -10,52 +10,61 @@ CONSENT_PAYLOAD='{
 }'
 
 # Log files for responses
-INTERNAL_LOG_FILE="./logs/internal_consent_responses.log"
-EXTERNAL_LOG_FILE="./logs/external_consent_responses.log"
+LOG_DIR="./logs"
+INTERNAL_LOG_FILE="$LOG_DIR/internal_consent_responses.log"
+EXTERNAL_LOG_FILE="$LOG_DIR/external_consent_responses.log"
+ERROR_LOG_FILE="$LOG_DIR/consent_errors.log"
+
+# Create log directory if it doesn't exist
+mkdir -p "$LOG_DIR"
 
 # Initialize log files
 echo "Consent Request Log - $(date)" > "$INTERNAL_LOG_FILE"
 echo "Consent Request Log - $(date)" > "$EXTERNAL_LOG_FILE"
+echo "Error Log - $(date)" > "$ERROR_LOG_FILE"
 
 # Function to dynamically discover endpoints
 discover_endpoints() {
-  # Example 1: Generate predictable endpoints
   for i in {1..7500}; do
     INTERNAL_SILOS+=("https://silo$i.internal")
   done
-
   for i in {1..144000}; do
     EXTERNAL_SILOS+=("https://silo$i.external")
   done
-
-  # Print discovered endpoints for debugging
-  echo "Discovered Internal Silos:"
-  printf "%s\n" "${INTERNAL_SILOS[@]}" > ./logs/internal_endpoints.log
-  echo "Discovered External Silos:"
-  printf "%s\n" "${EXTERNAL_SILOS[@]}" > ./logs/external_endpoints.log
+  echo "Discovered Internal Silos:" >> "$LOG_DIR/internal_endpoints.log"
+  printf "%s\n" "${INTERNAL_SILOS[@]}" >> "$LOG_DIR/internal_endpoints.log"
+  echo "Discovered External Silos:" >> "$LOG_DIR/external_endpoints.log"
+  printf "%s\n" "${EXTERNAL_SILOS[@]}" >> "$LOG_DIR/external_endpoints.log"
 }
 
-# Function to send consent requests
+# Function to send consent requests with retries
 send_request() {
   local SILO="$1"
   local LOG_FILE="$2"
+  local MAX_RETRIES=5
+  local RETRY_DELAY=2
+  local attempt=1
 
-  echo "Sending request to $SILO..."
+  while [ $attempt -le $MAX_RETRIES ]; do
+    echo "Sending request to $SILO (Attempt $attempt/$MAX_RETRIES)..."
+    RESPONSE=$(curl -s -X POST "$SILO/consent" \
+      -H "Content-Type: application/json" \
+      --data "$CONSENT_PAYLOAD")
+    CURL_STATUS=$?
 
-  # Use curl to send the POST request
-  RESPONSE=$(curl -s -X POST "$SILO/consent" \
-    -H "Content-Type: application/json" \
-    -d "$CONSENT_PAYLOAD")
-  
-  # Log the response
-  if [ $? -eq 0 ]; then
-    echo "[$SILO] Response: $RESPONSE" >> "$LOG_FILE"
-  else
-    echo "[$SILO] Failed to send request." >> "$LOG_FILE"
-  fi
+    if [ $CURL_STATUS -eq 0 ] && [[ "$RESPONSE" != "" ]]; then
+      echo "[$SILO] Response: $RESPONSE" >> "$LOG_FILE"
+      return 0
+    else
+      echo "[$SILO] Failed to send request (Attempt $attempt). Response: $RESPONSE" >> "$ERROR_LOG_FILE"
+      sleep $RETRY_DELAY
+      RETRY_DELAY=$((RETRY_DELAY * 2)) # Exponential backoff
+      attempt=$((attempt + 1))
+    fi
+  done
 
-  # Optional: Add a delay to avoid overwhelming the system
-  sleep 0.1
+  echo "[$SILO] Request failed after $MAX_RETRIES attempts." >> "$ERROR_LOG_FILE"
+  return 1
 }
 
 # Discover endpoints dynamically
@@ -76,5 +85,4 @@ done
 # Wait for all background jobs to finish
 wait
 
-echo "Consent requests sent. Check $INTERNAL_LOG_FILE and $EXTERNAL_LOG_FILE for responses."
-
+echo "Consent requests sent. Check $INTERNAL_LOG_FILE, $EXTERNAL_LOG_FILE, and $ERROR_LOG_FILE for responses or errors."
