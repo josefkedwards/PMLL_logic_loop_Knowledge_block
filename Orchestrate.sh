@@ -19,11 +19,8 @@ HEALTH_LOG_FILE="$LOG_DIR/health_checks.log"
 SYNC_LOG_FILE="$LOG_DIR/data_sync.log"
 BUILD_LOG_FILE="$LOG_DIR/build.log"
 
-# Ensure logs directory exists with proper permissions
-if [ ! -d "$LOG_DIR" ]; then
-    mkdir -p $LOG_DIR || { echo "ERROR: Failed to create logs directory."; exit 1; }
-    chmod 755 $LOG_DIR
-fi
+# Ensure logs directory exists
+mkdir -p $LOG_DIR
 
 # Logging utility
 log() {
@@ -46,17 +43,12 @@ compile_component() {
 
 # Validate environment
 validate_environment() {
-    local missing_components=()
-    for component in "$IO_SOCKET" "$CROSS_TALK" "$PML_LOGIC_LOOP" "$FREE"; do
+    for component in "$IO_SOCKET" "$CROSS_TALK" "$PML_LOGIC_LOOP" "$VECTOR_MATRIX" "$FREE"; do
         if [ ! -f "$component" ]; then
-            missing_components+=("$component")
+            log "ERROR: Missing executable: $component. Compile it before running Orchestrate.sh."
+            exit 1
         fi
     done
-
-    if [ ${#missing_components[@]} -ne 0 ]; then
-        log "ERROR: Missing executables: ${missing_components[*]}. Ensure they are compiled before running."
-        exit 1
-    fi
 }
 
 # Execute free.c tasks
@@ -119,6 +111,7 @@ log "Starting orchestration..."
 compile_component "$IO_SOCKET" "io_socket.c"
 compile_component "$CROSS_TALK" "cross_talk.c io_socket.c"
 compile_component "$PML_LOGIC_LOOP" "logic_loop.c io_socket.c memory_silo.c"
+compile_component "$VECTOR_MATRIX" "vector_matrix.c"
 compile_component "$FREE" "free.c json.c"
 
 # Validate environment
