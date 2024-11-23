@@ -3,11 +3,14 @@
 # Description: Sends consent requests to internal and external memory silos for scaling to 500K memory silos, with real-time notifications to participants.
 
 # Consent message payload
-CONSENT_PAYLOAD='{
+CONSENT_PAYLOAD=$(cat <<EOF
+{
   "subject": "Request for Consent: Scaling Deployment to 500K Memory Silos",
-  "body": "Dear Participant,\n\nWe are pleased to announce the next phase of our project: scaling deployment to 500,000 memory silos.\n\nTo approve participation, respond with \'AGREE\'. To opt out, respond with \'DENY\'. If we do not receive a response within 48 hours, we will interpret your non-response as an acknowledgment to proceed.\n\nThank you for your support.\n\n- PMLL Framework Team",
+  "body": "Dear Participant,\n\nWe are pleased to announce the next phase of our project: scaling deployment to 500,000 memory silos.\n\nTo approve participation, respond with 'AGREE'. To opt out, respond with 'DENY'. If we do not receive a response within 48 hours, we will interpret your non-response as an acknowledgment to proceed.\n\nThank you for your support.\n\n- PMLL Framework Team",
   "action_required": true
-}'
+}
+EOF
+)
 
 # Log files for responses
 LOG_DIR="./logs"
@@ -41,8 +44,8 @@ discover_endpoints() {
 send_request() {
   local SILO="$1"
   local LOG_FILE="$2"
-  local MAX_RETRIES=2
-  local RETRY_DELAY=1
+  local MAX_RETRIES=3
+  local RETRY_DELAY=2
   local attempt=1
 
   # Extract IP or hostname from the URL
@@ -52,20 +55,19 @@ send_request() {
   echo "Pinging $SILO_HOST to check connectivity..."
   if ping -c 1 "$SILO_HOST" > /dev/null 2>&1; then
     echo "Ping to $SILO_HOST succeeded. Host reachable."
-    # Send a notification that the host is reachable (UI/Push notification)
-    curl -X POST "https://ui-server.internal/notify" \
-        -H "Content-Type: application/json" \
-        --data '{"message": "Ping to '"$SILO_HOST"' succeeded", "status": "reachable"}'
+    # Notify UI server
+    curl -s -X POST "https://ui-server.internal/notify" \
+      -H "Content-Type: application/json" \
+      --data "{\"message\": \"Ping to $SILO_HOST succeeded\", \"status\": \"reachable\"}" > /dev/null
   else
     echo "Ping to $SILO_HOST failed. Host unreachable." >> "$ERROR_LOG_FILE"
-    # Send a notification that the host is unreachable (UI/Push notification)
-    curl -X POST "https://ui-server.internal/notify" \
-        -H "Content-Type: application/json" \
-        --data '{"message": "Ping to '"$SILO_HOST"' failed", "status": "unreachable"}'
+    curl -s -X POST "https://ui-server.internal/notify" \
+      -H "Content-Type: application/json" \
+      --data "{\"message\": \"Ping to $SILO_HOST failed\", \"status\": \"unreachable\"}" > /dev/null
     return 1
   fi
 
-  # Proceed with sending the consent request
+  # Send consent request
   while [ $attempt -le $MAX_RETRIES ]; do
     echo "Sending request to $SILO Attempt $attempt/$MAX_RETRIES..."
     RESPONSE=$(curl -s -X POST "$SILO/consent" \
@@ -75,17 +77,15 @@ send_request() {
 
     if [ $CURL_STATUS -eq 0 ] && [[ "$RESPONSE" != "" ]]; then
       echo "[$SILO] Response: $RESPONSE" >> "$LOG_FILE"
-      # Notify the UI about the successful consent request
-      curl -X POST "https://ui-server.internal/notify" \
-          -H "Content-Type: application/json" \
-          --data '{"message": "Consent request to '"$SILO"' succeeded", "status": "success"}'
+      curl -s -X POST "https://ui-server.internal/notify" \
+        -H "Content-Type: application/json" \
+        --data "{\"message\": \"Consent request to $SILO succeeded\", \"status\": \"success\"}" > /dev/null
       return 0
     else
       echo "[$SILO] Failed to send request (Attempt $attempt). Response: $RESPONSE" >> "$ERROR_LOG_FILE"
-      # Notify the UI about the failure of the consent request
-      curl -X POST "https://ui-server.internal/notify" \
-          -H "Content-Type: application/json" \
-          --data '{"message": "Consent request to '"$SILO"' failed (Attempt '"$attempt"')", "status": "failure"}'
+      curl -s -X POST "https://ui-server.internal/notify" \
+        -H "Content-Type: application/json" \
+        --data "{\"message\": \"Consent request to $SILO failed (Attempt $attempt)\", \"status\": \"failure\"}" > /dev/null
       sleep $RETRY_DELAY
       RETRY_DELAY=$((RETRY_DELAY * 2)) # Exponential backoff
       attempt=$((attempt + 1))
@@ -93,10 +93,9 @@ send_request() {
   done
 
   echo "[$SILO] Request failed after $MAX_RETRIES attempts." >> "$ERROR_LOG_FILE"
-  # Notify the UI about the final failure
-  curl -X POST "https://ui-server.internal/notify" \
-      -H "Content-Type: application/json" \
-      --data '{"message": "Consent request to '"$SILO"' failed after '"$MAX_RETRIES"' attempts", "status": "failure"}'
+  curl -s -X POST "https://ui-server.internal/notify" \
+    -H "Content-Type: application/json" \
+    --data "{\"message\": \"Consent request to $SILO failed after $MAX_RETRIES attempts\", \"status\": \"failure\"}" > /dev/null
   return 1
 }
 
@@ -105,17 +104,8 @@ INTERNAL_SILOS=()
 EXTERNAL_SILOS=()
 discover_endpoints
 
-# Loop through internal silos and send consent requests
-for SILO in "${INTERNAL_SILOS[@]}"; do
-  send_request "$SILO" "$INTERNAL_LOG_FILE" &
-done
-
-# Loop through external silos and send consent requests
-for SILO in "${EXTERNAL_SILOS[@]}"; do
-  send_request "$SILO" "$EXTERNAL_LOG_FILE" &
-done
-
-# Wait for all background jobs to finish
-wait
+# Process consent requests with limited parallel jobs
+echo "${INTERNAL_SILOS[@]}" | tr ' ' '\n' | xargs -P 10 -n 1 bash -c 'send_request "$@"' _ "$INTERNAL_LOG_FILE"
+echo "${EXTERNAL_SILOS[@]}" | tr ' ' '\n' | xargs -P 20 -n 1 bash -c 'send_request "$@"' _ "$EXTERNAL_LOG_FILE"
 
 echo "Consent requests sent. Check $INTERNAL_LOG_FILE, $EXTERNAL_LOG_FILE, and $ERROR_LOG_FILE for responses or errors."
