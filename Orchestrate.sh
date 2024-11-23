@@ -3,7 +3,7 @@
 # Description: Integrates consent collection, health checks, payload distribution, and binary deployment.
 
 # Determine the directory of this script
-SCRIPT_DIR="$(dirname "$0")"
+SCRIPT_DIR="${SCRIPT_DIR:-$(dirname "$0")}"
 
 # Paths and Configuration
 LOG_DIR="$SCRIPT_DIR/logs"
@@ -89,11 +89,10 @@ log "Compilation completed successfully."
 # Validate compiled components
 log "Validating compiled components..."
 for component in "${COMPONENTS[@]}"; do
-    if [ ! -f "$SCRIPT_DIR/$component" ]; then
-        log "ERROR: Missing executable for $component. Exiting."
+    if [ ! -f "$BINARIES_DIR/$component" ]; then
+        log "ERROR: Missing executable for $component in $BINARIES_DIR. Exiting."
         exit 1
     fi
-    cp "$SCRIPT_DIR/$component" "$BINARIES_DIR"
 done
 log "All components validated and prepared for distribution."
 
@@ -178,4 +177,3 @@ echo "Payload Notifications - Success: $SUCCESS_PAYLOAD, Failed: $FAILED_PAYLOAD
 echo "Binary Deployments - Success: $SUCCESS_BINARY, Failed: $FAILED_BINARY"
 echo "Health Checks - Failed: $FAILED_HEALTH"
 log "Deployment process completed."
-
