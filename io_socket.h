@@ -8,7 +8,6 @@
 #define SERVER_PORT 8080            // Default server port
 #define BUFFER_SIZE 1024            // Default buffer size
 #define RETRY_LIMIT 5               // Maximum number of connection retries
-#define LOG_FILE "io_socket.log"    // Log file name
 
 // Function Declarations
 
