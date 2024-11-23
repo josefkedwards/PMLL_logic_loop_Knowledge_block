@@ -1,5 +1,5 @@
-#ifndef LOG_LOOP_H
-#define LOG_LOOP_H
+#ifndef LOGIC_LOOP_H
+#define LOGIC_LOOP_H
 
 #include "pml.h" // Includes the PML structure and associated functions
 #include <stddef.h> // For size_t
@@ -44,10 +44,10 @@ void consolidate_memory(PMLL* pml, int pipefd[2]);
 void update_consolidated_memory_graph(PMLL* pml, const char* buffer);
 
 /**
- * Logs a message to the log loop system.
+ * Logs a message to the logic loop system.
  * @param level The severity level (e.g., "INFO", "ERROR").
  * @param message The message to log.
  */
 void log_loop_message(const char* level, const char* message);
 
-#endif // LOG_LOOP_H
+#endif // LOGIC_LOOP_H
