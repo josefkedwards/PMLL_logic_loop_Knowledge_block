@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <string.h>
-#include "log_loop.h"
+#include "logic_loop.h" // Updated include to match header
 #include "cluster_manager.h"
 #include "memory_silo.h"
 #include "io_socket.h"
@@ -147,6 +147,5 @@ void update_consolidated_memory_graph(PMLL* pml, const char* buffer) {
     printf("Updating memory graph with: %s\n", buffer);
 
     // Simulate graph update process
-    // Here you can integrate GPU acceleration if necessary
     printf("Memory graph updated successfully.\n");
 }
