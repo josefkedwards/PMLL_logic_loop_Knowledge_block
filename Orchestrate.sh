@@ -2,12 +2,16 @@
 # File: Orchestrate.sh
 # Description: Integrates consent collection, health checks, payload distribution, and binary deployment.
 
+# Determine the directory of this script
+SCRIPT_DIR="$(dirname "$0")"
+
 # Paths and Configuration
-LOG_DIR="./logs"
+LOG_DIR="$SCRIPT_DIR/logs"
 BUILD_LOG="$LOG_DIR/build.log"
 ORCHESTRA_LOG="$LOG_DIR/orchestra.log"
 CONSENT_LOG_FILE="$LOG_DIR/consent_responses.log"
-BINARIES_DIR="./binaries"
+CONSENT_SCRIPT="$SCRIPT_DIR/Consent_request.sh"  # Ensure uppercase 'C' is correctly referenced
+BINARIES_DIR="$SCRIPT_DIR/binaries"
 PORT_BASE=8080
 
 # Components to orchestrate
@@ -58,7 +62,7 @@ health_check() {
 
 # Step 1: Execute Consent_request.sh
 log "Starting consent request process..."
-./Consent_request.sh
+bash "$CONSENT_SCRIPT"
 if [ $? -ne 0 ]; then
     log "ERROR: Consent_request.sh failed. Exiting."
     exit 1
@@ -85,11 +89,11 @@ log "Compilation completed successfully."
 # Validate compiled components
 log "Validating compiled components..."
 for component in "${COMPONENTS[@]}"; do
-    if [ ! -f "./$component" ]; then
+    if [ ! -f "$SCRIPT_DIR/$component" ]; then
         log "ERROR: Missing executable for $component. Exiting."
         exit 1
     fi
-    cp "./$component" "$BINARIES_DIR"
+    cp "$SCRIPT_DIR/$component" "$BINARIES_DIR"
 done
 log "All components validated and prepared for distribution."
 
@@ -174,3 +178,4 @@ echo "Payload Notifications - Success: $SUCCESS_PAYLOAD, Failed: $FAILED_PAYLOAD
 echo "Binary Deployments - Success: $SUCCESS_BINARY, Failed: $FAILED_BINARY"
 echo "Health Checks - Failed: $FAILED_HEALTH"
 log "Deployment process completed."
+
