@@ -105,3 +105,4 @@ help:
 	@echo "  deploy               Deploy binaries to $(INSTALL_DIR)."
 	@echo "  debug                Build with debug flags."
 	@echo "  help                 Show this help message."
+
