@@ -67,7 +67,7 @@ send_request() {
 
   # Proceed with sending the consent request
   while [ $attempt -le $MAX_RETRIES ]; do
-    echo "Sending request to $SILO (Attempt $attempt/$MAX_RETRIES)..."
+    echo "Sending request to $SILO Attempt $attempt/$MAX_RETRIES..."
     RESPONSE=$(curl -s -X POST "$SILO/consent" \
       -H "Content-Type: application/json" \
       --data "$CONSENT_PAYLOAD")
