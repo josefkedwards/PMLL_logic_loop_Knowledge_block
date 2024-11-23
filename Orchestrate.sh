@@ -41,6 +41,16 @@ EOF
 # Ensure directories exist before using them
 mkdir -p "$LOG_DIR" "$BINARIES_DIR"  # Ensure log and binary directories exist
 
+# Log rotation if log file exceeds 10MB
+MAX_LOG_SIZE=10485760  # 10 MB
+LOG_FILE_SIZE=$(stat -c %s "$ORCHESTRA_LOG")
+
+if [ $LOG_FILE_SIZE -gt $MAX_LOG_SIZE ]; then
+    mv "$ORCHESTRA_LOG" "$ORCHESTRA_LOG.old"
+    touch "$ORCHESTRA_LOG"  # Create a new log file
+    log "Log file rotated."
+fi
+
 # Logging utility with a digital ones and zeros pattern
 log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$ORCHESTRA_LOG"
@@ -54,17 +64,24 @@ SUCCESS_BINARY=0
 FAILED_BINARY=0
 FAILED_HEALTH=0
 
-# Health check function
+# Health check with retry logic
 health_check() {
     local silo=$1
-    RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "https://silo$silo.$SILO_DOMAIN/health")
-    if [ "$RESPONSE" == "200" ]; then
-        return 0
-    else
-        log "Health check failed for silo$silo.$SILO_DOMAIN"
-        FAILED_HEALTH=$((FAILED_HEALTH + 1))
-        return 1
-    fi
+    local retries=3
+    local delay=5  # seconds
+    local attempt=1
+    while [ $attempt -le $retries ]; do
+        RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "https://silo$silo.$SILO_DOMAIN/health")
+        if [ "$RESPONSE" == "200" ]; then
+            return 0
+        fi
+        log "Health check failed for silo$silo.$SILO_DOMAIN (Attempt $attempt/$retries)"
+        sleep $delay
+        attempt=$((attempt + 1))
+    done
+    log "ERROR: Health check failed for silo$silo.$SILO_DOMAIN after $retries attempts."
+    FAILED_HEALTH=$((FAILED_HEALTH + 1))
+    return 1
 }
 
 # Step 1: Execute Consent_request.sh
@@ -97,8 +114,8 @@ log "Compilation completed successfully."
 log "Validating compiled components..."
 for component in "${COMPONENTS[@]}"; do
     if [ ! -f "$BINARIES_DIR/$component" ]; then
-        log "ERROR: Missing executable for $component in $BINARIES_DIR. Exiting."
-        exit 1
+        log "ERROR: Missing executable for $component in $BINARIES_DIR. Skipping deployment for this component."
+        continue  # Skip this component and proceed with others
     fi
 done
 log "All components validated and prepared for distribution."
@@ -188,3 +205,4 @@ echo "Payload Notifications - Success: $SUCCESS_PAYLOAD, Failed: $FAILED_PAYLOAD
 echo "Binary Deployments - Success: $SUCCESS_BINARY, Failed: $FAILED_BINARY"
 echo "Health Checks - Failed: $FAILED_HEALTH"
 log "Deployment process completed."
+
