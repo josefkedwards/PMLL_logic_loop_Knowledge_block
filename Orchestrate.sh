@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Define configurations
+# Define component configurations
 VECTOR_MATRIX="./vector_matrix"
 MEMORY_SILO="./memory_silo"
 KNOWLEDGE="./knowledge"
@@ -16,6 +16,7 @@ PORT_BASE=8080
 CONSENT_LOG_FILE="$LOG_DIR/consent_responses.log"
 HEALTH_LOG_FILE="$LOG_DIR/health_checks.log"
 SYNC_LOG_FILE="$LOG_DIR/data_sync.log"
+BUILD_LOG_FILE="$LOG_DIR/build.log"
 
 # Ensure logs directory exists
 mkdir -p $LOG_DIR
@@ -25,18 +26,18 @@ log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_DIR/orchestra.log"
 }
 
-# Compile cross_talk executable if not found
-compile_cross_talk() {
-    if [ ! -f "$CROSS_TALK" ]; then
-        log "cross_talk executable not found. Attempting to compile..."
-        gcc -o cross_talk cross_talk.c -lcurl
-        if [ $? -eq 0 ]; then
-            log "cross_talk compiled successfully."
-        else
-            log "ERROR: Failed to compile cross_talk."
-            exit 1
-        fi
+# Compile a component
+compile_component() {
+    local component=$1
+    local source_files=$2
+
+    log "Compiling $component..."
+    gcc -o "$component" $source_files -lcurl &>> "$BUILD_LOG_FILE"
+    if [ $? -ne 0 ]; then
+        log "ERROR: Compilation failed for $component. Check $BUILD_LOG_FILE for details."
+        exit 1
     fi
+    log "Compilation successful for $component."
 }
 
 # Start a component
@@ -45,7 +46,7 @@ start_component() {
     local port=$2
 
     if [ "$component" == "$CROSS_TALK" ]; then
-        log "Starting $component with custom input..."
+        log "Starting $component with direct execution..."
         $component > "$LOG_DIR/${component}_log.txt" 2>&1 &
     else
         log "Starting $component on port $port..."
@@ -136,18 +137,27 @@ initiate_cross_talk() {
 # Main orchestration logic
 log "Starting orchestration..."
 
-# Compile cross_talk if necessary
-compile_cross_talk
+# Compile all components
+compile_component "$IO_SOCKET" "io_socket.c"
+compile_component "$CROSS_TALK" "cross_talk.c io_socket.c"
+
+# Add other components as needed
+# compile_component "$VECTOR_MATRIX" "vector_matrix.c"
 
 PIDS=()
 COMPONENTS=($VECTOR_MATRIX $MEMORY_SILO $KNOWLEDGE $IO_SOCKET $PML_LOGIC_LOOP $UNIFIED_VOICE $CROSS_TALK $PERSISTENCE)
 PORT=$PORT_BASE
 
+# Start components
 for component in "${COMPONENTS[@]}"; do
-    pid=$(start_component $component $PORT)
-    PIDS+=($pid)
-    log "$component started with PID $pid on port $PORT"
-    PORT=$((PORT + 1))
+    if [ -f "$component" ]; then
+        pid=$(start_component $component $PORT)
+        PIDS+=($pid)
+        log "$component started with PID $pid on port $PORT"
+        PORT=$((PORT + 1))
+    else
+        log "Skipping $component - executable not found."
+    fi
 done
 
 # Discover silos
@@ -182,3 +192,4 @@ while true; do
     # Trigger periodic cross-talk
     initiate_cross_talk
 done
+
