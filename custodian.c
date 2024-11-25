@@ -179,27 +179,4 @@ void run_custodian() {
     char llama_response[BUFFER_SIZE] = {0};
     char custom_response[BUFFER_SIZE] = {0};
     interact_with_llama_api("Hello, LLaMA!", llama_response);
-    interact_with_custom_api(llama_response, custom_response);
-
-    // Step 4: Execute PML Logic Loop
-    log_message("INFO", "Executing PML Logic Loop.");
-    pml_logic_loop_process(io_socket.socket, silo->memory, silo->size);
-
-    // Step 5: Process Bitcoin transaction
-    log_message("INFO", "Processing Bitcoin payment.");
-    process_bitcoin_payment(BITCOIN_WALLET, 0.1);
-
-    // Step 6: Sync with memory silo
-    sync_with_memory_silo(&io_socket, silo);
-
-    // Cleanup resources
-    free(silo);
-    io_socket_cleanup(&io_socket);
-    log_message("INFO", "Custodian process completed.");
-}
-
-// Main function
-int main() {
-    run_custodian();
-    return 0;
-}
+    interact_with_custom_api(llama_response, custom_response p
