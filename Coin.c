@@ -15,6 +15,7 @@ void PMLL_Compress_Data(const char *input, unsigned char *output);
 void PMLL_Cache_Data(const char *input, unsigned char *output);
 void send_bitcoin_to_wallet(const char *wallet_address, unsigned char *bitcoin);
 void execute_secure_command(const char *command);
+void install_dependencies();
 
 // Bitcoin transaction structure
 typedef struct {
@@ -24,6 +25,9 @@ typedef struct {
 
 // Main function
 int main() {
+    // Install necessary libraries and dependencies
+    install_dependencies();
+
     // Initialize modules
     watcher_init();
     custodian_init();
@@ -50,6 +54,14 @@ int main() {
     // Clean up
     free(transaction);
     return 0;
+}
+
+// Install Bitcoin and blockchain-related dependencies
+void install_dependencies() {
+    printf("Installing Bitcoin and blockchain dependencies...\n");
+    execute_secure_command("apt-get update");
+    execute_secure_command("apt-get install -y libssl-dev libcrypto++-dev libboost-all-dev");
+    printf("Dependencies installed successfully.\n");
 }
 
 // Execute secure system commands
