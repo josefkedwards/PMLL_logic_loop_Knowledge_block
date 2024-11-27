@@ -1,4 +1,3 @@
-#include "watcher.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,11 +7,9 @@
 // Global whitelist and blacklist
 char *whitelist[] = {"62.0.0.1", "62.0.0.2"};
 int whitelist_count = 2;
-
 char *blacklist[MAX_BLACKLIST];
 int blacklist_count = 0;
 
-// Initialize Watcher
 void watcher_init() {
     printf("[Watcher] Initializing...\n");
     system("sudo apt-get update");
@@ -21,20 +18,19 @@ void watcher_init() {
     printf("[Watcher] Security tools installed and configured.\n");
 }
 
-// Monitor Logs
 void monitor_logs() {
     FILE *log_file = fopen("/var/log/auth.log", "r");
     if (!log_file) {
         perror("[Watcher] Failed to open log file");
         return;
     }
-    fseek(log_file, 0, SEEK_END); // Start at the end
+    fseek(log_file, 0, SEEK_END);  // Start at the end
     char buffer[1024];
     while (1) {
         if (fgets(buffer, sizeof(buffer), log_file)) {
             if (strstr(buffer, "Failed password")) {
                 char ip[16];
-                sscanf(buffer, "%*s %*s %*s %*s %s", ip); // Extract IP
+                sscanf(buffer, "%*s %*s %*s %*s %s", ip);  // Extract IP
                 handle_failed_attempt(ip);
             }
         }
@@ -43,7 +39,6 @@ void monitor_logs() {
     fclose(log_file);
 }
 
-// Handle Failed Login Attempt
 void handle_failed_attempt(const char *ip) {
     if (is_whitelisted(ip)) return;
 
@@ -66,22 +61,17 @@ void handle_failed_attempt(const char *ip) {
     printf("[Watcher] Warning! IP %s flagged.\n", ip);
 }
 
-// Snoop Data Streams
 void snoop_data_streams(const char *ip) {
     printf("[Watcher] Snoop data streams for IP: %s\n", ip);
-    // You can capture traffic related to the IP here (e.g., using tcpdump or Wireshark)
     char command[256];
     snprintf(command, sizeof(command), "sudo tcpdump -i eth0 host %s -w capture.pcap", ip);
     system(command);  // Capture traffic from the specific IP
 }
 
-// Record User Input
 void record_user_input(const char *ip) {
     printf("[Watcher] Record user input for IP: %s\n", ip);
-    // You can implement logic to capture user input here if necessary
 }
 
-// Check if IP is Whitelisted
 int is_whitelisted(const char *ip) {
     for (int i = 0; i < whitelist_count; i++) {
         if (strcmp(ip, whitelist[i]) == 0) return 1;
@@ -89,7 +79,6 @@ int is_whitelisted(const char *ip) {
     return 0;
 }
 
-// Add IP to Blacklist
 void add_to_blacklist(const char *ip) {
     if (blacklist_count < MAX_BLACKLIST) {
         blacklist[blacklist_count++] = strdup(ip);
@@ -109,7 +98,6 @@ void add_to_blacklist(const char *ip) {
     save_blacklist();
 }
 
-// Save Blacklist to Disk (for persistence)
 void save_blacklist() {
     FILE *file = fopen("/var/log/blacklist.txt", "w");
     for (int i = 0; i < blacklist_count; i++) {
