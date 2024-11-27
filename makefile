@@ -1,10 +1,10 @@
-# Compiler and Flags
+# Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Wextra -pedantic -std=c99 -Iinclude
-LDFLAGS = -lssl -lcrypto -lcurl
+CFLAGS = -Wall -Wextra -pedantic -std=c99 -O2 -Iinclude
+LDFLAGS = -lssl -lcrypto -lcurl -lpthread
 DEBUG_CFLAGS = -g -DDEBUG
 
-# Dynamic Directories
+# Directories
 SRC_DIR = ./src
 BUILD_DIR = ./build
 INCLUDE_DIR = ./include
@@ -12,10 +12,8 @@ BINARIES_DIR = ./binaries
 LOG_DIR = ./logs
 INSTALL_DIR = /opt/pmll
 
-# Source files (search dynamically in the source directory)
+# Source files
 SOURCES = $(wildcard $(SRC_DIR)/*.c)
-
-# Object files generated from source files
 OBJECTS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SOURCES))
 
 # Target binaries
@@ -23,7 +21,7 @@ TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api vector_ma
 
 # Default target: Build all binaries
 .PHONY: all
-all: $(TARGETS)
+all: prepare_dirs $(TARGETS)
 
 # Define rules for each binary and its dependencies
 pmll: $(BUILD_DIR)/unified_voice.o $(BUILD_DIR)/pml_logic_loop.o $(BUILD_DIR)/memory_silo.o \
@@ -68,6 +66,11 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
 
+# Prepare necessary directories
+.PHONY: prepare_dirs
+prepare_dirs:
+	@mkdir -p $(BUILD_DIR) $(BINARIES_DIR) $(LOG_DIR)
+
 # Clean build artifacts
 .PHONY: clean
 clean:
@@ -95,6 +98,22 @@ deploy: all
 debug: CFLAGS += $(DEBUG_CFLAGS)
 debug: all
 
+# Install Dependencies
+.PHONY: deps
+deps:
+	@echo "Installing necessary dependencies..."
+	sudo apt-get update
+	sudo apt-get install -y libssl-dev libcrypto++-dev libboost-all-dev curl
+	@echo "Dependencies installed successfully."
+
+# Run Tests
+.PHONY: test
+test: all
+	@echo "Running tests..."
+	$(CC) $(CFLAGS) $(SRC_DIR)/run_tests.c -o $(BINARIES_DIR)/run_tests $(LDFLAGS)
+	$(BINARIES_DIR)/run_tests
+	@echo "Tests completed."
+
 # Help
 .PHONY: help
 help:
@@ -104,4 +123,6 @@ help:
 	@echo "  orchestrate          Run orchestration script (Orchestrate.sh)."
 	@echo "  deploy               Deploy binaries to $(INSTALL_DIR)."
 	@echo "  debug                Build with debug flags."
+	@echo "  deps                 Install necessary dependencies."
+	@echo "  test                 Run all tests."
 	@echo "  help                 Show this help message."
