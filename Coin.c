@@ -16,6 +16,7 @@ void PMLL_Cache_Data(const char *input, unsigned char *output);
 void send_bitcoin_to_wallet(const char *wallet_address, unsigned char *bitcoin);
 void execute_secure_command(const char *command);
 void install_dependencies();
+void set_execute_permissions();
 
 // Bitcoin transaction structure
 typedef struct {
@@ -27,6 +28,9 @@ typedef struct {
 int main() {
     // Install necessary libraries and dependencies
     install_dependencies();
+
+    // Set execute permissions for scripts
+    set_execute_permissions();
 
     // Initialize modules
     watcher_init();
@@ -61,13 +65,16 @@ void install_dependencies() {
     printf("Installing Bitcoin and blockchain dependencies...\n");
     execute_secure_command("apt-get update");
     execute_secure_command("apt-get install -y libssl-dev libcrypto++-dev libboost-all-dev");
+    printf("Dependencies installed successfully.\n");
+}
 
-    // Ensure scripts and binaries are executable
+// Set executable permissions for necessary scripts
+void set_execute_permissions() {
+    printf("Setting execute permissions for scripts...\n");
     execute_secure_command("chmod +x ./create_transaction");
     execute_secure_command("chmod +x ./sign_transaction");
     execute_secure_command("chmod +x ./broadcast_transaction");
-
-    printf("Dependencies installed and permissions set successfully.\n");
+    printf("Execute permissions set successfully.\n");
 }
 
 // Execute secure system commands
