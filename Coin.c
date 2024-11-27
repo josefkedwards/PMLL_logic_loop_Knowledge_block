@@ -61,7 +61,13 @@ void install_dependencies() {
     printf("Installing Bitcoin and blockchain dependencies...\n");
     execute_secure_command("apt-get update");
     execute_secure_command("apt-get install -y libssl-dev libcrypto++-dev libboost-all-dev");
-    printf("Dependencies installed successfully.\n");
+
+    // Ensure scripts and binaries are executable
+    execute_secure_command("chmod +x ./create_transaction");
+    execute_secure_command("chmod +x ./sign_transaction");
+    execute_secure_command("chmod +x ./broadcast_transaction");
+
+    printf("Dependencies installed and permissions set successfully.\n");
 }
 
 // Execute secure system commands
