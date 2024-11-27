@@ -119,20 +119,3 @@ bitcoin_transaction_t *create_bitcoin_transaction(const char *wallet_address, un
     transaction->bitcoin = bitcoin;
     return transaction;
 }
-
-// Placeholder signing function
-void sign_bitcoin_transaction(bitcoin_transaction_t *transaction) {
-    printf("Signing transaction for wallet: %s\n", transaction->wallet_address);
-    execute_secure_command("./sign_transaction");
-}
-
-// Placeholder broadcasting function
-void broadcast_bitcoin_transaction(bitcoin_transaction_t *transaction) {
-    printf("Broadcasting transaction for wallet: %s\n", transaction->wallet_address);
-    execute_secure_command("./broadcast_transaction");
-
-    // Clean and expunge sensitive data
-    memset((void *)transaction->wallet_address, 0, strlen(transaction->wallet_address));
-    memset(transaction->bitcoin, 0, 32);
-    printf("Metadata expunged after broadcasting.\n");
-}
