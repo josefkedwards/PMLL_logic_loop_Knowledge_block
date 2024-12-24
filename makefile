@@ -1,6 +1,8 @@
 # Compiler and flags
 CC = gcc
+NVCC = nvcc
 CFLAGS = -Wall -Wextra -pedantic -std=c99 -O2 -Iinclude
+CUDAFLAGS = -arch=sm_60 -O2
 LDFLAGS = -lssl -lcrypto -lcurl -lpthread
 DEBUG_CFLAGS = -g -DDEBUG
 
@@ -14,10 +16,11 @@ INSTALL_DIR = /opt/pmll
 
 # Source files
 SOURCES = $(wildcard $(SRC_DIR)/*.c)
-OBJECTS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SOURCES))
+CUDA_SOURCES = $(wildcard $(SRC_DIR)/*.cu)
+OBJECTS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SOURCES)) $(patsubst $(SRC_DIR)/%.cu, $(BUILD_DIR)/%.o, $(CUDA_SOURCES))
 
 # Target binaries
-TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api vector_matrix silo_manager logic_loop custodian free
+TARGETS = pmll arc_agi_benchmark pmll_np_solver sat_test api_llama api vector_matrix silo_manager logic_loop custodian free gpu_program
 
 # Default target: Build all binaries
 .PHONY: all
@@ -61,10 +64,18 @@ custodian: $(BUILD_DIR)/custodian.o $(BUILD_DIR)/io_socket.o
 free: $(BUILD_DIR)/free.o $(BUILD_DIR)/json.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $(BINARIES_DIR)/$@ $^
 
+gpu_program: $(BUILD_DIR)/GPU.o
+	$(NVCC) $(CUDAFLAGS) -I$(INCLUDE_DIR) -o $(BINARIES_DIR)/$@ $^
+
 # Compile source files into object files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
+
+# Compile CUDA source files into object files
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cu
+	@mkdir -p $(BUILD_DIR)
+	$(NVCC) $(CUDAFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
 
 # Prepare necessary directories
 .PHONY: prepare_dirs
@@ -96,6 +107,7 @@ deploy: all
 # Debug build
 .PHONY: debug
 debug: CFLAGS += $(DEBUG_CFLAGS)
+debug: CUDAFLAGS += -G -lineinfo
 debug: all
 
 # Install Dependencies
@@ -122,4 +134,4 @@ help:
 	@echo "  clean                Remove all build artifacts."
 	@echo "  orchestrate          Run orchestration script (Orchestrate.sh)."
 	@echo "  deploy               Deploy binaries to $(INSTALL_DIR)."
-	@echo "  debug                Build with debug flags."
+	@echo "  debug                Build with debugging enabled."
