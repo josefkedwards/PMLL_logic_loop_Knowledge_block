@@ -123,6 +123,3 @@ help:
 	@echo "  orchestrate          Run orchestration script (Orchestrate.sh)."
 	@echo "  deploy               Deploy binaries to $(INSTALL_DIR)."
 	@echo "  debug                Build with debug flags."
-	@echo "  deps                 Install necessary dependencies."
-	@echo "  test                 Run all tests."
-	@echo "  help                 Show this help message."
