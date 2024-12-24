@@ -1,53 +1,66 @@
-#ifndef LOGIC_LOOP_H
-#define LOGIC_LOOP_H
+#ifndef LOGIC_LOOPS_H
+#define LOGIC_LOOPS_H
 
-#include "pml.h" // Includes the PML structure and associated functions
-#include <stddef.h> // For size_t
+#include <stdbool.h>
 
-// Constants
-#define MAX_ITERATIONS 1000  // Maximum iterations for the logic loop
-#define BUFFER_SIZE 1024     // Buffer size for data handling
+// Maximum retry attempts for ARLL
+#define RETRY_LIMIT 3
 
-// Function Declarations
+// Error flags for EFLL
+#define EFLL_ERROR_NONE 0
+#define EFLL_ERROR_MEMORY 1
+#define EFLL_ERROR_IO 2
+#define EFLL_ERROR_UNKNOWN 3
 
-/**
- * Initializes the logic loop.
- * @param pml A pointer to the PMLL structure.
- * @return 0 on success, -1 on failure.
- */
-int initialize_logic_loop(PMLL* pml);
-
-/**
- * Executes the main logic loop.
- * @param pml A pointer to the PMLL structure.
- */
-void execute_logic_loop(PMLL* pml);
-
-/**
- * Cleans up resources used during the logic loop.
- * @param pml A pointer to the PMLL structure.
- */
-void cleanup_logic_loop(PMLL* pml);
+// Structure for logic loops
+typedef struct {
+    int id;
+    int memory_silo_id;
+    int io_socket_id;
+    int free_c_present;  // Flag indicating presence of free.c
+    int retries;         // Retry count for ARLL
+    int error_flag;      // Error flag for EFLL
+} logic_loop_t;
 
 /**
- * Consolidates memory across silos using the provided pipe.
- * @param pml A pointer to the PMLL structure.
- * @param pipefd A file descriptor array for inter-process communication.
+ * Initialize the PML logic loop.
+ * @param memory_silo_id ID of the memory silo.
+ * @param io_socket_id ID of the IO socket.
  */
-void consolidate_memory(PMLL* pml, int pipefd[2]);
+void pml_logic_loop_init(int memory_silo_id, int io_socket_id);
 
 /**
- * Updates the consolidated memory graph with new data.
- * @param pml A pointer to the PMLL structure.
- * @param buffer The buffer containing memory graph update data.
+ * Process logic within the PML logic loop.
+ * @param io_socket_id The socket ID.
+ * @param buffer Pointer to the buffer.
+ * @param length Length of the buffer.
  */
-void update_consolidated_memory_graph(PMLL* pml, const char* buffer);
+void pml_logic_loop_process(int io_socket_id, void* buffer, int length);
 
 /**
- * Logs a message to the logic loop system.
- * @param level The severity level (e.g., "INFO", "ERROR").
- * @param message The message to log.
+ * Apply ARLL to retry failed operations.
+ * @param operation A function pointer to the operation to retry.
+ * @param args Pointer to arguments for the operation.
+ * @return True if the operation succeeds, false otherwise.
  */
-void log_loop_message(const char* level, const char* message);
+bool arll_retry(bool (*operation)(void*), void* args);
 
-#endif // LOGIC_LOOP_H
+/**
+ * Handle errors using EFLL.
+ * @param error_flag The error flag.
+ */
+void efll_handle_error(int error_flag);
+
+/**
+ * Get the current state of the PML logic loop.
+ * @param io_socket_id The socket ID.
+ * @return Pointer to the current logic loop state.
+ */
+logic_loop_t* get_pml_logic_loop(int io_socket_id);
+
+/**
+ * Cleanup memory and socket resources for the logic loop.
+ */
+void logic_loop_cleanup();
+
+#endif // LOGIC_LOOPS_H
