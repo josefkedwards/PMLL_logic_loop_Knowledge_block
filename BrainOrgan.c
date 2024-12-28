@@ -3,6 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <pthread.h>
 #include "io_socket.h"
 #include "unified_memory.h"
 #include "custodian.h"
@@ -20,12 +21,20 @@
 #include "pksign.h" // Signing utilities
 #include "protect.h" // Data protection logic
 #include <gpgme.h> // Cryptographic integration for secure processing
+#include <curl/curl.h> // For blockchain communication
+#include "blockchain.h" // Custom blockchain library for PMLL integration
 
 #define FIBONACCI_LIMIT 120000.0
 #define FIBONACCI_MIN 20.0
 #define OCTAVE_BASE 8.0
+#define BLOCK_CHAIN_TRANSACTION_TIMEOUT 60000 // 60 seconds in milliseconds
 
-// Generate Fibonacci Sequence within Limits
+// Blockchain utility functions
+static void *blockchain_thread(void *arg);
+static void commit_to_blockchain(const char *data);
+static void verify_from_blockchain(char *buffer, size_t size);
+
+// Generate Fibonacci Sequence within Limits with Blockchain Commitment
 void generate_fibonacci_sequence(double *sequence, int *length) {
     sequence[0] = FIBONACCI_MIN;
     sequence[1] = FIBONACCI_MIN + 1;
@@ -34,12 +43,17 @@ void generate_fibonacci_sequence(double *sequence, int *length) {
         sequence[i] = sequence[i - 1] + sequence[i - 2];
         if (sequence[i] > FIBONACCI_LIMIT) break;
         i++;
+        
+        // Commit each Fibonacci number to the blockchain for persistence
+        char commit_data[256];
+        snprintf(commit_data, sizeof(commit_data), "Fibonacci:%d:%.2f", i, sequence[i]);
+        commit_to_blockchain(commit_data);
     }
     *length = i;
     printf("[Inner Ear] Fibonacci sequence generated for cochlear emulation up to %.2f Hz.\n", FIBONACCI_LIMIT);
 }
 
-// Define 8va Octave Simulation using Fibonacci Sequence
+// Define 8va Octave Simulation using Fibonacci Sequence with Blockchain Verification
 void simulate_octave_range(InnerEar *inner_ear) {
     CHECK_NULL(inner_ear, "Inner Ear is NULL");
 
@@ -53,21 +67,33 @@ void simulate_octave_range(InnerEar *inner_ear) {
         if (octave_adjusted_frequency < FIBONACCI_MIN || octave_adjusted_frequency > FIBONACCI_LIMIT) {
             continue;
         }
-        simulate_cochlea_response(inner_ear, octave_adjusted_frequency);
-        printf("[Inner Ear] Octave-adjusted frequency: %.2f Hz\n", octave_adjusted_frequency);
+        
+        // Verify frequency from blockchain before simulation
+        char blockchain_data[256];
+        verify_from_blockchain(blockchain_data, sizeof(blockchain_data));
+        if (strstr(blockchain_data, "Fibonacci") != NULL) {
+            simulate_cochlea_response(inner_ear, octave_adjusted_frequency);
+            printf("[Inner Ear] Octave-adjusted frequency: %.2f Hz\n", octave_adjusted_frequency);
+        } else {
+            printf("[Warning] Blockchain verification failed for frequency.\n");
+        }
     }
 }
 
-// ARC-AGI Benchmark Function
+// ARC-AGI Benchmark Function with Blockchain Timestamp
 void run_arc_agi_benchmark() {
     printf("[ARC-AGI Benchmark] Running advanced benchmarks for cognitive efficiency:\n");
     printf("[Benchmark] Logical Operations Efficiency: %.2f%%\n", (rand() % 100) + 1.0);
     printf("[Benchmark] Memory Retrieval Latency: %.2fms\n", (rand() % 100) / 10.0);
     printf("[Benchmark] Neural Network Activation Time: %.2fms\n", (rand() % 50) / 10.0);
     printf("[Benchmark] Sensory Processing Throughput: %.2fMB/s\n", (rand() % 50) + 1.0);
+    
+    char benchmark_data[256];
+    snprintf(benchmark_data, sizeof(benchmark_data), "Benchmark:%s", "Efficiency Metrics");
+    commit_to_blockchain(benchmark_data);
 }
 
-// Custodian Monitoring Function with Diagnostics
+// Custodian Monitoring Function with Diagnostics and Blockchain Integration
 void custodian_monitor(const UnifiedMemoryAndVoice *umv, const LeftHemisphere *left, const RightHemisphere *right) {
     CHECK_NULL(umv, "Unified Memory is NULL");
     CHECK_NULL(left, "Left Hemisphere is NULL");
@@ -92,9 +118,15 @@ void custodian_monitor(const UnifiedMemoryAndVoice *umv, const LeftHemisphere *l
 
     // Run ARC-AGI Benchmark
     run_arc_agi_benchmark();
+    
+    // Log to blockchain
+    char custodian_data[256];
+    snprintf(custodian_data, sizeof(custodian_data), "Custodian:%s:%s:%s", 
+             umv->short_term_memory, umv->long_term_memory, umv->voice_input);
+    commit_to_blockchain(custodian_data);
 }
 
-// Inner Ear Integration
+// Inner Ear Integration with Blockchain Logging
 void integrate_inner_ear(InnerEar *inner_ear, double auditory_signal, double vestibular_adjustment) {
     CHECK_NULL(inner_ear, "Inner Ear is NULL");
     process_auditory_input(inner_ear, auditory_signal);
@@ -113,9 +145,14 @@ void integrate_inner_ear(InnerEar *inner_ear, double auditory_signal, double ves
 
     // Simulate Octave Range
     simulate_octave_range(inner_ear);
+
+    // Log to blockchain
+    char ear_data[256];
+    snprintf(ear_data, sizeof(ear_data), "InnerEar:%f:%f", auditory_signal, vestibular_adjustment);
+    commit_to_blockchain(ear_data);
 }
 
-// Mimemograph Processing Logic thanks John Trompeter for that one
+// Mimemograph Processing Logic with Blockchain Checkpoints
 void process_mimemograph(Graph *knowledge_graph, EmotionalGraph *emotional_graph, UnifiedMemoryAndVoice *umv) {
     // Step 1: Process batch load for both graphs
     process_batch_load(knowledge_graph);
@@ -143,9 +180,14 @@ void process_mimemograph(Graph *knowledge_graph, EmotionalGraph *emotional_graph
     clear_emotional_graph(emotional_graph);
 
     printf("[Mimemograph] Rollout and cleanup complete.\n");
+
+    // Log checkpoint to blockchain
+    char checkpoint[256];
+    snprintf(checkpoint, sizeof(checkpoint), "Mimemograph:Checkpoint:%d", pmll_confirm_consolidation(umv));
+    commit_to_blockchain(checkpoint);
 }
 
-// Orchestration Script Logic
+// Orchestration Script Logic with Blockchain Integration
 void orchestrate_system() {
     printf("Starting orchestration of Final Unified Brain Organ system...\n");
 
@@ -178,12 +220,20 @@ void orchestrate_system() {
     system("sudo systemctl enable final_brain.service");
     system("sudo systemctl start final_brain.service");
 
+    // Add blockchain node setup
+    printf("Initializing Blockchain Node...\n");
+    system("git clone https://github.com/ethereum/go-ethereum && cd go-ethereum && make geth");
+    system("./geth --datadir node1 init genesis.json");
+    system("./geth --datadir node1 --networkid 1337 console");
+
     printf("Orchestration completed successfully!\n");
 }
 
-// Main Logic Integration
+// Main Logic Integration with Blockchain Thread
 int main() {
     srand(time(NULL));
+    pthread_t blockchain_thread_handle;
+    pthread_create(&blockchain_thread_handle, NULL, blockchain_thread, NULL);
 
     // Initialize Components
     UnifiedMemoryAndVoice *umv = init_unified_memory_and_voice("STM Init", "LTM Init", "Hello Universe");
@@ -214,145 +264,8 @@ int main() {
         }
     }
 
-    printf("[Shutdown] Process completed successfully!\n");
-    return 0;
-}
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <time.h>
-#include <pthread.h>
-#include "io_socket.h"
-#include "unified_memory.h"
-#include "custodian.h"
-#include "watcher.h"
-#include "coin.h"
-#include "pml_logic_loop.h"
-#include "knowledge.h"
-#include "inner_ear.h"
-#include "UTF-11.h" // UTF-11 Tokenizer for advanced parsing
-#include "agent.h" // Global agent definitions
-#include "command.h" // GPG command handler
-#include "command-ssh.h" // SSH protocol handler
-#include "genkey.h" // Key generation utilities
-#include "findkey.h" // Key finding utilities
-#include "pksign.h" // Signing utilities
-#include "protect.h" // Data protection logic
-#include <gpgme.h> // Cryptographic integration for secure processing
-#include <curl/curl.h> // For blockchain communication
-#include "blockchain.h" // Custom blockchain library for PMLL integration
-
-#define FIBONACCI_LIMIT 120000.0
-#define FIBONACCI_MIN 20.0
-#define OCTAVE_BASE 8.0
-#define BLOCK_CHAIN_TRANSACTION_TIMEOUT 60000 // 60 seconds in milliseconds
-
-// Blockchain utility functions
-static void *blockchain_thread(void *arg);
-static void commit_to_blockchain(const char *data);
-static void verify_from_blockchain(char *buffer, size_t size);
-
-// Updated Fibonacci Generation with Blockchain Commitment
-void generate_fibonacci_sequence(double *sequence, int *length) {
-    sequence[0] = FIBONACCI_MIN;
-    sequence[1] = FIBONACCI_MIN + 1;
-    int i = 2;
-    while (1) {
-        sequence[i] = sequence[i - 1] + sequence[i - 2];
-        if (sequence[i] > FIBONACCI_LIMIT) break;
-        i++;
-        
-        // Commit each Fibonacci number to the blockchain for persistence
-        char commit_data[256];
-        snprintf(commit_data, sizeof(commit_data), "Fibonacci:%d:%.2f", i, sequence[i]);
-        commit_to_blockchain(commit_data);
-    }
-    *length = i;
-    printf("[Inner Ear] Fibonacci sequence generated for cochlear emulation up to %.2f Hz.\n", FIBONACCI_LIMIT);
-}
-
-// Enhanced Octave Simulation with Blockchain Verification
-void simulate_octave_range(InnerEar *inner_ear) {
-    CHECK_NULL(inner_ear, "Inner Ear is NULL");
-
-    double fibonacci_sequence[128];
-    int sequence_length;
-    generate_fibonacci_sequence(fibonacci_sequence, &sequence_length);
-
-    printf("[Inner Ear] Simulating 8va Octave Range:\n");
-    for (int i = 0; i < sequence_length; i++) {
-        double octave_adjusted_frequency = fibonacci_sequence[i] / OCTAVE_BASE;
-        if (octave_adjusted_frequency < FIBONACCI_MIN || octave_adjusted_frequency > FIBONACCI_LIMIT) {
-            continue;
-        }
-        
-        // Verify frequency from blockchain before simulation
-        char blockchain_data[256];
-        verify_from_blockchain(blockchain_data, sizeof(blockchain_data));
-        if (strstr(blockchain_data, "Fibonacci") != NULL) {
-            simulate_cochlea_response(inner_ear, octave_adjusted_frequency);
-            printf("[Inner Ear] Octave-adjusted frequency: %.2f Hz\n", octave_adjusted_frequency);
-        } else {
-            printf("[Warning] Blockchain verification failed for frequency.\n");
-        }
-    }
-}
-
-// ARC-AGI Benchmark Function with Blockchain Timestamp
-void run_arc_agi_benchmark() {
-    printf("[ARC-AGI Benchmark] Running advanced benchmarks for cognitive efficiency:\n");
-    // ... (previous benchmark code)
-    char benchmark_data[256];
-    snprintf(benchmark_data, sizeof(benchmark_data), "Benchmark:%s", "Efficiency Metrics");
-    commit_to_blockchain(benchmark_data);
-}
-
-// Custodian Monitoring with Blockchain Integration
-void custodian_monitor(const UnifiedMemoryAndVoice *umv, const LeftHemisphere *left, const RightHemisphere *right) {
-    // ... (previous monitoring logic)
-    char custodian_data[256];
-    snprintf(custodian_data, sizeof(custodian_data), "Custodian:%s:%s:%s", 
-             umv->short_term_memory, umv->long_term_memory, umv->voice_input);
-    commit_to_blockchain(custodian_data);
-}
-
-// Inner Ear Integration with Blockchain Logging
-void integrate_inner_ear(InnerEar *inner_ear, double auditory_signal, double vestibular_adjustment) {
-    // ... (previous integration logic)
-    char ear_data[256];
-    snprintf(ear_data, sizeof(ear_data), "InnerEar:%f:%f", auditory_signal, vestibular_adjustment);
-    commit_to_blockchain(ear_data);
-}
-
-// Mimemograph Processing with Blockchain Checkpoints
-void process_mimemograph(Graph *knowledge_graph, EmotionalGraph *emotional_graph, UnifiedMemoryAndVoice *umv) {
-    // ... (previous mimemograph logic)
-    char checkpoint[256];
-    snprintf(checkpoint, sizeof(checkpoint), "Mimemograph:Checkpoint:%d", pmll_confirm_consolidation(umv));
-    commit_to_blockchain(checkpoint);
-}
-
-// Orchestration Script Logic with Blockchain Integration
-void orchestrate_system() {
-    // ... (previous system orchestration)
-    // Add blockchain node setup
-    printf("Initializing Blockchain Node...\n");
-    system("git clone https://github.com/ethereum/go-ethereum && cd go-ethereum && make geth");
-    system("./geth --datadir node1 init genesis.json");
-    system("./geth --datadir node1 --networkid 1337 console");
-}
-
-// Main Logic Integration with Blockchain Thread
-int main() {
-    srand(time(NULL));
-    pthread_t blockchain_thread_handle;
-    pthread_create(&blockchain_thread_handle, NULL, blockchain_thread, NULL);
-
-    // ... (previous initialization and cognitive loop logic)
-
     pthread_join(blockchain_thread_handle, NULL);
+    printf("[Shutdown] Process completed successfully!\n");
     return 0;
 }
 
