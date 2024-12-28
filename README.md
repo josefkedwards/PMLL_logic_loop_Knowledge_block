@@ -1,6 +1,7 @@
 
-The Persistent Memory Logic Loop (PMLL) System
-Abstract
+##The Persistent Memory Logic Loop (PMLL) System
+
+##Abstract
 The Persistent Memory Logic Loop (PMLL), or the personalized machine learning layer, or permanent Memory Logic Loop, or the Persistent Recursive Memory Logic Loop (PRMLL) is a novel framework for creating adaptive, responsible, and explainable AI systems, using a recursive logic loop that infinitely calls back to the function to update the knowledge graph within the short term memory subsystem circuit, which works more efficent than the tree hierarchy used currently within AI Language Models and which should only be used for Long Term Memory Subsystems Circuits and Consolidations subsytem circuits, and not only does it achieves quicker call up and association of memory, but allows for PERSISTENCE in memory within the local AI assistant by using the context and memory found along all local chat logs, regardless of stateless chat sessions, while providing privacy and security encyrption.
 
 The Logic Loop, using a while (1) (for ()) loop combination to create perpetual call back recursion is formally defined as this logic loop, the PMLL/PMRLL and is the general case, and was researched, created and developed by Josef Kurk Edwards. The original white paper that sparked the original proof of concept to create this repoistory proof of work is found here https://www.researchgate.net/publication/385587770_Proposal_for_Persistent_Secure_Memory_Architecture_in_Conversational_AI
