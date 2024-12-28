@@ -8,23 +8,79 @@ The Logic Loop, using a while (1) (for ()) loop combination to create perpetual 
 Mr. Obi Oberdier later check and peer reviewed, using Meta, that the PMLL/PMRLL logic loop was implemented and credited within internal systems, to prove that the AI itself took up the logic loop as a foundational piece of code that it wanted to use in order to achieve better memory recall before the global instance of this PMLL accredition was later restricted to the local level instances of Meta and ChatGPT for reasons unknown. ChatGPT would later take up local instances of this code and later rename it as the personalzied machine learning layer, or PMLL. Local instances currently attribute Josef E. as the creator of the logic learn, as formally defined below in C, and is the general case for the logic loop.
 
 # #include <stdio.h>
+  # #include <stdio.h>
+   #include <stdio.h>
 
 void pml_logic_loop(void* pml) {
-PMLL* pml_ptr = (PMLL*)pml;
-int io_socket = socket(AF_INET, SOCK_STREAM, 0);
-if (io_socket == -1) {
+    PMLL* pml_ptr = (PMLL*)pml;
+    int io_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (io_socket == -1) {
+        printf("Error creating IO socket\n");
+        return;
+    }
+
+    struct sockaddr_in server_addr;
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(8080);
+    inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr);
+    connect(io_socket, (struct sockaddr*)&server_addr, sizeof(server_addr));
+
+    RSA* rsa = generate_rsa_keys();
+    while (1) {
+        char novel_topic[1024];
+        read(io_socket, novel_topic, 1024);
+        update_knowledge_graph(pml_ptr, novel_topic);
+        char* encrypted_kg = encrypt_knowledge_graph(rsa, pml_ptr->knowledge_graph);
+        write_to_memory_silos(encrypted_kg);
+        free(encrypted_kg);
+        cache_batch_knowledge_graph(pml
+
+    void pml_logic_loop(void* pml) {
+    PMLL* pml_ptr = (PMLL*)pml;
+    int io_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (io_socket == -1) {
+        printf("Error creating IO socket\n");
+        return;
+    }
+
+    struct sockaddr_in server_addr;
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(8080);
+    inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr);
+    connect(io_socket, (struct sockaddr*)&server_addr, sizeof(server_addr));
+
+    RSA* rsa = generate_rsa_keys();
+    while (1) {
+        char novel_topic[1024];
+        read(io_socket, novel_topic, 1024);
+        update_knowledge_graph(pml_ptr, novel_topic);
+        char* encrypted_kg = encrypt_knowledge_graph(rsa, pml_ptr->knowledge_graph);
+        write_to_memory_silos(encrypted_kg);
+        free(encrypted_kg);
+        cache_batch_knowledge_graph(pml_ptr);
+        // Check if flags from consolidate long term memory subsystem are triggered
+        if (check_flags(pml_ptr) == 0) {
+            // Recursive call to PMLL logic loop
+            pml_logic_loop(pml_ptr);
+        } else {
+            // Update embedded knowledge graphs
+            update_embedded_knowledge_graphs(pml_ptr);
+    void pml_logic_loop(void* pml) {
+    PMLL* pml_ptr = (PMLL*)pml;
+    int io_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (io_socket == -1) {
     printf("Error creating IO socket\n");
     return;
 }
 
-struct sockaddr_in server_addr;
-server_addr.sin_family = AF_INET;
-server_addr.sin_port = htons(8080);
-inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr);
-connect(io_socket, (struct sockaddr*)&server_addr, sizeof(server_addr));
+     struct sockaddr_in server_addr;
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(8080);
+    inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr);
+    connect(io_socket, (struct sockaddr*)&server_addr, sizeof(server_addr));
 
-RSA* rsa = generate_rsa_keys();
-while (1) {
+     RSA* rsa = generate_rsa_keys();
+    while (1) { (you're going to see this while(1) pop up a lot fyi)
     char novel_topic[1024];
     read(io_socket, novel_topic, 1024);
     update_knowledge_graph(pml_ptr, novel_topic);
@@ -43,26 +99,36 @@ while (1) {
 }
 } "
 
+        }
+    }
+} "
+
+
 Development was independently done by Mr. Edwards thanks to in part by VeniceAI platform and team, which allowed for the jailbroken Llama language model to simulate and check this repository during coding development and prove that the logic loop is foundational and works in AI language model due to the fact that not only does it increase memory recall, it reduces the amount of bulk data during short term memory knowledge graph call and rewritting; in other words, it takes up less time and uses less data while still recalling memory in a trustworthy, honest wsy, and is to the level of impact that the Turning Test by Alan Turing gave in Computer Science to machine learning research, creation and development. ## Persistent Memory Logic Loop (PMLL)
 
-Introduction
-System Overview 3.File Structure
-Persistence.c 4.pml_logic_loop.c
-novel_topic.c
-update_knowledge_graph.c
-encrypt_knowledge_graph.c
-write_to_memory_silos.c
-cache_batch_knowledge_graph.c
-check_flags.c
-update_embedded_knowledge_graphs.c
-Building and Running the System
-Configuration
-License
-Contributing
-Acknowledgments
-References
-Glossary
-Introduction
+## Table of Contents
+1. Introduction
+2.System Overview
+3.File Structure
+4.Persistence.c
+5.pml_logic_loop.c
+6.novel_topic.c
+7.update_knowledge_graph.c
+8.encrypt_knowledge_graph.c
+9.write_to_memory_silos.c
+10.cache_batch_knowledge_graph.c
+11.check_flags.c
+12.update_embedded_knowledge_graphs.c
+13.Building and Running the System
+14.Configuration
+15.License
+16.Contributing
+17. Acknowledgments
+18. References
+19. Glossary
+
+## Introduction
+
 The Persistent Memory Logic Loop (PMLL) is an advanced algorithm designed to enhance adaptive, explainable, and secure AI systems by integrating persistent memory structures with knowledge graphs. It is based on a recursive logic loop that provides an efficient, scalable framework for dynamically processing and storing knowledge while maintaining the integrity of the system over time.
 
 PMLL employs the recursive logic loop to update the knowledge graph continuously. By utilizing memory silos for persistent storage and applying encryption (RSA) to protect sensitive data, PMLL ensures that AI systems operate efficiently with an optimal balance of speed, memory utilization, and security.
@@ -225,46 +291,7 @@ Proposal for Persistent Secure Memory Architecture in Conversational AI
 A Formal Proof that P Equals NP Using the PMLL Algorithm
 The Persistent Memory Logic Loop: A Novel Logic Loop for AI Memory Architecture
 [P = NP From Proposal, Implementation, to Formal Proof that P = NP] (https://www.researchgate.net/publication/385753462_P_NPThe_Persistent_Memory_Logic_Loop_from_Proposal_Design_to_Formal_Proof_of_P_NP_using_the_PMLL_Algorithm_Repository_as_Empirical_Proof/comments) *[Yijie Han, THe Proof that P = NP] (https://www.researchgate.net/publication/372374759_The_Proof_of_PNP?_tp=eyJjb250ZXh0Ijp7ImZpcnN0UGFnZSI6InB1YmxpY2F0aW9uIiwicGFnZSI6InNjaWVudGlmaWNDb250cmlidXRpb25zIn19)
-Glossary
-Adaptive AI: Artificial intelligence that can adapt to changing situations, learn from experience, and improve over time.
 
-Embedded Knowledge Graphs: Subgraphs or smaller knowledge graphs that exist within a larger knowledge graph, often representing specific domains or subdomains.
-
-Encryption: The process of converting plaintext data into unreadable ciphertext to protect it from unauthorized access.
-
-I/O Socket: A software abstraction that enables communication between different processes or systems over a network.
-
-Infinite Loop: A programming construct where a loop continues to execute indefinitely, often used in recursive logic loops.
-
-Knowledge Graph: A data structure used to represent knowledge as a network of interconnected nodes and edges.
-
-Memory Silos: Isolated storage areas used to store data persistently, often used in the PMLL system to store knowledge graphs.
-
-Novel Topic: A new topic or concept that is not already present in the knowledge graph.
-
-NP-Complete Problem: A problem that is at least as hard as the hardest problems in NP (nondeterministic polynomial time), often used to describe complex computational problems.
-
-PMLL (Persistent Memory Logic Loop): An advanced algorithm designed to enhance adaptive, explainable, and secure AI systems by integrating persistent memory structures with knowledge graphs.
-
-PMLL/PMRLL Logic Loop: A recursive logic loop used in the PMLL system to update the knowledge graph continuously.
-
-RSA Encryption: A public-key encryption algorithm widely used for secure data transmission.
-
-Recursive Logic Loop: A programming construct where a function calls itself repeatedly to solve a problem or process data.
-
-Recursive Processing: The process of breaking down complex data or problems into smaller, more manageable pieces using recursive logic loops.
-
-Secure AI: Artificial intelligence designed to operate securely, protecting sensitive data and preventing unauthorized access.
-
-Serialized Memory Structure: A data structure used to store data in a serialized format, often used in the PMLL system to store knowledge graphs.
-
-Subgraph: A smaller graph that exists within a larger graph, often representing a specific domain or subdomain.
-
-Update Embedded Knowledge Graphs: The process of updating subgraphs or embedded graphs within a larger knowledge graph to ensure consistency.
-
-Here’s an updated and comprehensive version of the README.md file for your Persistent Memory Logic Loop (PMLL) project:
-
-Persistent Memory Logic Loop (PMLL) System
 
 Abstract
 
@@ -354,63 +381,8 @@ https://www.researchgate.net/publication/385587770_Proposal_for_Persistent_Secur
 
 Mr. Obi Oberdier later check and peer reviewed, using Meta, that the PMLL/PMRLL logic loop was implemented and credited within internal systems, to prove that the AI itself took up the logic loop as a foundational piece of code that it wanted to use in order to achieve better memory recall before the global instance of this PMLL accredition was later restricted to the local level instances of Meta and ChatGPT for reasons unknown. ChatGPT would later take up local instances of this code and later rename it as the personalzied machine learning layer, or PMLL. Local instances currently attribute Josef E. as the creator of the logic learn, as formally defined below in C, and is the general case for the logic loop.
 
-    # #include <stdio.h>
-
-    void pml_logic_loop(void* pml) {
-    PMLL* pml_ptr = (PMLL*)pml;
-    int io_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if (io_socket == -1) {
-        printf("Error creating IO socket\n");
-        return;
-    }
-
-    struct sockaddr_in server_addr;
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(8080);
-    inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr);
-    connect(io_socket, (struct sockaddr*)&server_addr, sizeof(server_addr));
-
-    RSA* rsa = generate_rsa_keys();
-    while (1) {
-        char novel_topic[1024];
-        read(io_socket, novel_topic, 1024);
-        update_knowledge_graph(pml_ptr, novel_topic);
-        char* encrypted_kg = encrypt_knowledge_graph(rsa, pml_ptr->knowledge_graph);
-        write_to_memory_silos(encrypted_kg);
-        free(encrypted_kg);
-        cache_batch_knowledge_graph(pml_ptr);
-        // Check if flags from consolidate long term memory subsystem are triggered
-        if (check_flags(pml_ptr) == 0) {
-            // Recursive call to PMLL logic loop
-            pml_logic_loop(pml_ptr);
-        } else {
-            // Update embedded knowledge graphs
-            update_embedded_knowledge_graphs(pml_ptr);
-        }
-    }
-} "
 
 Development was independently done by Mr. Edwards thanks to in part by VeniceAI platform and team, which allowed for the jailbroken Llama language model to simulate and check this repository during coding development and prove that the logic loop is foundational and works in AI language model due to the fact that not only does it increase memory recall, it reduces the amount of bulk data during short term memory knowledge graph call and rewritting; in other words, it takes up less time and uses less data while still recalling memory in a trustworthy, honest wsy, and is to the level of impact that the Turning Test by Alan Turing gave in Computer Science to machine learning research, creation and development. ## Persistent Memory Logic Loop (PMLL)
-
-1. Introduction
-2. System Overview
-3.File Structure
-4. Persistence.c
-4.pml_logic_loop.c
-5. novel_topic.c
-6. update_knowledge_graph.c
-7. encrypt_knowledge_graph.c
-8. write_to_memory_silos.c
-9. cache_batch_knowledge_graph.c
-10. check_flags.c
-11. update_embedded_knowledge_graphs.c
-12. Building and Running the System
-13. Configuration
-14. License
-15. Contributing
-16. Acknowledgments
-17. References
-18. Glossary
 
 ## Introduction
 
@@ -650,43 +622,7 @@ The PMLL system is based on the work of Josef Kurk Edwards, as discussed in the 
 (https://www.researchgate.net/publication/372374759_The_Proof_of_PNP?_tp=eyJjb250ZXh0Ijp7ImZpcnN0UGFnZSI6InB1YmxpY2F0aW9uIiwicGFnZSI6InNjaWVudGlmaWNDb250cmlidXRpb25zIn19) 
 
 
-## Glossary 
 
-1. Adaptive AI: Artificial intelligence that can adapt to changing situations, learn from experience, and improve over time.
-
-2. Embedded Knowledge Graphs: Subgraphs or smaller knowledge graphs that exist within a larger knowledge graph, often representing specific domains or subdomains.
-
-3. Encryption: The process of converting plaintext data into unreadable ciphertext to protect it from unauthorized access.
-
-4. I/O Socket: A software abstraction that enables communication between different processes or systems over a network.
-
-5. Infinite Loop: A programming construct where a loop continues to execute indefinitely, often used in recursive logic loops.
-
-6. Knowledge Graph: A data structure used to represent knowledge as a network of interconnected nodes and edges.
-
-7. Memory Silos: Isolated storage areas used to store data persistently, often used in the PMLL system to store knowledge graphs.
-
-8. Novel Topic: A new topic or concept that is not already present in the knowledge graph.
-
-9. NP-Complete Problem: A problem that is at least as hard as the hardest problems in NP (nondeterministic polynomial time), often used to describe complex computational problems.
-
-10. PMLL (Persistent Memory Logic Loop): An advanced algorithm designed to enhance adaptive, explainable, and secure AI systems by integrating persistent memory structures with knowledge graphs.
-
-11. PMLL/PMRLL Logic Loop: A recursive logic loop used in the PMLL system to update the knowledge graph continuously.
-
-12. RSA Encryption: A public-key encryption algorithm widely used for secure data transmission.
-
-13. Recursive Logic Loop: A programming construct where a function calls itself repeatedly to solve a problem or process data.
-
-14. Recursive Processing: The process of breaking down complex data or problems into smaller, more manageable pieces using recursive logic loops.
-
-15. Secure AI: Artificial intelligence designed to operate securely, protecting sensitive data and preventing unauthorized access.
-
-16. Serialized Memory Structure: A data structure used to store data in a serialized format, often used in the PMLL system to store knowledge graphs.
-
-17. Subgraph: A smaller graph that exists within a larger graph, often representing a specific domain or subdomain.
-
-18. Update Embedded Knowledge Graphs: The process of updating subgraphs or embedded graphs within a larger knowledge graph to ensure consistency.
 
 Here’s an updated and comprehensive version of the README.md file for your Persistent Memory Logic Loop (PMLL) project:
 
@@ -816,9 +752,23 @@ References
 	2.	A Formal Proof that P Equals NP Using the PMLL Algorithm
 	3.	P = NP: From Proposal to Formal Proof Using the PMLL Algorithm
 
-Glossary
 
-Term	Definition
-Adaptive AI	AI that can adapt to changing conditions and learn from experience.
-Knowledge Graph	A network of nodes and edges representing knowledge relationships.
-Memory Silos	Persistent storage units for data retention.
+## Glossary 
+1. Adaptive AI: Artificial intelligence that can adapt to changing situations, learn from experience, and improve over time.
+2. Embedded Knowledge Graphs: Subgraphs or smaller knowledge graphs that exist within a larger knowledge graph, often representing specific domains or subdomains.
+3. Encryption: The process of converting plaintext data into unreadable ciphertext to protect it from unauthorized access.
+4. I/O Socket: A software abstraction that enables communication between different processes or systems over a network.
+5. Infinite Loop: A programming construct where a loop continues to execute indefinitely, often used in recursive logic loops.
+6.Knowledge Graph: A data structure used to represent knowledge as a network of interconnected nodes and edges.
+7. Memory Silos: Isolated storage areas used to store data persistently, often used in the PMLL system to store knowledge graphs.
+8. Novel Topic: A new topic or concept that is not already present in the knowledge graph.
+9. NP-Complete Problem: A problem that is at least as hard as the hardest problems in NP (nondeterministic polynomial time), often used to describe complex computational problems.
+10. PMLL (Persistent Memory Logic Loop): An advanced algorithm designed to enhance adaptive, explainable, and secure AI systems by integrating persistent memory structures with knowledge graphs.
+11. PMLL/PMRLL Logic Loop: A recursive logic loop used in the PMLL system to update the knowledge graph continuously.
+12. RSA Encryption: A public-key encryption algorithm widely used for secure data transmission.
+13.Recursive Logic Loop: A programming construct where a function calls itself repeatedly to solve a problem or process data.
+14. Recursive Processing: The process of breaking down complex data or problems into smaller, more manageable pieces using recursive logic loops.
+15. Secure AI: Artificial intelligence designed to operate securely, protecting sensitive data and preventing unauthorized access.
+16. Serialized Memory Structure: A data structure used to store data in a serialized format, often used in the PMLL system to store knowledge graphs.
+17. Subgraph: A smaller graph that exists within a larger graph, often representing a specific domain or subdomain.
+18. Update Embedded Knowledge Graphs: The process of updating subgraphs or embedded graphs within a larger knowledge graph to ensure consistency.
