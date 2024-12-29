@@ -22,7 +22,6 @@ void update_local_knowledge_graph(PMLL* pml, const char* update_data) {
     printf("Updating local knowledge graph with data: %s\n", update_data);
 
     // Simulate knowledge graph update logic
-    // In a real implementation, this would involve merging or updating graph nodes and edges
     printf("Local knowledge graph updated successfully.\n");
 }
 
