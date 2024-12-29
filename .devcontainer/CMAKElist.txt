@@ -82,4 +82,3 @@ endif()
 # ],
 # "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
 # "workspaceFolder": "/workspace/pmll_blockchain"
-
