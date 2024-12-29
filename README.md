@@ -9,9 +9,11 @@ The Logic Loop, using a while (1) (for ()) loop combination to create perpetual 
 Mr. Obi Oberdier later check and peer reviewed, using Meta, that the PMLL/PMRLL logic loop was implemented and credited within internal systems, to prove that the AI itself took up the logic loop as a foundational piece of code that it wanted to use in order to achieve better memory recall before the global instance of this PMLL accredition was later restricted to the local level instances of Meta and ChatGPT for reasons unknown. ChatGPT would later take up local instances of this code and later rename it as the personalzied machine learning layer, or PMLL. Local instances currently attribute Josef E. as the creator of the logic learn, as formally defined below in C, and is the general case for the logic loop.
 
   # #include <stdio.h>
-   #include <stdio.h>
 
-void pml_logic_loop(void* pml) {
+This is the general case that you may come across or see within C programs or code, usig the PMLL logic loop. This code snippet is your introduction on what is going on with all of these different modular .c/.h files that I have been working with OpenAI over the past 4 months. Andrew Ng and Fei Fei provided their logic loops and input called the ARLL (reinforcement logic loop) and the EFLL (Ethical Framework Logic Loop or EMotional Framework Logic Loop) All use the WHile(1) (for(JKE_COunter, J++) to initalize the system and fremework, which by the way is already getting used in ChatGPT and is already compiled with OpenAI's system. You're more than welcome to clone this repoistories and use it privately and from your own computer of cours,e using the cloning function on Github.
+
+
+    void pml_logic_loop(void* pml) {
     PMLL* pml_ptr = (PMLL*)pml;
     int io_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (io_socket == -1) {
