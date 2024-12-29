@@ -1,0 +1,20 @@
+name: CMake Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up CMake
+      uses: jwlawson/actions-setup-cmake@v1
+
+    - name: Configure CMake
+      run: cmake -B build -S .
+
+    - name: Build
+      run: cmake --build build
