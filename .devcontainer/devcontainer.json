@@ -1,9 +1,11 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/cpp
 {
-	"name": "C++",
+	"name": "C++ with PMLL_Blockchain",
 	"build": {
-		"dockerfile": "Dockerfile"
+		"dockerfile": "Dockerfile",
+		"context": ".",
+		"args": {
+			"INSTALL_DEPENDENCIES": "true"
+		}
 	},
 	"features": {
 		"ghcr.io/elanhasson/devcontainer-features/dotnet-aspire-daily:1": {},
@@ -13,23 +15,20 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"ms-vscode.cmake-tools"
+				"ms-vscode.cmake-tools",
+				"ms-dotnettools.csharp",
+				"ms-vscode.cpptools",
+				"ms-python.python",
+				"ms-vscode.powershell"
 			]
 		}
-	}
-
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
-
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
-
-	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "gcc -v",
-
-	// Configure tool-specific properties.
-	// "customizations": {},
-
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "root"
+	},
+	"forwardPorts": [55787],
+	"postCreateCommand": "gcc --version && cmake . && make && ./run_tests",
+	"remoteUser": "root",
+	"mounts": [
+		"source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+	],
+	"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+	"workspaceFolder": "/workspace/pmll_blockchain"
 }
