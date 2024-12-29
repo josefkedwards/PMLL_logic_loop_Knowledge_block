@@ -14,8 +14,8 @@ CONSENT_PAYLOAD='{
     "body": "We are deploying PMLL components. Do you consent to participate? Respond AGREE or DENY.",
     "action_required": true
 }'
-API_BASE="https://api"
-DOMAIN="example.com"
+API_BASE="https://api."
+DOMAIN=".github.com"
 ARLL_RETRIES=3
 ARLL_DELAY=5  # Retry delay in seconds
 BATCH_SIZE=1000  # Number of parallel operations per batch
