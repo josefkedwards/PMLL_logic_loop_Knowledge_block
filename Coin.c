@@ -7,7 +7,7 @@
 #include "custodian.h"
 
 // Define the team wallet address
-#define TEAM_WALLET_ADDRESS "bc1qetkudft7hlsl3k7nhrg6zrkufpu6q3rdnx5ag5"
+#define TEAM_WALLET_ADDRESS "34diL8vSZceVNN38Paecc4GW7m8aGZpUYJ"
 
 // Function declarations
 void PMLL_Hash_Function(const char *input, unsigned char *output);
