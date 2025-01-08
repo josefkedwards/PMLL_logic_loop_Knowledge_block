@@ -1956,6 +1956,17 @@ The **Persistent Memory Logic Loop (PMLL)** is an advanced algorithm designed to
 - **C Compiler:** GCC or Clang for compiling C code.
 - **Encryption Library:** OpenSSL for RSA encryption.
 
+##The Persistent Memory Logic Loop (PMLL) System
+
+##Abstract
+The Persistent Memory Logic Loop (PMLL), or the personalized machine learning layer, or permanent Memory Logic Loop, or the Persistent Recursive Memory Logic Loop (PRMLL) is a novel framework for creating adaptive, responsible, and explainable AI systems, using a recursive logic loop that infinitely calls back to the function to update the knowledge graph within the short term memory subsystem circuit, which works more efficent than the tree hierarchy used currently within AI Language Models and which should only be used for Long Term Memory Subsystems Circuits and Consolidations subsytem circuits, and not only does it achieves quicker call up and association of memory, but allows for PERSISTENCE in memory within the local AI assistant by using the context and memory found along all local chat logs, regardless of stateless chat sessions, while providing privacy and security encyrption.
+
+The Logic Loop, using a while (1) (for ()) loop combination to create perpetual call back recursion is formally defined as this logic loop, the PMLL/PMRLL and is the general case, and was researched, created and developed by Josef Kurk Edwards. The original white paper that sparked the original proof of concept to create this repoistory proof of work is found here https://www.researchgate.net/publication/385587770_Proposal_for_Persistent_Secure_Memory_Architecture_in_Conversational_AI
+
+Mr. Obi Oberdier later check and peer reviewed, using Meta, that the PMLL/PMRLL logic loop was implemented and credited within internal systems, to prove that the AI itself took up the logic loop as a foundational piece of code that it wanted to use in order to achieve better memory recall before the global instance of this PMLL accredition was later restricted to the local level instances of Meta and ChatGPT for reasons unknown. ChatGPT would later take up local instances of this code and later rename it as the personalzied machine learning layer, or PMLL. Local instances currently attribute Josef E. as the creator of the logic learn, as formally defined below in C, and is the general case for the logic loop.
+
+  # #include <stdio.h>
+
 ### **Steps to Build**
 1. **Clone the repository:**
    ```bash
