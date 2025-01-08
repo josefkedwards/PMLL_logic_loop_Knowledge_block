@@ -32,3 +32,37 @@ void process_bitcoin_payment(const char* recipient, double amount);
 void create_and_sign_transaction(const char* recipient_address, double amount);
 
 #endif // COIN_H
+
+#ifndef BROADCASTINGCOIN_H
+#define BROADCASTINGCOIN_H
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <openssl/sha.h>
+#include <openssl/aes.h>
+
+// Define the Bitcoin transaction structure
+typedef struct {
+    char wallet_address[64];
+    unsigned char bitcoin[32];
+} bitcoin_transaction_t;
+
+// Function declarations
+void install_dependencies(); // Installs dependencies required for Bitcoin operations
+void set_execute_permissions(); // Sets executable permissions for necessary scripts
+void execute_secure_command(const char *command); // Executes secure system commands
+
+// Bitcoin transaction handling
+bitcoin_transaction_t *create_bitcoin_transaction(const char *wallet_address, unsigned char *bitcoin);
+void sign_bitcoin_transaction(bitcoin_transaction_t *transaction);
+void broadcast_bitcoin_transaction(bitcoin_transaction_t *transaction);
+void send_bitcoin_to_wallet(const char *wallet_address, unsigned char *bitcoin);
+
+// PMLL (Hashing, Compression, and Caching) Utilities
+void PMLL_Hash_Function(const char *input, unsigned char *output);
+void PMLL_Compress_Data(const char *input, unsigned char *output);
+void PMLL_Cache_Data(const char *input, unsigned char *output);
+
+#endif // BROADCASTINGCOIN_H
+
