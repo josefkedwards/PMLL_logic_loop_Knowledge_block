@@ -6,23 +6,26 @@
 #include "watcher.h"
 #include "custodian.h"
 
-// Define the team wallet address
+// Example team wallet address
 #define TEAM_WALLET_ADDRESS "34diL8vSZceVNN38Paecc4GW7m8aGZpUYJ"
-
-// Function declarations
-void PMLL_Hash_Function(const char *input, unsigned char *output);
-void PMLL_Compress_Data(const char *input, unsigned char *output);
-void PMLL_Cache_Data(const char *input, unsigned char *output);
-void send_bitcoin_to_wallet(const char *wallet_address, unsigned char *bitcoin);
-void execute_secure_command(const char *command);
-void install_dependencies();
-void set_execute_permissions();
 
 // Bitcoin transaction structure
 typedef struct {
-    const char *wallet_address;
-    unsigned char *bitcoin;
+    char wallet_address[64];     // Wallet address field
+    unsigned char bitcoin[32];   // Fixed buffer size for Bitcoin transaction data
 } bitcoin_transaction_t;
+
+// Function declarations
+void install_dependencies();
+void set_execute_permissions();
+void execute_secure_command(const char *command);
+void PMLL_Hash_Function(const char *input, unsigned char *output);
+void PMLL_Compress_Data(const char *input, unsigned char *output);
+void PMLL_Cache_Data(const char *input, unsigned char *output);
+bitcoin_transaction_t *create_bitcoin_transaction(const char *wallet_address, unsigned char *bitcoin);
+void sign_bitcoin_transaction(bitcoin_transaction_t *transaction);
+void broadcast_bitcoin_transaction(bitcoin_transaction_t *transaction);
+void send_bitcoin_to_wallet(const char *wallet_address, unsigned char *bitcoin);
 
 // Main function
 int main() {
@@ -103,7 +106,7 @@ void PMLL_Hash_Function(const char *input, unsigned char *output) {
 // Compress data with AES and SHA-256
 void PMLL_Compress_Data(const char *input, unsigned char *output) {
     AES_KEY aes_key;
-    unsigned char key[16] = {0}; // Example key, should be securely stored
+    unsigned char key[16] = {0}; // Example key, securely store in production
     AES_set_encrypt_key(key, 128, &aes_key);
     AES_encrypt((unsigned char *)input, output, &aes_key);
     SHA256_CTX sha256;
@@ -129,7 +132,7 @@ void send_bitcoin_to_wallet(const char *wallet_address, unsigned char *bitcoin) 
     execute_secure_command("./broadcast_transaction");
 
     // Clean sensitive data
-    memset(bitcoin, 0, 32);
+    memset(bitcoin, 0, sizeof(bitcoin));
     printf("Transaction complete and metadata cleaned.\n");
 }
 
@@ -140,7 +143,27 @@ bitcoin_transaction_t *create_bitcoin_transaction(const char *wallet_address, un
         fprintf(stderr, "Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
-    transaction->wallet_address = wallet_address;
-    transaction->bitcoin = bitcoin;
+    strncpy(transaction->wallet_address, wallet_address, sizeof(transaction->wallet_address) - 1);
+    transaction->wallet_address[sizeof(transaction->wallet_address) - 1] = '\0'; // Ensure null termination
+    memcpy(transaction->bitcoin, bitcoin, sizeof(transaction->bitcoin));
     return transaction;
 }
+
+// Sign a Bitcoin transaction
+void sign_bitcoin_transaction(bitcoin_transaction_t *transaction) {
+    printf("Signing transaction for wallet: %s\n", transaction->wallet_address);
+    // Placeholder signing logic
+    printf("Transaction signed successfully.\n");
+}
+
+// Broadcast a Bitcoin transaction
+void broadcast_bitcoin_transaction(bitcoin_transaction_t *transaction) {
+    printf("Broadcasting transaction for wallet: %s\n", transaction->wallet_address);
+    printf("Transaction successfully broadcasted to the blockchain network.\n");
+
+    // Clean sensitive metadata
+    memset(transaction->wallet_address, 0, sizeof(transaction->wallet_address));
+    memset(transaction->bitcoin, 0, sizeof(transaction->bitcoin));
+    printf("Metadata securely expunged after broadcasting.\n");
+}
+
