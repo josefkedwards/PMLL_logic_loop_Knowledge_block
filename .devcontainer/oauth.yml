@@ -214,3 +214,79 @@ jobs:
         run: |
           curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/bearycool11
 
+name: Bearycool Employment Contract and OAuth Integration
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+env:
+  CONTRACT_NAME: "JKEdwards_Employment_Contract"
+  WALLET_ADDRESS: "cosmos1erfvxk96wdjcure56lx5awqulhy3fk3vnwg0rd"
+
+jobs:
+  deploy-and-integrate:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Rust environment for smart contract compilation
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+
+      # Step 3: Compile the CosmWasm smart contract
+      - name: Compile Smart Contract
+        run: |
+          cargo build --release --target wasm32-unknown-unknown
+          mv target/wasm32-unknown-unknown/release/contract.wasm ./contract.wasm
+
+      # Step 4: Deploy the compiled smart contract to the Cosmos blockchain
+      - name: Deploy Smart Contract
+        env:
+          COSMOS_PRIVATE_KEY: ${{ secrets.COSMOS_PRIVATE_KEY }}
+        run: |
+          gaiad tx wasm store contract.wasm --from $WALLET_ADDRESS --gas auto --fees 2000uatom --chain-id cosmoshub-4 --node https://rpc.cosmoshub-4.io --yes
+          CODE_ID=$(gaiad query wasm list-code --output json | jq -r '.code_infos[-1].code_id')
+          echo "CODE_ID=${CODE_ID}" >> $GITHUB_ENV
+
+      # Step 5: Instantiate the contract with secure OAuth token integration
+      - name: Instantiate Contract with OAuth
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gaiad tx wasm instantiate $CODE_ID '{
+            "github_token": "$GITHUB_TOKEN",
+            "employee_name": "Josef Kurk Edwards",
+            "base_salary": 300000,
+            "ppu_equity": 10,
+            "vesting_months": 48,
+            "performance_bonus": 20,
+            "healthcare": "Comprehensive medical, dental, and vision",
+            "pto_policy": "Unlimited PTO policy and 18 days annually",
+            "retirement_plan": "401(k) with 5% company match",
+            "professional_stipend": 10000,
+            "bitcoin_wallet": "35eNZo1A2RTWKkiFVCjxJeYdhUCVBSVL4d",
+            "cosmos_wallet": "cosmos1erfvxk96wdjcure56lx5awqulhy3fk3vnwg0rd"
+          }' --from $WALLET_ADDRESS --chain-id cosmoshub-4 --node https://rpc.cosmoshub-4.io --yes
+
+      # Step 6: Validate OAuth token and test integration with GitHub API
+      - name: Verify OAuth Token
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/user
+
+      # Step 7: Confirm OAuth token validity for the user account
+      - name: Confirm GitHub User Access
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/users/bearycool11
