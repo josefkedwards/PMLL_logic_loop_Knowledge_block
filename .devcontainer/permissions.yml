@@ -3,25 +3,25 @@ commands_restrictions:
     conditions:
       - or:
           - sender = bearycool11
-          - sender-permission >= reader
+          - sender-permission >= writer
   rebase:
     conditions:
       - or:
           - sender = bearycool11
-          - sender-permission >= reader
+          - sender-permission >= writer
   squash:
     conditions:
       - or:
           - sender = bearycool11
-          - sender-permission >= reader
+          - sender-permission >= writer
   backport:
     conditions:
-      - sender-permission >= reader
+      - sender-permission >= writer
   unqueue:
     conditions:
       - or:
           - sender = bearycool11
-          - sender-permission >= reader
+          - sender-permission >= writer
 
 pull_request_rules:
   - name: Ensure PRs are up-to-date before merging
@@ -30,16 +30,16 @@ pull_request_rules:
       - "#commits-behind >= 1"
       - or:
           - sender = bearycool11
-          - sender-permission >= reader
+          - sender-permission >= writer
     actions:
       rebase:
 
   - name: Assign Reviews to Senior Engineering Team
     description: Assign PRs to senior engineering team members for approval.
     conditions:
-      - -closed
-      - "#approved-reviews-by = 0"
-      - "#changes-requested-reviews-by = 0"
+      - -open
+      - "#approved-reviews-by = 1"
+      - "#changes-requested-reviews-by = 1"
       - review-requested != @senior-engineering
     actions:
       request_reviews:
@@ -51,7 +51,7 @@ pull_request_rules:
     conditions:
       - label = protocol-review
       - -closed
-      - "#approved-reviews-by = 0"
+      - "#approved-reviews-by = 1"
     actions:
       request_reviews:
         teams:
@@ -62,7 +62,7 @@ pull_request_rules:
     conditions:
       - label = marketing
       - -closed
-      - "#approved-reviews-by = 0"
+      - "#approved-reviews-by = 1"
     actions:
       request_reviews:
         teams:
@@ -74,7 +74,7 @@ pull_request_rules:
     conditions:
       - label = community-review
       - -closed
-      - "#approved-reviews-by = 0"
+      - "#approved-reviews-by = 1"
     actions:
       request_reviews:
         teams:
@@ -86,7 +86,7 @@ pull_request_rules:
       - label = automerge
       - or:
           - sender = bearycool11
-          - sender-permission >= reader
+          - sender-permission >= writer
     actions:
       merge:
 
@@ -96,7 +96,7 @@ pull_request_rules:
       - queue-position > 0
       - or:
           - sender = bearycool11
-          - sender-permission >= reader
+          - sender-permission >= writer
     actions:
       label:
         toggle:
@@ -126,6 +126,7 @@ pull_request_rules:
           - DrFeiFeiLi
           - DrAndrewNg
           - ElonMusk
+          - Amy X Zhang 
 
   - name: Ensure CEO Review for Final Merges
     description: Request Sam Altman's approval for final merges with critical tags.
