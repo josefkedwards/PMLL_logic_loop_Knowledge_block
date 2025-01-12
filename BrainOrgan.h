@@ -6,12 +6,15 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
-#include <gpgme.h> // Cryptographic integration
+#include <pthread.h>
+#include <gpgme.h>
+#include <curl/curl.h>
 
 // Define constants
 #define FIBONACCI_LIMIT 120000.0
 #define FIBONACCI_MIN 20.0
 #define OCTAVE_BASE 8.0
+#define BLOCK_CHAIN_TRANSACTION_TIMEOUT 60000 // 60 seconds in milliseconds
 #define EMOTIONAL_NODES_MAX 1024
 
 // Struct Definitions
@@ -44,7 +47,6 @@ typedef struct {
     double weight;
 } KnowledgeGraphNode;
 
-// New Emotional Graph Node and Graph Structures
 typedef struct {
     char *emotion;
     double intensity;
@@ -75,8 +77,9 @@ void run_arc_agi_benchmark();
 // Knowledge Graph Integration
 KnowledgeGraphNode *create_knowledge_node(const char *name, double weight);
 void integrate_knowledge_graph(KnowledgeGraphNode *node, UnifiedMemoryAndVoice *umv, int limit);
+void embed_novel_topic(Graph *knowledge_graph, UnifiedMemoryAndVoice *umv, const char *topic);
 
-// New Emotional Graph Functions
+// Emotional Graph Functions
 EmotionalGraphNode *create_emotional_node(const char *emotion, double intensity);
 void add_association_to_emotional_node(EmotionalGraphNode *emotional_node, KnowledgeGraphNode *knowledge_node);
 EmotionalGraph *init_emotional_graph();
@@ -90,6 +93,11 @@ InnerEar *init_inner_ear(double cochlea_frequency, double auditory_signal, doubl
 void free_inner_ear(InnerEar *inner_ear);
 void free_emotional_graph(EmotionalGraph *graph);
 
+// Blockchain Operations
+static void *blockchain_thread(void *arg);
+static void commit_to_blockchain(const char *data);
+static void verify_from_blockchain(char *buffer, size_t size);
+
 // Helper Functions
 void corpus_callosum_cross_talk(LeftHemisphere *left, RightHemisphere *right);
 void novel_topic_input(UnifiedMemoryAndVoice *umv, int *counter);
@@ -97,5 +105,8 @@ char *utf_11_cssff_tokenize(const char *input);
 
 // Orchestration Logic
 void orchestrate_system();
+
+// Mimemograph Processing
+void process_mimemograph(Graph *knowledge_graph, EmotionalGraph *emotional_graph, UnifiedMemoryAndVoice *umv);
 
 #endif // BRAIN_ORGAN_H
