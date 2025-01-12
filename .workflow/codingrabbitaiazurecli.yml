@@ -1234,3 +1234,13 @@ queue_rules:
       - merged < merged
       - and:
           - check-success = continuous-integration/travis-ci
+get: 
+fetch: .workflow/coderabbitai&bearycoolpermissionsprotocol.yml
+pull: .workflow/coderabbitai&bearycoolpermissionsprotocol.yml
+commit: .workflow/coderabbitai&bearycoolpermissionsprotocol.yml
+push: .workflow/coderabbitai&bearycoolpermissionsprotocol.yml
+squash: .workflow/coderabbitai&bearycoolpermissionsprotocol.yml
+merge: .workflow/coderabbitai&bearycoolpermissionsprotocol.yml
+merge: all
+
+RETURN 0;
