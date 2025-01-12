@@ -4,6 +4,8 @@
 #include <math.h>
 #include <time.h>
 #include <pthread.h>
+#include <gpgme.h>
+#include <curl/curl.h>
 #include "io_socket.h"
 #include "unified_memory.h"
 #include "custodian.h"
@@ -12,17 +14,15 @@
 #include "pml_logic_loop.h"
 #include "knowledge.h"
 #include "inner_ear.h"
-#include "UTF-11.h" // UTF-11 Tokenizer for advanced parsing
-#include "agent.h" // Global agent definitions
-#include "command.h" // GPG command handler
-#include "command-ssh.h" // SSH protocol handler
-#include "genkey.h" // Key generation utilities
-#include "findkey.h" // Key finding utilities
-#include "pksign.h" // Signing utilities
-#include "protect.h" // Data protection logic
-#include <gpgme.h> // Cryptographic integration for secure processing
-#include <curl/curl.h> // For blockchain communication
-#include "blockchain.h" // Custom blockchain library for PMLL integration
+#include "UTF-11.h"
+#include "agent.h"
+#include "command.h"
+#include "command-ssh.h"
+#include "genkey.h"
+#include "findkey.h"
+#include "pksign.h"
+#include "protect.h"
+#include "blockchain.h"
 
 #define FIBONACCI_LIMIT 120000.0
 #define FIBONACCI_MIN 20.0
@@ -102,9 +102,10 @@ void corpus_callosum_cross_talk(LeftHemisphere *left, RightHemisphere *right);
 void novel_topic_input(UnifiedMemoryAndVoice *umv, int *counter);
 char *utf_11_cssff_tokenize(const char *input);
 
-// Cognitive Processing Functions (simplified definitions)
+// Cognitive Processing Functions
 KnowledgeGraphNode *create_knowledge_node(const char *name, double weight);
 void integrate_knowledge_graph(KnowledgeGraphNode *node, UnifiedMemoryAndVoice *umv, int limit);
+void embed_novel_topic(Graph *knowledge_graph, UnifiedMemoryAndVoice *umv, const char *topic);
 
 // Implementation
 
@@ -114,7 +115,9 @@ void generate_fibonacci_sequence(double *sequence, int *length) {
     int i = 2;
     while (sequence[i-1] < FIBONACCI_LIMIT) {
         sequence[i] = sequence[i-1] + sequence[i-2];
+        if (sequence[i] > FIBONACCI_LIMIT) break;
         i++;
+        
         char commit_data[256];
         snprintf(commit_data, sizeof(commit_data), "Fibonacci:%d:%.2f", i, sequence[i]);
         commit_to_blockchain(commit_data);
@@ -216,9 +219,8 @@ void integrate_inner_ear(InnerEar *inner_ear, double auditory_signal, double ves
 }
 
 void process_mimemograph(Graph *knowledge_graph, EmotionalGraph *emotional_graph, UnifiedMemoryAndVoice *umv) {
-    // Batch load and process
     process_batch_load(knowledge_graph);
-    process_batch_load((Graph *)emotional_graph); // Cast EmotionalGraph to Graph for batch processing
+    process_batch_load((Graph *)emotional_graph); // Assuming EmotionalGraph can be cast to Graph for this operation
     printf("[Mimemograph] Batch load processed. Creating copies for LTM cognition root...\n");
 
     Graph *ltm_knowledge_copy = clone_graph(knowledge_graph);
@@ -245,9 +247,8 @@ void process_mimemograph(Graph *knowledge_graph, EmotionalGraph *emotional_graph
 }
 
 void orchestrate_system() {
-    // System setup, dependencies, etc.
     printf("Starting orchestration of Final Unified Brain Organ system...\n");
-    // ... (Your orchestration code here)
+    // Placeholder for system orchestration logic
 }
 
 static void *blockchain_thread(void *arg) {
@@ -329,4 +330,109 @@ int main() {
 
     printf("[Shutdown] Process completed successfully!\n");
     return 0;
+}
+
+// Memory Management Implementation
+UnifiedMemoryAndVoice *init_unified_memory_and_voice(const char *stm, const char *ltm, const char *voice) {
+    UnifiedMemoryAndVoice *umv = (UnifiedMemoryAndVoice *)malloc(sizeof(UnifiedMemoryAndVoice));
+    umv->short_term_memory = strdup(stm);
+    umv->long_term_memory = strdup(ltm);
+    umv->voice_input = strdup(voice);
+    return umv;
+}
+
+InnerEar *init_inner_ear(double cochlea_frequency, double auditory_signal, double vestibular_adjustment) {
+    InnerEar *inner_ear = (InnerEar *)malloc(sizeof(InnerEar));
+    inner_ear->cochlea_frequency = cochlea_frequency;
+    inner_ear->auditory_signal = auditory_signal;
+    inner_ear->vestibular_adjustment = vestibular_adjustment;
+    return inner_ear;
+}
+
+void free_inner_ear(InnerEar *inner_ear) {
+    free(inner_ear);
+}
+
+EmotionalGraphNode *create_emotional_node(const char *emotion, double intensity) {
+    EmotionalGraphNode *node = (EmotionalGraphNode *)malloc(sizeof(EmotionalGraphNode));
+    node->emotion = strdup(emotion);
+    node->intensity = intensity;
+    node->associated_knowledge = NULL;
+    node->associated_count = 0;
+    return node;
+}
+
+void add_association_to_emotional_node(EmotionalGraphNode *emotional_node, KnowledgeGraphNode *knowledge_node) {
+    emotional_node->associated_knowledge = (KnowledgeGraphNode **)realloc(emotional_node->associated_knowledge, 
+        (emotional_node->associated_count + 1) * sizeof(KnowledgeGraphNode *));
+    emotional_node->associated_knowledge[emotional_node->associated_count++] = knowledge_node;
+}
+
+EmotionalGraph *init_emotional_graph() {
+    EmotionalGraph *graph = (EmotionalGraph *)malloc(sizeof(EmotionalGraph));
+    memset(graph->nodes, 0, sizeof(graph->nodes));
+    graph->count = 0;
+    return graph;
+}
+
+void add_emotional_node_to_graph(EmotionalGraph *graph, EmotionalGraphNode *node) {
+    if (graph->count < EMOTIONAL_NODES_MAX) {
+        graph->nodes[graph->count++] = node;
+    } else {
+        printf("Error: Emotional graph full\n");
+    }
+}
+
+void update_emotional_intensity(EmotionalGraphNode *node, double delta) {
+    node->intensity = fmax(0.0, fmin(1.0, node->intensity + delta)); // Clamp between 0 and 1
+}
+
+void process_emotional_batch(EmotionalGraph *graph, UnifiedMemoryAndVoice *umv) {
+    for (int i = 0; i < graph->count; i++) {
+        if (strstr(umv->voice_input, "happy")) {
+            update_emotional_intensity(graph->nodes[i], 0.1);  // Increase intensity if 'happy' is in input
+        }
+        // More complex emotional processing logic would go here
+    }
+}
+
+void free_emotional_graph(EmotionalGraph *graph) {
+    for (int i = 0; i < graph->count; i++) {
+        free(graph->nodes[i]->emotion);
+        free(graph->nodes[i]->associated_knowledge);
+        free(graph->nodes[i]);
+    }
+    free(graph);
+}
+
+// Helper Functions Implementation
+
+void corpus_callosum_cross_talk(LeftHemisphere *left, RightHemisphere *right) {
+    // Simulate information exchange between hemispheres
+}
+
+void novel_topic_input(UnifiedMemoryAndVoice *umv, int *counter) {
+    // Manage new topic input
+}
+
+char *utf_11_cssff_tokenize(const char *input) {
+    // Tokenize input
+    return strdup(input); // Placeholder
+}
+
+// Cognitive Processing Implementation
+
+KnowledgeGraphNode *create_knowledge_node(const char *name, double weight) {
+    KnowledgeGraphNode *node = (KnowledgeGraphNode *)malloc(sizeof(KnowledgeGraphNode));
+    node->name = strdup(name);
+    node->weight = weight;
+    return node;
+}
+
+void integrate_knowledge_graph(KnowledgeGraphNode *node, UnifiedMemoryAndVoice *umv, int limit) {
+    // Integrate knowledge with memory
+}
+
+void embed_novel_topic(Graph *knowledge_graph, UnifiedMemoryAndVoice *umv, const char *topic) {
+    // Simulate embedding new topic into knowledge graph and memory
 }
