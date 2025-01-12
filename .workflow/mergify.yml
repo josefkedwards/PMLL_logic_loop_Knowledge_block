@@ -51,6 +51,8 @@ queue_rules:
       - check-success=get_current_step
       - check-success=handle_pull_request
       - check-success=handle_review
+<<<<<<< bearycool11-patch-11
+=======
 
 pull_request_rules:
   - name: Automatic merge on approval
@@ -162,3 +164,4 @@ queue_rules:
       - check-success=get_current_step
       - check-success=handle_pull_request
       - check-success=handle_review
+>>>>>>> main
