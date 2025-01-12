@@ -12,6 +12,7 @@
 #define FIBONACCI_LIMIT 120000.0
 #define FIBONACCI_MIN 20.0
 #define OCTAVE_BASE 8.0
+#define EMOTIONAL_NODES_MAX 1024
 
 // Struct Definitions
 
@@ -43,6 +44,19 @@ typedef struct {
     double weight;
 } KnowledgeGraphNode;
 
+// New Emotional Graph Node and Graph Structures
+typedef struct {
+    char *emotion;
+    double intensity;
+    KnowledgeGraphNode **associated_knowledge; // Links to knowledge nodes
+    int associated_count;
+} EmotionalGraphNode;
+
+typedef struct {
+    EmotionalGraphNode *nodes[EMOTIONAL_NODES_MAX];
+    int count;
+} EmotionalGraph;
+
 // Function Prototypes
 
 // Fibonacci Sequence Generation
@@ -53,7 +67,7 @@ void simulate_octave_range(InnerEar *inner_ear);
 void integrate_inner_ear(InnerEar *inner_ear, double auditory_signal, double vestibular_adjustment);
 
 // Custodian Monitoring
-void custodian_monitor(const UnifiedMemoryAndVoice *umv, const LeftHemisphere *left, const RightHemisphere *right);
+void custodian_monitor(const UnifiedMemoryAndVoice *umv, const LeftHemisphere *left, const RightHemisphere *right, const EmotionalGraph *emotional_graph);
 
 // ARC-AGI Benchmarking
 void run_arc_agi_benchmark();
@@ -62,10 +76,19 @@ void run_arc_agi_benchmark();
 KnowledgeGraphNode *create_knowledge_node(const char *name, double weight);
 void integrate_knowledge_graph(KnowledgeGraphNode *node, UnifiedMemoryAndVoice *umv, int limit);
 
+// New Emotional Graph Functions
+EmotionalGraphNode *create_emotional_node(const char *emotion, double intensity);
+void add_association_to_emotional_node(EmotionalGraphNode *emotional_node, KnowledgeGraphNode *knowledge_node);
+EmotionalGraph *init_emotional_graph();
+void add_emotional_node_to_graph(EmotionalGraph *graph, EmotionalGraphNode *node);
+void update_emotional_intensity(EmotionalGraphNode *node, double delta);
+void process_emotional_batch(EmotionalGraph *graph, UnifiedMemoryAndVoice *umv);
+
 // Memory Management
 UnifiedMemoryAndVoice *init_unified_memory_and_voice(const char *stm, const char *ltm, const char *voice);
 InnerEar *init_inner_ear(double cochlea_frequency, double auditory_signal, double vestibular_adjustment);
 void free_inner_ear(InnerEar *inner_ear);
+void free_emotional_graph(EmotionalGraph *graph);
 
 // Helper Functions
 void corpus_callosum_cross_talk(LeftHemisphere *left, RightHemisphere *right);
