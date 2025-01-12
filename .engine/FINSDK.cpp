@@ -1,5 +1,228 @@
+#include <jni.h>
+#include <string>
+#include <thread>
+#include <atomic>
+#include <mutex>
+#include <map>
+#include <sstream>
+#include <fstream>
+#include <iostream>
+#include <android/log.h>
+#include <curl/curl.h>
 
-Completion of the engine project
+#define APP_TAG "LogicLoops"
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, APP_TAG, __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, APP_TAG, __VA_ARGS__)
+
+//-----------------------------------------------------------------------------
+// Global State Variables
+//-----------------------------------------------------------------------------
+static std::atomic<bool> isRunningPMLL{false};
+static std::atomic<bool> isRunningARLL{false};
+static std::atomic<bool> isRunningEFLL{false};
+static std::mutex logicMutex;                 // Mutex for synchronized execution
+static std::map<std::string, std::string> configMap; // YAML-like configuration storage
+
+//-----------------------------------------------------------------------------
+// Assembly Definition: Persistent Memory Logic Loop (PMLL)
+//-----------------------------------------------------------------------------
+extern "C" void run_pmll_logic_loop() {
+    __asm__ __volatile__(
+        "mov $0, %%eax\n\t"        // Initialize counter
+        "pmll_loop_start:\n\t"
+        "add $1, %%eax\n\t"        // Increment counter
+        "cmp $1000000, %%eax\n\t"  // Check if counter < 1,000,000
+        "jl pmll_loop_start\n\t"   // Jump if less
+        :
+        :
+        : "eax"
+    );
+    LOGI("[PMLL] Logic loop completed.");
+}
+
+//-----------------------------------------------------------------------------
+// Assembly Definition: Adaptive Runtime Logic Loop (ARLL)
+//-----------------------------------------------------------------------------
+extern "C" void run_arll_logic_loop() {
+    __asm__ __volatile__(
+        "mov $1, %%ebx\n\t"        // Start with base value
+        "arll_loop_start:\n\t"
+        "shl $1, %%ebx\n\t"        // Adaptive: Shift left (double value)
+        "cmp $1048576, %%ebx\n\t"  // Check if value < 1,048,576
+        "jl arll_loop_start\n\t"   // Jump if less
+        :
+        :
+        : "ebx"
+    );
+    LOGI("[ARLL] Adaptive runtime logic loop completed.");
+}
+
+//-----------------------------------------------------------------------------
+// Assembly Definition: Efficient Function Logic Loop (EFLL)
+//-----------------------------------------------------------------------------
+extern "C" void run_efll_logic_loop() {
+    __asm__ __volatile__(
+        "mov $5, %%ecx\n\t"        // Initial value
+        "efll_loop_start:\n\t"
+        "imul $3, %%ecx\n\t"       // Efficient: Multiply by constant
+        "cmp $1000000, %%ecx\n\t"  // Check if value < 1,000,000
+        "jl efll_loop_start\n\t"   // Jump if less
+        :
+        :
+        : "ecx"
+    );
+    LOGI("[EFLL] Efficient function logic loop completed.");
+}
+
+//-----------------------------------------------------------------------------
+// YAML-Like Configuration Parser
+//-----------------------------------------------------------------------------
+void parseConfig(const std::string &yamlContent) {
+    std::istringstream stream(yamlContent);
+    std::string line;
+
+    std::lock_guard<std::mutex> lock(logicMutex);
+    while (std::getline(stream, line)) {
+        size_t delimPos = line.find(":");
+        if (delimPos != std::string::npos) {
+            std::string key = line.substr(0, delimPos);
+            std::string value = line.substr(delimPos + 1);
+            configMap[key] = value;
+            LOGI("[Config] %s -> %s", key.c_str(), value.c_str());
+        }
+    }
+}
+
+//-----------------------------------------------------------------------------
+// HTTP GET Request Using libcurl
+//-----------------------------------------------------------------------------
+std::string httpGet(const std::string &url) {
+    CURL *curl;
+    CURLcode res;
+    std::string response;
+
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    curl = curl_easy_init();
+    if (curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
+                         [](void *contents, size_t size, size_t nmemb, void *userp) -> size_t {
+                             ((std::string *)userp)->append((char *)contents, size * nmemb);
+                             return size * nmemb;
+                         });
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+
+        res = curl_easy_perform(curl);
+        if (res != CURLE_OK) {
+            LOGE("[HTTP] GET failed: %s", curl_easy_strerror(res));
+        }
+        curl_easy_cleanup(curl);
+    } else {
+        LOGE("[HTTP] Initialization failed.");
+    }
+    curl_global_cleanup();
+    return response;
+}
+
+//-----------------------------------------------------------------------------
+// Continuous Logic Execution for PMLL
+//-----------------------------------------------------------------------------
+void executePMLL() {
+    LOGI("[PMLL] Starting continuous execution...");
+    while (isRunningPMLL.load()) {
+        std::lock_guard<std::mutex> lock(logicMutex);
+        run_pmll_logic_loop();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // Adjust as needed
+    }
+    LOGI("[PMLL] Continuous execution stopped.");
+}
+
+//-----------------------------------------------------------------------------
+// Continuous Logic Execution for ARLL
+//-----------------------------------------------------------------------------
+void executeARLL() {
+    LOGI("[ARLL] Starting continuous execution...");
+    while (isRunningARLL.load()) {
+        std::lock_guard<std::mutex> lock(logicMutex);
+        run_arll_logic_loop();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // Adjust as needed
+    }
+    LOGI("[ARLL] Continuous execution stopped.");
+}
+
+//-----------------------------------------------------------------------------
+// Continuous Logic Execution for EFLL
+//-----------------------------------------------------------------------------
+void executeEFLL() {
+    LOGI("[EFLL] Starting continuous execution...");
+    while (isRunningEFLL.load()) {
+        std::lock_guard<std::mutex> lock(logicMutex);
+        run_efll_logic_loop();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // Adjust as needed
+    }
+    LOGI("[EFLL] Continuous execution stopped.");
+}
+
+//-----------------------------------------------------------------------------
+// JNI Functions: Start and Stop Logic Loops
+//-----------------------------------------------------------------------------
+extern "C" JNIEXPORT void JNICALL Java_com_example_finsdk_MainActivity_startPMLL(JNIEnv *, jobject) {
+    if (isRunningPMLL.load()) {
+        LOGI("[PMLL] Already running.");
+        return;
+    }
+    isRunningPMLL.store(true);
+    std::thread(executePMLL).detach();
+}
+
+extern "C" JNIEXPORT void JNICALL Java_com_example_finsdk_MainActivity_stopPMLL(JNIEnv *, jobject) {
+    isRunningPMLL.store(false);
+}
+
+extern "C" JNIEXPORT void JNICALL Java_com_example_finsdk_MainActivity_startARLL(JNIEnv *, jobject) {
+    if (isRunningARLL.load()) {
+        LOGI("[ARLL] Already running.");
+        return;
+    }
+    isRunningARLL.store(true);
+    std::thread(executeARLL).detach();
+}
+
+extern "C" JNIEXPORT void JNICALL Java_com_example_finsdk_MainActivity_stopARLL(JNIEnv *, jobject) {
+    isRunningARLL.store(false);
+}
+
+extern "C" JNIEXPORT void JNICALL Java_com_example_finsdk_MainActivity_startEFLL(JNIEnv *, jobject) {
+    if (isRunningEFLL.load()) {
+        LOGI("[EFLL] Already running.");
+        return;
+    }
+    isRunningEFLL.store(true);
+    std::thread(executeEFLL).detach();
+}
+
+extern "C" JNIEXPORT void JNICALL Java_com_example_finsdk_MainActivity_stopEFLL(JNIEnv *, jobject) {
+    isRunningEFLL.store(false);
+}
+
+//-----------------------------------------------------------------------------
+// JNI Functions: Configurations and HTTP Requests
+//-----------------------------------------------------------------------------
+extern "C" JNIEXPORT void JNICALL Java_com_example_finsdk_MainActivity_loadConfig(JNIEnv *env, jobject, jstring config) {
+    const char *yamlContent = env->GetStringUTFChars(config, nullptr);
+    parseConfig(std::string(yamlContent));
+    env->ReleaseStringUTFChars(config, yamlContent);
+}
+
+extern "C" JNIEXPORT jstring JNICALL Java_com_example_finsdk_MainActivity_getConfig(JNIEnv *env, jobject, jstring key) {
+    const char *nativeKey = env->GetStringUTFChars(key, nullptr);
+    std::string value = configMap[nativeKey];
+    env->ReleaseStringUTFChars(key, nativeKey);
+    return env->NewStringUTF(value.c_str());
+}pCompletion of the engine project
 Copilot Chat
 
 Chatting about bearycool11/PMLL_logic_loop_Knowledge_block
