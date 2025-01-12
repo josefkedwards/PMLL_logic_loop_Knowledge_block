@@ -7,458 +7,6 @@
 #include <random>
 #include <cmath>
 #include <algorithm>
-
-// Constants using constexpr
-constexpr int CODE_PATTERN_LIMIT = 10000;
-constexpr double CODE_COMPLEXITY_FACTOR = 1.0;
-constexpr double LTM_THRESHOLD = 0.5;
-constexpr int NN_INPUT_SIZE = 1000;
-constexpr int NN_HIDDEN_SIZE = 500;
-constexpr int NN_OUTPUT_SIZE = 10;
-
-// Memory hierarchy structures with modern C++ constructs
-struct CacheEntry {
-    std::vector<char> data;  // Use vector for dynamic memory management
-    size_t size;
-    uint64_t timestamp;
-};
-
-struct STM_Cache {
-    std::vector<CacheEntry> entries;
-    size_t capacity;
-    size_t used;
-};
-
-struct SerializedTopic {
-    std::vector<char> data;
-    size_t size;
-    std::string topic_id;
-};
-
-struct LTM_Gradient {
-    double relevance;
-    double permanence;
-};
-
-struct LTM_JudgeNode {
-    LTM_Gradient true_gradient;
-    LTM_Gradient false_gradient;
-};
-
-struct CodePattern {
-    std::string snippet;
-    std::string language;
-    double complexity;
-};
-
-struct CodeMemory {
-    std::vector<std::unique_ptr<CodePattern>> patterns;
-};
-
-struct CodeWorkbench {
-    std::string code_request;
-    std::string current_code;
-    std::string suggested_code;
-};
-
-struct EmotionalNode {
-    std::string emotion;
-    double intensity;
-    double reward_value;
-};
-
-struct EmotionalGraph {
-    std::vector<EmotionalNode> nodes;
-};
-
-struct NeuralNetwork {
-    std::vector<std::vector<double>> weights;
-    std::vector<double> bias;
-    std::vector<std::vector<double>> output_weights;
-    std::vector<double> output_bias;
-};
-
-// Helper functions for time and ID generation
-uint64_t get_current_timestamp() {
-    using namespace std::chrono;
-    return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-}
-
-std::string generate_unique_id() {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, 15);
-    std::uniform_int_distribution<> dis2(8, 11);
-
-    std::stringstream ss;
-    ss << std::hex;
-    for (int i = 0; i < 8; i++) {
-        ss << dis(gen);
-    }
-    ss << "-";
-    for (int i = 0; i < 3; i++) {
-        ss << dis2(gen) << dis(gen);
-    }
-    ss << "-";
-    for (int i = 0; i < 12; i++) {
-        ss << dis(gen);
-    }
-    return ss.str();
-}
-
-// Core Function Implementations
-
-STM_Cache init_stm_cache(size_t capacity) {
-    return {std::vector<CacheEntry>(capacity), capacity, 0};
-}
-
-SerializedTopic serialize_novel_topic(const std::string& topic_data) {
-    SerializedTopic serialized;
-    serialized.data.assign(topic_data.begin(), topic_data.end());
-    serialized.size = topic_data.size();
-    serialized.topic_id = generate_unique_id();
-    return serialized;
-}
-
-std::unique_ptr<CodePattern> create_code_pattern(const std::string& snippet, const std::string& language, double complexity) {
-    return std::make_unique<CodePattern>(CodePattern{snippet, language, complexity});
-}
-
-void add_pattern_to_memory(CodeMemory& memory, std::unique_ptr<CodePattern>&& pattern) {
-    if (memory.patterns.size() == CODE_PATTERN_LIMIT) {
-        memory.patterns.erase(memory.patterns.begin()); // Remove oldest pattern
-    }
-    memory.patterns.push_back(std::move(pattern));
-}
-
-void analyze_code_complexity(CodePattern& pattern) {
-    pattern.complexity += CODE_COMPLEXITY_FACTOR;
-}
-
-void update_code_suggestion(CodeWorkbench& workbench, const std::string& new_suggestion) {
-    workbench.suggested_code = new_suggestion;
-}
-
-// Logic Loop Implementations
-
-void pmll_logic_loop(CodeWorkbench& workbench, const CodeMemory& memory) {
-    for (const auto& pattern : memory.patterns) {
-        if (pattern->snippet.find(workbench.code_request) != std::string::npos) {
-            std::cout << "Pattern matched: " << pattern->snippet << "\n";
-            break; // Match only one pattern for simplicity
-        }
-    }
-}
-
-void arll_logic_loop(CodeWorkbench& workbench) {
-    if (!workbench.suggested_code.empty()) {
-        std::cout << "Analyzing code structure...\n";
-        // Placeholder for actual analysis
-    }
-}
-
-void efll_logic_loop(CodeWorkbench& workbench) {
-    if (!workbench.suggested_code.empty()) {
-        double style_score = evaluate_code_style(workbench.suggested_code.c_str()); // Placeholder
-        std::cout << "Code style score: " << style_score << "\n";
-    }
-}
-
-void judge_and_consolidate(LTM_JudgeNode& judge_node, const SerializedTopic& topic) {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dis(0.0, 1.0);
-
-    double relevance = dis(gen);
-    double permanence = dis(gen);
-
-    if (relevance > LTM_THRESHOLD) {
-        judge_node.true_gradient.relevance = relevance;
-        judge_node.true_gradient.permanence = permanence;
-        std::cout << "Consolidating topic into LTM with relevance " << relevance << " and permanence " << permanence << "\n";
-    } else {
-        judge_node.false_gradient.relevance = relevance;
-        judge_node.false_gradient.permanence = permanence;
-        std::cout << "Rejecting topic for LTM with relevance " << relevance << "\n";
-    }
-}
-
-// Neural Network Initialization
-void init_neural_network(NeuralNetwork& nn) {
-    auto rand_double = [](std::mt19937& gen) {
-        std::uniform_real_distribution<> dis(-1.0, 1.0);
-        return dis(gen);
-    };
-
-    std::random_device rd;
-    std::mt19937 gen(rd());
-
-    nn.weights = std::vector<std::vector<double>>(NN_HIDDEN_SIZE, std::vector<double>(NN_INPUT_SIZE, 0.0));
-    nn.bias = std::vector<double>(NN_HIDDEN_SIZE, 0.0);
-    nn.output_weights = std::vector<std::vector<double>>(NN_OUTPUT_SIZE, std::vector<double>(NN_HIDDEN_SIZE, 0.0));
-    nn.output_bias = std::vector<double>(NN_OUTPUT_SIZE, 0.0);
-
-    for (auto& layer : nn.weights) {
-        std::generate(layer.begin(), layer.end(), [&]() { return rand_double(gen); });
-    }
-    std::generate(nn.bias.begin(), nn.bias.end(), [&]() { return rand_double(gen); });
-
-    for (auto& layer : nn.output_weights) {
-        std::generate(layer.begin(), layer.end(), [&]() { return rand_double(gen); });
-    }
-    std::generate(nn.output_bias.begin(), nn.output_bias.end(), [&]() { return rand_double(gen); });
-}
-
-double evaluate_code_with_nn(const NeuralNetwork& nn, const std::string& code) {
-    std::vector<double> input(NN_INPUT_SIZE, 0.0);
-    for (size_t i = 0; i < std::min(NN_INPUT_SIZE, code.size()); ++i) {
-        input[i] = static_cast<double>(code[i]) / 255.0;
-    }
-
-    std::vector<double> hidden(NN_HIDDEN_SIZE);
-    for (int h = 0; h < NN_HIDDEN_SIZE; ++h) {
-        hidden[h] = nn.bias[h];
-        for (int i = 0; i < NN_INPUT_SIZE; ++i) {
-            hidden[h] += input[i] * nn.weights[h][i];
-        }
-        hidden[h] = 1.0 / (1.0 + std::exp(-hidden[h])); // Sigmoid activation
-    }
-
-    std::vector<double> output(NN_OUTPUT_SIZE);
-    for (int o = 0; o < NN_OUTPUT_SIZE; ++o) {
-        output[o] = nn.output_bias[o];
-        for (int h = 0; h < NN_HIDDEN_SIZE; ++h) {
-            output[o] += hidden[h] * nn.output_weights[o][h];
-        }
-        output[o] = 1.0 / (1.0 + std::exp(-output[o])); // Sigmoid for output
-    }
-
-    return std::accumulate(output.begin(), output.end(), 0.0) / NN_OUTPUT_SIZE;
-}
-
-// Emotional Graph Functions
-void add_emotional_node(EmotionalGraph& eg, const std::string& emotion, double intensity, double reward_value) {
-    eg.nodes.emplace_back(emotion, intensity, reward_value);
-}
-
-void reward_good_practice(EmotionalGraph& eg, const std::string& code, const std::string& documentation) {
-    NeuralNetwork nn; // Placeholder for actual NN initialization
-    init_neural_network(nn);
-    double code_quality = evaluate_code_with_nn(nn, code);
-    double doc_quality = evaluate_code_with_nn(nn, documentation);
-
-    if (code_quality > 0.7) {
-        add_emotional_node(eg, "Satisfaction", 0.8, 1.0);
-    } else if (code_quality > 0.5) {
-        add_emotional_node(eg, "Content", 0.5, 0.5);
-    } else {
-        add_emotional_node(eg, "Frustration", 0.6, -0.5);
-    }
-
-    if (doc_quality > 0.7) {
-        add_emotional_node(eg, "Pride", 0.7, 1.0);
-    } else if (doc_quality > 0.3) {
-        add_emotional_node(eg, "Neutral", 0.3, 0);
-    } else {
-        add_emotional_node(eg, "Disappointment", 0.6, -0.5);
-    }
-
-    std::cout << "Emotional response to code and documentation:\n";
-    for (const auto& node : eg.nodes) {
-        std::cout << "- " << node.emotion << ": Intensity " << node.intensity << ", Reward " << node.reward_value << "\n";
-    }
-}
-
-// AI Processing Functions
-
-void
-// AI Processing Functions
-
-void process_code_request(CodeWorkbench& workbench, CodeMemory& memory, EmotionalGraph& eg) {
-    if (workbench.code_request.empty()) return;
-
-    pmll_logic_loop(workbench, memory);
-    arll_logic_loop(workbench);
-    efll_logic_loop(workbench);
-    generate_code_suggestion(workbench, memory);
-    reward_good_practice(eg, workbench.suggested_code, ""); // Assuming no documentation for now
-}
-
-void refine_code_suggestion(CodeWorkbench& workbench, CodeMemory& memory, STM_Cache& stm_cache, LTM_JudgeNode& judge_node) {
-    if (workbench.suggested_code.empty()) return;
-
-    SerializedTopic serialized = serialize_novel_topic(workbench.suggested_code);
-    if (stm_cache.used < stm_cache.capacity) {
-        stm_cache.entries[stm_cache.used++] = {serialized.data, serialized.size, get_current_timestamp()};
-    } else {
-        for (auto& entry : stm_cache.entries) {
-            judge_and_consolidate(judge_node, {entry.data, entry.size, ""});
-        }
-        stm_cache.used = 0;
-    }
-
-    std::string refined = "Refined code suggestion:\n" + workbench.suggested_code;
-    update_code_suggestion(workbench, refined);
-}
-
-// Main Orchestration
-
-void orchestrate_coding_session(CodeWorkbench& workbench, CodeMemory& memory, EmotionalGraph& eg) {
-    if (workbench.code_request.empty()) return;
-
-    std::cout << "Starting coding session for request: " << workbench.code_request << "\n";
-    process_code_request(workbench, memory, eg);
-    std::cout << "Initial suggestion:\n" << workbench.suggested_code << "\n";
-
-    STM_Cache stm_cache = init_stm_cache(1024);
-    LTM_JudgeNode judge_node;
-    refine_code_suggestion(workbench, memory, stm_cache, judge_node);
-    std::cout << "Refined suggestion:\n" << workbench.suggested_code << "\n";
-
-    commit_code_to_blockchain(workbench.suggested_code.c_str(), "Final Suggestion");
-    std::cout << "Coding session completed.\n";
-}
-
-int main() {
-    CodeMemory memory;
-    EmotionalGraph eg;
-    CodeWorkbench workbench{"Create a function to sort an array"};
-
-    NeuralNetwork nn;
-    init_neural_network(nn); // Initialize neural network
-
-    orchestrate_coding_session(workbench, memory, eg);
-
-    return 0;
-}
-
-// Placeholder functions for undefined methods
-
-void generate_code_suggestion(CodeWorkbench& workbench, CodeMemory& memory) {
-    workbench.suggested_code = "/* Generated code suggestion */";
-}
-
-void commit_code_to_blockchain(const char* code, const char* description) {
-    std::cout << "Committing code to blockchain: " << description << "\n";
-}
-
-double evaluate_code_style(const char* code) {
-    return 0.75;  // Placeholder return value
-}
-
-// AI Processing Functions
-
-void process_code_request(CodeWorkbench &workbench, CodeMemory &memory, EmotionalGraph &eg) {
-    if (workbench.code_request.empty()) {
-        std::cerr << "Error: No code request provided.\n";
-        return;
-    }
-
-    pmll_logic_loop(workbench, memory);
-    arll_logic_loop(workbench);
-    efll_logic_loop(workbench);
-    
-    // Generate suggestion using memory patterns
-    generate_code_suggestion(workbench, memory);
-    
-    // Evaluate and reward coding practices
-    reward_good_practice(eg, workbench.suggested_code, workbench.code_request); // Use code request as placeholder for documentation
-}
-
-void refine_code_suggestion(CodeWorkbench &workbench, CodeMemory &memory, STM_Cache &stm_cache, LTM_JudgeNode &judge_node) {
-    if (workbench.suggested_code.empty()) return;
-
-    SerializedTopic serialized = serialize_novel_topic(workbench.suggested_code);
-    
-    // Check if there's space in STM cache
-    if (stm_cache.used < stm_cache.capacity) {
-        stm_cache.entries[stm_cache.used++] = {serialized.data, serialized.size, get_current_timestamp()};
-    } else {
-        // If STM is full, evaluate for LTM
-        for (auto &entry : stm_cache.entries) {
-            SerializedTopic topic = {entry.data, entry.size, ""}; // Reconstruct serialized topic
-            judge_and_consolidate(judge_node, topic);
-        }
-        stm_cache.used = 0; // Reset STM cache after evaluation
-    }
-
-    // Refine suggestion by adding refinement prefix
-    std::string refined = "Refined code suggestion:\n" + workbench.suggested_code;
-    update_code_suggestion(workbench, refined);
-}
-
-// Main Orchestration
-
-void orchestrate_coding_session(CodeWorkbench &workbench, CodeMemory &memory, EmotionalGraph &eg) {
-    if (workbench.code_request.empty()) {
-        std::cerr << "Error: No code request to process.\n";
-        return;
-    }
-
-    std::cout << "Starting coding session for request: " << workbench.code_request << "\n";
-    
-    process_code_request(workbench, memory, eg);
-    std::cout << "Initial suggestion:\n" << workbench.suggested_code << "\n";
-
-    // Use static variables for persistent state across function calls if needed
-    static STM_Cache stm_cache = init_stm_cache(1024);
-    static LTM_JudgeNode judge_node;
-
-    refine_code_suggestion(workbench, memory, stm_cache, judge_node);
-    std::cout << "Refined suggestion:\n" << workbench.suggested_code << "\n";
-
-    // Simulate blockchain commit
-    commit_code_to_blockchain(workbench.suggested_code.c_str(), "Final Suggestion");
-    std::cout << "Coding session completed.\n";
-}
-
-int main() {
-    CodeMemory memory;
-    EmotionalGraph eg;
-    CodeWorkbench workbench{"Create a function to sort an array"};
-
-    NeuralNetwork nn;
-    init_neural_network(nn); // Initialize neural network
-
-    orchestrate_coding_session(workbench, memory, eg);
-
-    return 0;
-}
-
-// Placeholder functions for undefined methods
-
-void generate_code_suggestion(CodeWorkbench &workbench, const CodeMemory &memory) {
-    workbench.suggested_code = "/* Generated code suggestion */\n"
-                                "// This could be based on patterns in memory.";
-}
-
-void commit_code_to_blockchain(const char *code, const char *description) {
-    std::cout << "Committing code to blockchain: " << description << "\n";
-}
-
-double evaluate_code_style(const char *code) {
-    // Placeholder for actual style evaluation
-    return 0.75;
-}
-
-.echo 
-
-build cursor
-run cursor 
-go cursor
-build @coderabbitai
-run @coderabbitai
-go @coderabbitai
-
-#include "codingrabbitaibrain.h"
-#include <iostream>
-#include <memory>
-#include <vector>
-#include <string>
-#include <chrono>
-#include <random>
-#include <cmath>
-#include <algorithm>
 #include "codingrabbitaibrain.h"
 #include <iostream>
 #include "coderabbitai/core.h"
@@ -3640,3 +3188,556 @@ void orchestrate_coding_session(CodeWorkbench& workbench, CodeMemory& memory, Em
         std::cerr << "Error in coding session: " << e.what() << "\n";
         throw; // re-throw to be handled in main
     }
+}
+
+// Main function with error handling
+int main() {
+    try {
+        CodeMemory memory;
+        EmotionalGraph eg;
+        CodeWorkbench workbench{"Create a function to sort an array"};
+
+        NeuralNetwork nn;
+        init_neural_network(nn);
+
+        orchestrate_coding_session(workbench, memory, eg);
+    } catch (const std::exception& e) {
+        std::cerr << "An error occurred: " << e.what() << "\n";
+        return 1;
+    }
+    return 0;
+}
+
+// Knowledge Graph Components
+
+/**
+ * @brief Knowledge Graph for code understanding
+ * 
+ * Implements a semantic network that represents relationships between:
+ * - Code patterns
+ * - Programming concepts
+ * - Best practices
+ * - Historical decisions
+ */
+struct KnowledgeGraph {
+    std::vector<Node> nodes;
+    std::vector<Edge> relationships;
+    std::unordered_map<std::string, size_t> concept_index;
+};
+
+/**
+ * @brief Self-Learning System Components
+ * 
+ * Manages the continuous learning process:
+ * - Pattern extraction from successful code reviews
+ * - Feedback incorporation
+ * - Model refinement
+ * - Performance metrics tracking
+ */
+struct SelfLearningSystem {
+    MetricsCollector metrics;
+    FeedbackProcessor feedback;
+    ModelOptimizer optimizer;
+};
+
+// Advanced Processing Components
+
+/**
+ * @brief Code Quality Assessment System
+ * 
+ * Evaluates code quality based on:
+ * - Complexity metrics
+ * - Maintainability index
+ * - Test coverage
+ * - Documentation completeness
+ * 
+ * @throws std::runtime_error if metrics calculation fails
+ */
+struct QualityAssessor {
+    std::vector<Metric> metrics;
+    QualityThresholds thresholds;
+    ReportGenerator reporter;
+};
+
+/**
+ * @brief Performance Optimization Manager
+ * 
+ * Handles system performance optimization:
+ * - Resource usage monitoring
+ * - Cache optimization
+ * - Memory defragmentation
+ * - Load balancing
+ */
+struct PerformanceManager {
+    ResourceMonitor monitor;
+    CacheOptimizer cache_opt;
+    LoadBalancer balancer;
+};
+
+// Error Recovery and Reliability
+
+/**
+ * @brief Error Recovery System
+ * 
+ * Implements robust error handling:
+ * - State preservation
+ * - Graceful degradation
+ * - Recovery strategies
+ * - Error logging and analysis
+ */
+struct ErrorRecovery {
+    StateSnapshot state;
+    RecoveryStrategies strategies;
+    ErrorLogger logger;
+};
+
+/**
+ * @brief Memory Management Extensions
+ * 
+ * Advanced memory management features:
+ * - Memory pooling
+ * - Garbage collection
+ * - Memory compression
+ * - Page management
+ */
+struct MemoryManager {
+    MemoryPool pool;
+    GarbageCollector gc;
+    CompressionEngine compressor;
+};
+
+// Integration Functions
+
+/**
+ * @brief Integrates all engine components
+ * 
+ * Coordinates the interaction between:
+ * - Core processing
+ * - Knowledge management
+ * - Self-learning systems
+ * - Performance optimization
+ * 
+ * @param components System components to integrate
+ * @throws std::runtime_error if integration fails
+ */
+void integrate_components(SystemComponents& components);
+
+/**
+ * @brief System health monitoring
+ * 
+ * Monitors and maintains system health:
+ * - Component status tracking
+ * - Performance metrics
+ * - Resource utilization
+ * - Error rates
+ * 
+ * @param monitor Reference to the health monitor
+ * @return Health status code
+ */
+int monitor_system_health(HealthMonitor& monitor);
+✏️ Learnings added
+@bearycool11
+Owner
+Author
+bearycool11 commented 4 minutes ago
+@mergify requeue
+
+@bearycool11
+Owner
+Author
+bearycool11 commented 4 minutes ago
+@mergify queue
+
+@bearycool11
+Owner
+Author
+bearycool11 commented 4 minutes ago
+@coderabbitai do a second check iteration and double check your work for the docstring again
+/**
+
+@file coderabbitai.cpp
+@brief Implementation of the CodeRabbit AI engine for intelligent code processing
+This file implements a neural network-based code processing system with emotional
+awareness and pattern matching capabilities. The system uses a multi-layered
+memory architecture (STM and LTM) for efficient code pattern storage and retrieval.
+@author CodeRabbit Inc.
+@Version 1.0
+*/
+/**
+
+@brief Constants for system configuration and optimization
+These constants define the operational parameters of the system:
+CODE_PATTERN_LIMIT: Maximum number of patterns stored in memory
+CODE_COMPLEXITY_FACTOR: Factor used in complexity calculations
+LTM_THRESHOLD: Threshold for long-term memory storage
+NN_*_SIZE: Neural network layer dimensions
+*/
+constexpr int CODE_PATTERN_LIMIT = 10000;
+constexpr double CODE_COMPLEXITY_FACTOR = 1.0;
+constexpr double LTM_THRESHOLD = 0.5;
+constexpr int NN_INPUT_SIZE = 1000;
+constexpr int NN_HIDDEN_SIZE = 500;
+constexpr int NN_OUTPUT_SIZE = 10;
+/**
+
+@brief Cache entry for storing temporary code patterns
+Represents a single entry in the short-term memory cache, containing:
+Binary data representation
+Size information
+Timestamp for aging
+*/
+struct CacheEntry {
+std::vector data;
+size_t size;
+uint64_t timestamp;
+};
+/**
+
+@brief Short-term memory cache implementation
+Manages temporary storage of code patterns with:
+Fixed-size entry vector
+Capacity tracking
+Usage monitoring
+*/
+struct STM_Cache {
+std::vector entries;
+size_t capacity;
+size_t used;
+};
+/**
+
+@brief Neural network structure for code evaluation
+Implements a feedforward neural network with:
+Input layer for code features
+Hidden layer for pattern recognition
+Output layer for evaluation results
+*/
+struct NeuralNetwork {
+std::vector<std::vector> weights;
+std::vector bias;
+std::vector<std::vector> output_weights;
+std::vector output_bias;
+};
+/**
+
+@brief Initializes the neural network with random weights
+@param nn Reference to the neural network structure
+@throws std::runtime_error if initialization fails
+*/
+void init_neural_network(NeuralNetwork& nn);
+/**
+
+@brief Processes a code request through the AI engine
+@param workbench Current code workbench state
+@param memory Code pattern memory
+@param eg Emotional graph for response tracking
+@throws std::runtime_error if request is empty or processing fails
+*/
+void process_code_request(CodeWorkbench& workbench, CodeMemory& memory, EmotionalGraph& eg);
+/**
+
+@brief Main orchestration function for code processing sessions
+Coordinates the entire code processing workflow:
+Pattern matching
+Code analysis
+Suggestion generation
+Emotional response tracking
+@param workbench Current code workbench state
+@param memory Code pattern memory
+@param eg Emotional graph for response tracking
+@throws std::runtime_error if session initialization fails
+*/
+void orchestrate_coding_session(CodeWorkbench& workbench, CodeMemory& memory, EmotionalGraph& eg);
+/**
+
+@brief Pattern Matching Logic Loop (PMLL)
+Implements the core pattern matching algorithm:
+Searches for matching patterns in memory
+Evaluates pattern relevance
+Updates matching statistics
+@param workbench Current code workbench state
+@param memory Code pattern memory
+@throws std::runtime_error if pattern matching fails
+*/
+void pmll_logic_loop(CodeWorkbench& workbench, const CodeMemory& memory);
+/**
+
+@brief Analysis and Refinement Logic Loop (ARLL)
+Performs detailed code analysis:
+Structure evaluation
+Complexity assessment
+Quality metrics calculation
+@param workbench Current code workbench state
+@throws std::runtime_error if analysis fails
+*/
+void arll_logic_loop(CodeWorkbench& workbench);
+/**
+
+@brief Evaluation and Feedback Logic Loop (EFLL)
+Handles code evaluation and feedback:
+Style checking
+Best practices validation
+Performance analysis
+@param workbench Current code workbench state
+@throws std::runtime_error if evaluation fails
+*/
+void efll_logic_loop(CodeWorkbench& workbench);
+/**
+
+@brief Main entry point for the CodeRabbit AI engine
+Initializes the system and starts the main processing loop:
+Memory initialization
+Neural network setup
+Processing session execution
+Error handling and cleanup
+@return 0 on success, 1 on error
+*/
+int main();
+
+template<typename T>
+class Result {
+    std::variant<T, std::string> data;
+public:
+    static Result<T> Ok(T value) { return Result{std::move(value)}; }
+    static Result<T> Err(std::string error) { return Result{std::move(error)}; }
+    bool is_ok() const { return std::holds_alternative<T>(data); }
+    const T& value() const { return std::get<T>(data); }
+    const std::string& error() const { return std::get<std::string>(data); }
+};
+
+Result<std::unique_ptr<CodePattern>> create_code_pattern(const std::string& snippet, 
+                                                       const std::string& language, 
+                                                       double complexity) {
+    if (snippet.empty()) {
+        return Result<std::unique_ptr<CodePattern>>::Err("Empty code snippet");
+    }
+    if (complexity < 0) {
+        return Result<std::unique_ptr<CodePattern>>::Err("Invalid complexity value");
+    }
+    return Result<std::unique_ptr<CodePattern>>::Ok(
+        std::make_unique<CodePattern>(CodePattern{snippet, language, complexity})
+    );
+}
+Thread Safety for Memory Operations:
+class ThreadSafeMemory {
+    std::mutex mutex;
+    CodeMemory memory;
+public:
+    void add_pattern(std::unique_ptr<CodePattern>&& pattern) {
+        std::lock_guard<std::mutex> lock(mutex);
+        if (memory.patterns.size() == CODE_PATTERN_LIMIT) {
+            memory.patterns.erase(memory.patterns.begin());
+        }
+        memory.patterns.push_back(std::move(pattern));
+    }
+    
+    std::vector<CodePattern*> get_patterns() {
+        std::lock_guard<std::mutex> lock(mutex);
+        std::vector<CodePattern*> result;
+        result.reserve(memory.patterns.size());
+        for (const auto& pattern : memory.patterns) {
+            result.push_back(pattern.get());
+        }
+        return result;
+    }
+};
+Improved Neural Network with Batch Processing:
+class BatchProcessor {
+    std::vector<std::string> batch_inputs;
+    size_t batch_size;
+public:
+    explicit BatchProcessor(size_t size) : batch_size(size) {}
+    
+    void add_input(std::string input) {
+        batch_inputs.push_back(std::move(input));
+        if (batch_inputs.size() >= batch_size) {
+            process_batch();
+        }
+    }
+    
+    void process_batch() {
+        // Process multiple inputs in parallel
+        std::vector<std::future<double>> results;
+        for (const auto& input : batch_inputs) {
+            results.push_back(std::async(std::launch::async, 
+                [&]() { return evaluate_code_with_nn(nn, input); }));
+        }
+        batch_inputs.clear();
+    }
+};
+Automated GitHub Actions Workflow:
+name: CodeRabbit Engine CI
+
+on:
+  push:
+    paths:
+      - '**.cpp'
+      - '**.h'
+  pull_request:
+    paths:
+      - '**.cpp'
+      - '**.h'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake build-essential
+    - name: Build
+      run: |
+        mkdir build && cd build
+        cmake ..
+        make
+    - name: Test
+      run: |
+        cd build
+        ctest --output-on-failure
+        
+        cmake_minimum_required(VERSION 3.15)
+project(CodeRabbitEngine VERSION 1.0.0 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Dependencies
+find_package(Threads REQUIRED)
+
+# Library target
+add_library(coderabbit_engine
+    arc_agi_benchmark.cpp
+    benchmark_engine.cpp
+)
+
+target_include_directories(coderabbit_engine PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries(coderabbit_engine PRIVATE
+    Threads::Threads
+)
+
+# Tests target
+enable_testing()
+add_executable(engine_tests
+    arc_agi_benchmark.cpp
+)
+
+target_link_libraries(engine_tests PRIVATE
+    coderabbit_engine
+)
+Let's consolidate the workflows into a single comprehensive one:
+name: CodeRabbit Engine CI/CD
+
+on:
+  push:
+    paths:
+      - '**.cpp'
+      - '**.h'
+      - 'CMakeLists.txt'
+      - '.github/workflows/**'
+  pull_request:
+    paths:
+      - '**.cpp'
+      - '**.h'
+      - 'CMakeLists.txt'
+
+jobs:
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        build_type: [Debug, Release]
+        compiler: [gcc, clang]
+        exclude:
+          - os: windows-latest
+            compiler: clang
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install Linux Dependencies
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake build-essential
+        sudo apt-get install -y ${{ matrix.compiler }}
+        sudo apt-get install -y cppcheck
+    
+    - name: Configure CMake
+      run: |
+        mkdir build
+        cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+    
+    - name: Build
+      run: cmake --build build --config ${{ matrix.build_type }}
+    
+    - name: Static Analysis
+      if: runner.os == 'Linux'
+      run: |
+        cppcheck --enable=all --suppress=missingIncludeSystem --error-exitcode=1 .
+    
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-${{ matrix.os }}-${{ matrix.build_type }}
+        path: build/
+Enhanced error handling for your existing components:
+// Add to your header files
+#include <variant>
+#include <string>
+#include <system_error>
+
+// Error handling for PMLL_ARLL system
+namespace pmll {
+    enum class ErrorCode {
+        Success = 0,
+        InvalidInput,
+        MemoryExhausted,
+        PatternMismatch,
+        BenchmarkFailed,
+        NetworkError
+    };
+
+    class Error {
+        ErrorCode code_;
+        std::string message_;
+    public:
+        Error(ErrorCode code, std::string message) 
+            : code_(code), message_(std::move(message)) {}
+        
+        ErrorCode code() const { return code_; }
+        const std::string& message() const { return message_; }
+    };
+
+    template<typename T>
+    class Result {
+        std::variant<T, Error> data_;
+    public:
+        static Result Ok(T value) { return Result{std::move(value)}; }
+        static Result Err(Error error) { return Result{std::move(error)}; }
+        
+        bool is_ok() const { return std::holds_alternative<T>(data_); }
+        const T& value() const { return std::get<T>(data_); }
+        const Error& error() const { return std::get<Error>(data_); }
+    };
+
+    // Example usage in PMLL_ARLL.h
+    Result<double> benchmark_performance(const std::string& test_case) {
+        try {
+            // Your existing benchmark code
+            double score = /* ... */;
+            return Result<double>::Ok(score);
+        } catch (const std::exception& e) {
+            return Result<double>::Err(Error{
+                ErrorCode::BenchmarkFailed,
+                std::string("Benchmark failed: ") + e.what()
+            });
+        }
+    }
+}
