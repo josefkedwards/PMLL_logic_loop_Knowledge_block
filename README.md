@@ -1,4 +1,3 @@
-Here is the full white paper in Markdown (.md) format:
 
 # Associative Memory Topologies
 ## A Ricci Flow Approach to User-Owned AI Consciousness
