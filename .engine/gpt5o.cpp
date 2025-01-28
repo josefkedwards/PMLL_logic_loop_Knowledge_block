@@ -206,3 +206,852 @@ struct FeatureImpl : public Feature {
 } // namespace chatbot
 
 #endif // CHATGPT5_H
+/*******************************************************
+ * o1.cpp
+ *
+ * A minimal example that demonstrates:
+ *   1) A placeholder runDeepThoughtProtocol function
+ *      for "advanced" logic (search, chain-of-thought, etc.).
+ *   2) An O(1) entry function deepThoughtO1 that does a quick
+ *      setup, then calls into the deeper protocol.
+ *   3) A main function that loops over user queries.
+ *******************************************************/
+
+#include <iostream>
+#include <string>
+
+/**
+ * Hypothetical advanced function. Replace with real logic
+ * (web search, chain-of-thought, large language model, etc.).
+ */
+std::string runDeepThoughtProtocol(const std::string& query) {
+    // Mock answer referencing The Hitchhiker's Guide to the Galaxy
+    return "42 (computed via advanced deep thought protocol)";
+}
+
+/**
+ * "O(1)" function that delegates to runDeepThoughtProtocol.
+ * The O(1) part is a trivial static init check.
+ */
+std::string deepThoughtO1(const std::string& query) {
+    // O(1) check or setup
+    static bool isInitialized = false;
+    if (!isInitialized) {
+        // Imagine a near-instant init
+        isInitialized = true;
+    }
+
+    // Hand off to a more complex routine (definitely not O(1)).
+    return runDeepThoughtProtocol(query);
+}
+
+/**
+ * Simple main: loops, asking for queries until "exit".
+ */
+int main() {
+    while (true) {
+        std::cout << "Ask something (or 'exit' to quit): ";
+        std::string userInput;
+        if (!std::getline(std::cin, userInput) || userInput == "exit") {
+            break;
+        }
+
+        // Call our O(1) entry function + deep logic
+        std::string answer = deepThoughtO1(userInput);
+        std::cout << "DeepThoughtO1: " << answer << "\n\n";
+    }
+
+    return 0;
+}
+
+/**************************************************************
+ * chatgpto1.cpp
+ *
+ * Combined, refactored, and enhanced code that demonstrates:
+ *
+ *   1) A "DeepThoughtO1" function that starts with an O(1) step
+ *      and delegates to an advanced "deep thought" protocol.
+ *   2) ChatGPT5PMLL class for persistent key-value memory.
+ *   3) ChatGPT5 class for a basic conversation model (features,
+ *      ephemeral memory, tasks).
+ *   4) A main function that shows how they all fit together,
+ *      including an optional user-input loop.
+ *
+ * NOTE: This is purely illustrative and won't do real searching
+ * or reasoning unless you replace the placeholder logic with
+ * actual code (e.g., web requests, indexing, chain-of-thought).
+ **************************************************************/
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include <map>
+#include <unordered_map>
+#include <fstream>
+#include <mutex>
+#include <algorithm>
+
+/*******************************************************
+ * SECTION 1: "Deep Thought" Logic (O(1) + Protocol)
+ *******************************************************/
+
+/**
+ * Hypothetical function that performs advanced searching
+ * or reasoning. You'd replace this with your actual logic
+ * (web search, indexing, chain-of-thought, LLM calls, etc.).
+ */
+std::string runDeepThoughtProtocol(const std::string& query) {
+    // For demonstration, we'll pretend it returns a
+    // fancy "deep" answer referencing The Hitchhiker's Guide.
+    return "42 (computed via advanced deep thought protocol)";
+}
+
+/**
+ * If you wanted a single function entry point, here's one
+ * approach. The first step is conceptually "O(1)" (the
+ * 'DeepThoughtO1' label), but it then calls a more complex
+ * function 'runDeepThoughtProtocol' behind the scenes.
+ */
+std::string deepThoughtO1(const std::string& query) {
+    // O(1) part: maybe we just do a quick check or setup.
+    static bool isInitialized = false;
+    if (!isInitialized) {
+        // Hypothetical fast initialization
+        isInitialized = true;
+        // This "setup" is presumably O(1) or near-instant.
+    }
+
+    // Now we hand off to a deeper search/logic routine.
+    // This is definitely not O(1) in real life, but it
+    // gives you advanced capabilities.
+    return runDeepThoughtProtocol(query);
+}
+
+/*******************************************************
+ * SECTION 2: ChatGPT5PMLL (Persistent Memory Class)
+ *******************************************************/
+class ChatGPT5PMLL {
+private:
+    std::unordered_map<std::string, std::string> memory;
+    std::string memory_file;
+    mutable std::mutex memory_mutex;
+
+    // Load memory from a file
+    void loadMemory() {
+        std::lock_guard<std::mutex> lock(memory_mutex);
+        std::ifstream file(memory_file);
+        if (!file.is_open()) {
+            std::cerr << "[PMLL] Warning: Could not open file for loading: "
+                      << memory_file << "\n";
+            return;
+        }
+
+        std::string line;
+        while (std::getline(file, line)) {
+            size_t delimiter_pos = line.find(':');
+            if (delimiter_pos == std::string::npos) {
+                // Skip lines that don't contain a colon
+                continue;
+            }
+            std::string key   = line.substr(0, delimiter_pos);
+            std::string value = line.substr(delimiter_pos + 1);
+            memory[key] = value;
+        }
+    }
+
+    // Save memory to a file
+    void saveMemory() {
+        std::lock_guard<std::mutex> lock(memory_mutex);
+        std::ofstream file(memory_file);
+        if (!file.is_open()) {
+            std::cerr << "[PMLL] Error: Could not open file for saving: "
+                      << memory_file << "\n";
+            return;
+        }
+
+        for (const auto& [key, value] : memory) {
+            file << key << ":" << value << "\n";
+        }
+    }
+
+public:
+    // Constructor: specify the file to store persistent memory
+    explicit ChatGPT5PMLL(const std::string& file_name)
+        : memory_file(file_name)
+    {
+        loadMemory();
+    }
+
+    // Destructor: save memory before object destruction
+    ~ChatGPT5PMLL() {
+        saveMemory();
+    }
+
+    // Add or update a key-value pair
+    void addMemory(const std::string& key, const std::string& value) {
+        {
+            std::lock_guard<std::mutex> lock(memory_mutex);
+            memory[key] = value;
+        }
+        saveMemory();
+    }
+
+    // Retrieve a value by key, or empty if not found
+    std::string getMemory(const std::string& key) const {
+        std::lock_guard<std::mutex> lock(memory_mutex);
+        auto it = memory.find(key);
+        return (it != memory.end()) ? it->second : "";
+    }
+
+    // Remove a single key-value pair
+    bool removeMemory(const std::string& key) {
+        std::lock_guard<std::mutex> lock(memory_mutex);
+        auto it = memory.find(key);
+        if (it != memory.end()) {
+            memory.erase(it);
+            saveMemory();
+            return true;
+        }
+        return false;
+    }
+
+    // List all keys
+    std::vector<std::string> listKeys() const {
+        std::lock_guard<std::mutex> lock(memory_mutex);
+        std::vector<std::string> keys;
+        keys.reserve(memory.size());
+        for (const auto& [key, _value] : memory) {
+            keys.push_back(key);
+        }
+        return keys;
+    }
+
+    // Clear all memory
+    void clearMemory() {
+        {
+            std::lock_guard<std::mutex> lock(memory_mutex);
+            memory.clear();
+        }
+        saveMemory();
+    }
+
+    // Display all memory (debugging)
+    void displayMemory() const {
+        std::lock_guard<std::mutex> lock(memory_mutex);
+        std::cout << "[PMLL] Current Memory State:\n";
+        for (const auto& [key, value] : memory) {
+            std::cout << "  " << key << " : " << value << "\n";
+        }
+    }
+};
+
+/*******************************************************
+ * SECTION 3: ChatGPT5 (Basic Conversation Class)
+ *******************************************************/
+class ChatGPT5 {
+private:
+    // Basic response database
+    std::vector<std::string> responses = {
+        "Hello! How can I help you today?",
+        "I'm here to assist with any questions you might have.",
+        "That's an interesting question. Let me think about it...",
+        "I'm not sure about that. Could you ask another way?"
+    };
+
+    // Example features
+    struct Feature {
+        std::string name;
+        bool isEnabled;
+    };
+
+    std::vector<Feature> features = {
+        {"Context Understanding", true},
+        {"Zero-shot Learning", true},
+        {"Code Generation", true},
+        {"Image Understanding", true},
+        {"Multilingual Support", true},
+        {"Reasoning", true},
+        {"Personalization", true},
+        {"Task Execution", true},
+        {"Web Interaction", true}
+    };
+
+    // Ephemeral memory
+    std::map<std::string, std::string> memory;
+
+    // Basic user profile for personalization
+    std::map<std::string, std::vector<std::string>> userProfile;
+
+public:
+    ChatGPT5() {
+        std::cout << "ChatGPT5 with advanced features initialized.\n";
+    }
+
+    // Simple init function
+    void initialize() {
+        std::cout << "ChatGPT5 fully initialized.\n";
+    }
+
+    // Process user input and return a response
+    std::string processInput(const std::string& input) {
+        // Basic response
+        std::string response = selectBasicResponse(input);
+
+        // Store user input for personalization
+        personalizeResponse(input);
+
+        // If the user wants to "book" or "order"
+        if (input.find("book") != std::string::npos ||
+            input.find("order") != std::string::npos)
+        {
+            response += executeTask(input);
+        }
+
+        // Potentially call "DeepThoughtO1" if you want advanced logic
+        // For example, let's say if the user types "deep thought" ...
+        if (input.find("deep thought") != std::string::npos) {
+            response += "\n[DeepThoughtO1] " + deepThoughtO1(input);
+        }
+
+        // Add line break + feature summary
+        response += "\n" + applyFeatures();
+
+        return response;
+    }
+
+private:
+    // Very simplified response logic
+    std::string selectBasicResponse(const std::string& input) {
+        if (input.find("hello") != std::string::npos ||
+            input.find("hi") != std::string::npos)
+        {
+            return responses[0];
+        }
+        else if (input.find("?") != std::string::npos) {
+            return responses[2];
+        }
+        return responses[3];
+    }
+
+    // Record conversation in user profile
+    void personalizeResponse(const std::string& input) {
+        std::string userKey = "current_user";  // Mock user
+        userProfile[userKey].push_back(input);
+    }
+
+    // Pretend to handle a "task"
+    std::string executeTask(const std::string& input) {
+        if (input.find("book") != std::string::npos) {
+            return "\n[Task] Booked a flight!";
+        }
+        else if (input.find("order") != std::string::npos) {
+            return "\n[Task] Ordered some items!";
+        }
+        return "";
+    }
+
+    // Summarize which features are "applied"
+    std::string applyFeatures() {
+        std::string result = "[Features Applied: ";
+        bool first = true;
+        for (const auto& feat : features) {
+            if (feat.isEnabled) {
+                if (!first) result += ", ";
+                result += feat.name;
+                first = false;
+            }
+        }
+        result += "]";
+        return result;
+    }
+};
+
+/*******************************************************
+ * SECTION 4: MAIN
+ *******************************************************/
+int main() {
+    // (A) Demonstrate optional "O(1) / Deep Thought" function alone
+    // (In real usage, you'd rely on the conversation logic to call it.)
+    std::string testQuery = "What is the answer to life?";
+    std::string deepAnswer = deepThoughtO1(testQuery);
+    std::cout << "[DeepThought Test] Query: " << testQuery
+              << "\n                Answer: " << deepAnswer << "\n\n";
+
+    // (B) Demonstrate Persistent Memory (ChatGPT5PMLL)
+    ChatGPT5PMLL pmll("gpt5_memory.txt");
+    pmll.addMemory("username", "Josef");
+    pmll.addMemory("model", "GPT-5");
+
+    // Retrieve and display memory
+    std::cout << "[PMLL] username: " << pmll.getMemory("username") << "\n";
+    std::cout << "[PMLL] model:    " << pmll.getMemory("model")    << "\n";
+    pmll.displayMemory();
+
+    std::cout << "\n";
+
+    // (C) Demonstrate ChatGPT5 conversation
+    ChatGPT5 chatGPT5;
+    chatGPT5.initialize();
+
+    while (true) {
+        std::cout << "\nUser: ";
+        std::string userInput;
+        if (!std::getline(std::cin, userInput)) {
+            // End if we can't read input
+            break;
+        }
+        if (userInput == "exit") {
+            // User requested exit
+            break;
+        }
+
+        // Process input through ChatGPT5
+        std::string response = chatGPT5.processInput(userInput);
+        std::cout << "ChatGPT5: " << response << "\n";
+    }
+
+    // (D) Optionally clear all persistent memory before exiting
+    std::cout << "\nClearing all persistent memory...\n";
+    pmll.clearMemory();
+    pmll.displayMemory();
+
+    return 0;
+}
+
+class ChatGPT5 {
+private:
+    // Database of responses for basic interaction
+    std::vector<std::string> responses = {
+        "Hello! How can I help you today?",
+        "I'm here to assist with any questions you might have.",
+        "That's an interesting question. Let me think about it...",
+        "I'm not sure about that. Can you ask in another way?"
+    };
+
+    // Features from various GPT models and new additions
+    struct Feature {
+        std::string name;
+        bool isEnabled;
+    };
+    
+    std::vector<Feature> features = {
+        {"Context Understanding", true},
+        {"Zero-shot Learning", true},
+        {"Code Generation", true},
+        {"Image Understanding", true},
+        {"Multilingual Support", true},
+        {"Reasoning", true},
+        {"Personalization", true},
+        {"Task Execution", true},
+        {"Web Interaction", true}
+    };
+
+    // Persistent Memory 
+    std::map<std::string, std::string> memory;
+
+    // User Profile for personalization
+    std::map<std::string, std::vector<std::string>> userProfile;
+
+public:
+    ChatGPT5() {
+        std::cout << "ChatGPT5 with advanced features initialized." << std::endl;
+    }
+
+    ~ChatGPT5() = default;
+
+    void initialize() {
+        std::cout << "ChatGPT5 initialized." << std::endl;
+    }
+
+    std::string processInput(const std::string& input) {
+        std::string response = selectBasicResponse(input);
+
+        // Check for memory operations
+        if (input.find("remember") != std::string::npos || input.find("recall") != std::string::npos) {
+            handleMemory(input);
+        }
+
+        // Personalization based on user history
+        personalizeResponse(input);
+
+        // Task Execution and Web Interaction
+        if (input.find("book") != std::string::npos || input.find("order") != std::string::npos) {
+            response += executeTask(input);
+        }
+
+        return response + applyFeatures(input);
+    }
+
+private:
+    // Basic response selection
+    std::string selectBasicResponse(const std::string& input) {
+        if (input.find("hello") != std::string::npos || input.find("hi") != std::string::npos) {
+            return responses[0];
+        } else if (input.find("?") != std::string::npos) {
+            return responses[2];
+        }
+        return responses[3];
+    }
+
+    // Memory handling
+    void handleMemory(const std::string& input) {
+        if (input.find("remember") != std::string::npos) {
+            size_t start = input.find("remember") + 8;
+            size_t end = input.find(" as ", start);
+            if (start != std::string::npos && end != std::string::npos) {
+                memory[input.substr(start, end - start)] = input.substr(end + 4);
+                std::cout << "Stored in memory." << std::endl;
+            }
+        } else if (input.find("recall") != std::string::npos) {
+            size_t start = input.find("recall") + 6;
+            std::string key = input.substr(start);
+            auto iter = memory.find(key);
+            std::cout << (iter != memory.end() ? 
+                "Recalled from memory: " + iter->second : "No memory found for: " + key) << std::endl;
+        }
+    }
+
+    // Personalization
+    void personalizeResponse(const std::string& input) {
+        std::string userKey = "current_user";  // Assume we know who's talking
+        userProfile[userKey].push_back(input);  // Store conversation history
+        std::cout << "Response tailored for user's history." << std::endl;
+    }
+
+    // Task Execution
+    std::string executeTask(const std::string& input) {
+        if (input.find("book") != std::string::npos) {
+            return "\nBooked flight for ";
+        } else if (input.find("order") != std::string::npos) {
+            return "\nOrdered ";
+        }
+        return ""; // No task to execute
+    }
+
+    // Simulate feature application
+    std::string applyFeatures(const std::string& input) {
+        return "\nAll features applied.";
+    }
+};
+
+int main() {
+    ChatGPT5 chatGPT5;
+    chatGPT5.initialize();
+
+    std::string userInput;
+    while (true) {
+        std::cout << "User: ";
+        std::getline(std::cin, userInput);
+        if (userInput == "exit") break;
+
+        std::string response = chatGPT5.processInput(userInput);
+        std::cout << "ChatGPT5: " << response << std::endl;
+    }
+
+    return  of
+ * an O(1) (constant-time) operation).
+ */
+int doSomethingO1();
+
+#endif // O1_H
+
+#include "o1.h"
+
+/*
+ * doSomethingO1:
+ * Return a constant integer.
+ */
+int doSomethingO1() {
+    return 42; // The answer to life, the universe, and everything
+
+#ifndef CHATGPT5PMLL_H
+#define CHATGPT5PMLL_H
+
+#include <string>
+#include <unordered_map>
+#include <fstream>
+#include <iostream>
+#include <mutex>
+#include <vector>
+
+/**
+ * Persistent Memory Logic Loop (PMLL) Class
+ * Manages persistent memory for ChatGPT-5.
+ */
+class ChatGPT5PMLL {
+private:
+    std::unordered_map<std::string, std::string> memory; // Key-value store
+    std::string memory_file;                            // File to store persistent memory
+    mutable std::mutex memory_mutex;                    // Thread safety
+
+    void loadMemory();    // Load memory from the file
+    void saveMemory();    // Save memory to the file
+
+public:
+    /**
+     * Constructor: Initialize with a file to store persistent memory.
+     */
+    ChatGPT5PMLL(const std::string& file_name);
+
+    /**
+     * Destructor: Save memory before object destruction.
+     */
+    ~ChatGPT5PMLL();
+
+    /**
+     * Add or update a key-value pair in memory.
+     */
+    void addMemory(const std::string& key, const std::string& value);
+
+    /**
+     * Retrieve a value from memory by key.
+     * @return The value or empty string if not found.
+     */
+    std::string getMemory(const std::string& key) const;
+
+    /**
+     * Remove a single key-value pair from memory.
+     * @return True if removal was successful, otherwise false.
+     */
+    bool removeMemory(const std::string& key);
+
+    /**
+     * List all keys currently stored in memory.
+     * @return A vector containing all the keys.
+     */
+    std::vector<std::string> listKeys() const;
+
+    /**
+     * Clear all key-value pairs in memory.
+     */
+    void clearMemory();
+
+#ifndef CHATGPT5PMLL_H
+#define CHATGPT5PMLL_H
+
+#include <string>
+#include <unordered_map>
+#include <fstream>
+#include <iostream>
+#include <mutex>
+#include <vector>
+
+/**
+ * Persistent Memory Logic Loop (PMLL) Class
+ * Manages persistent memory for ChatGPT-5.
+ */
+class ChatGPT5PMLL {
+private:
+    std::unordered_map<std::string, std::string> memory; // Key-value store
+    std::string memory_file;                            // File to store persistent memory
+    mutable std::mutex memory_mutex;                    // Thread safety
+
+    void loadMemory();    // Load memory from the file
+    void saveMemory();    // Save memory to the file
+
+public:
+    /**
+     * Constructor: Initialize with a file to store persistent memory.
+     */
+    ChatGPT5PMLL(const std::string& file_name);
+
+    /**
+     * Destructor: Save memory before object destruction.
+     */
+    ~ChatGPT5PMLL();
+
+    /**
+     * Add or update a key-value pair in memory.
+     */
+    void addMemory(const std::string& key, const std::string& value);
+
+    /**
+     * Retrieve a value from memory by key.
+     * @return The value or empty string if not found.
+     */
+    std::string getMemory(const std::string& key) const;
+
+    /**
+     * Remove a single key-value pair from memory.
+     * @return True if removal was successful, otherwise false.
+     */
+    bool removeMemory(const std::string& key);
+
+    /**
+     * List all keys currently stored in memory.
+     * @return A vector containing all the keys.
+     */
+    std::vector<std::string> listKeys() const;
+
+    /**
+     * Clear all key-value pairs in memory.
+     */
+    void clearMemory();
+
+    /**
+     * Display all memory in a readable format (for debugging).
+     */
+    void displayMemory() const;
+};
+
+#endif // CHATGPT5PMLL_H
+
+    /**
+     * Display all memory in a readable format (for debugging).
+     */
+    void displayMemory() const;
+};
+
+#endif // CHATGPT5PMLL_H
+
+#include <iostream>
+#include <vector>
+#include "o1.h"             // For doSomethingO1()
+#include "chatgpt5pmll.h"   // For ChatGPT5PMLL
+
+int main() {
+    // 1) Demonstrate the O(1) function.
+    int result = doSomethingO1();
+    std::cout << "[O1] doSomethingO1() returns: " << result << std::endl;
+
+    // 2) Demonstrate the Persistent Memory Logic Loop (PMLL).
+    ChatGPT5PMLL pmll("gpt5_memory.txt");
+
+    // Add or update memory entries.
+    pmll.addMemory("username", "Josef");
+    pmll.addMemory("model", "GPT-5");
+    pmll.addMemory("example_key", "example_value");
+
+    // Retrieve and display memory.
+    std::cout << "[PMLL] username: "      << pmll.getMemory("username") << "\n";
+    std::cout << "[PMLL] model: "         << pmll.getMemory("model")    << "\n";
+    std::cout << "[PMLL] example_key: "   << pmll.getMemory("example_key") << "\n\n";
+
+    // Display all memory using the new debugging method.
+    pmll.displayMemory();
+
+    // List all keys to demonstrate the listKeys() feature.
+    std::cout << "\n[PMLL] Listing all keys:\n";
+    std::vector<std::string> keys = pmll.listKeys();
+    for (const auto& key : keys) {
+        std::cout << "  " << key << "\n";
+    }
+    std::cout << "\n";
+
+    // Remove a specific key.
+    std::cout << "[PMLL] Removing 'example_key'...\n";
+    bool removed = pmll.removeMemory("example_key");
+    std::cout << (removed ? "Key removed successfully.\n" : "Key not found.\n");
+    pmll.displayMemory();
+
+    // Finally, clear all memory.
+    std::cout << "\n[PMLL] Clearing memory...\n";
+    pmll.clearMemory();
+    pmll.displayMemory();
+
+#include "chatgpt5pmll.h"
+
+// Constructor: Initialize with a file to store persistent memory
+ChatGPT5PMLL::ChatGPT5PMLL(const std::string& file_name) : memory_file(file_name) {
+    loadMemory();
+}
+
+// Destructor: Save memory before object destruction
+ChatGPT5PMLL::~ChatGPT5PMLL() {
+    saveMemory();
+}
+
+// Load memory from file
+void ChatGPT5PMLL::loadMemory() {
+    std::lock_guard<std::mutex> lock(memory_mutex);
+    std::ifstream file(memory_file);
+
+    if (!file.is_open()) {
+        std::cerr << "[PMLL] Warning: Could not open memory file for loading: "
+                  << memory_file << "\n";
+        return;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        size_t delimiter_pos = line.find(':');
+        // Skip lines that don't contain a colon
+        if (delimiter_pos == std::string::npos) {
+            continue;
+        }
+
+        std::string key   = line.substr(0, delimiter_pos);
+        std::string value = line.substr(delimiter_pos + 1);
+        memory[key] = value;
+    }
+
+    file.close();
+}
+
+// Save memory to file
+void ChatGPT5PMLL::saveMemory() {
+    std::lock_guard<std::mutex> lock(memory_mutex);
+    std::ofstream file(memory_file);
+
+    if (!file.is_open()) {
+        std::cerr << "[PMLL] Error: Could not open memory file for saving: "
+                  << memory_file << "\n";
+        return;
+    }
+
+    for (const auto& [key, value] : memory) {
+        file << key << ":" << value << "\n";
+    }
+
+    file.close();
+}
+
+// Add or update memory entry
+void ChatGPT5PMLL::addMemory(const std::string& key, const std::string& value) {
+    {
+        std::lock_guard<std::mutex> lock(memory_mutex);
+        memory[key] = value;
+    }
+    saveMemory(); // Persist the change immediately
+}
+
+// Retrieve memory by key
+std::string ChatGPT5PMLL::getMemory(const std::string& key) const {
+    std::lock_guard<std::mutex> lock(memory_mutex);
+    auto it = memory.find(key);
+    return (it != memory.end()) ? it->second : "";
+}
+
+// Remove a single key-value pair by key
+bool ChatGPT5PMLL::removeMemory(const std::string& key) {
+    std::lock_guard<std::mutex> lock(memory_mutex);
+    auto it = memory.find(key);
+    if (it != memory.end()) {
+        memory.erase(it);
+        saveMemory();
+        return true;
+    }
+    return false;
+}
+
+// List all keys in memory
+std::vector<std::string> ChatGPT5PMLL::listKeys() const {
+    std::lock_guard<std::mutex> lock(memory_mutex);
+    std::vector<std::string> keys;
+    keys.reserve(memory.size());
+    for (const auto& [key, _value] : memory) {
+        keys.push_back(key);
+    }
+    return keys;
+}
+
+// Clear all memory
+void ChatGPT5PMLL::clearMemory() {
+    {
+        std::lock_guard<std::mutex> lock(memory_mutex);
+        memory.clear();
+    }
+    saveMemory();
+e}
+
+
