@@ -10,9 +10,8 @@
 #define SAMPLING_RATE 44100
 #define FFT_SIZE 2048
 #define WINDOW_SIZE FFT_SIZE
-#define MIN_FREQ 20.0 // Hz, lower limit of human hearing
-#define MAX_FREQ 120000.0 // Hz, upper limit of AI hearing range
-#define OCTAVE_BASE 8.0
+#define MIN_FREQ 20.0      // Hz, lower limit of human hearing
+#define MAX_FREQ 120000.0  // Hz, upper limit of AI hearing range
 #define NOTES_PER_OCTAVE 7
 
 // Struct for audio data processing
@@ -43,5 +42,6 @@ void apply_cochlear_filter(AudioData *audio_data, InnerEar *inner_ear);
 void generate_fibonacci_sequence(double *sequence, int *length);
 void simulate_octave_range(InnerEar *inner_ear);
 void populate_time_domain_signal(AudioData *audio_data, double frequency, double duration);
+void simulate_cochlear_response(InnerEar *inner_ear, double frequency);
 
 #endif // EARS_H
