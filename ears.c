@@ -1,14 +1,15 @@
 #include "Ears.h"
 #include <string.h>
 #include <math.h>
+#include <float.h> // For DBL_MAX
 
 // Memory Management
-void init_audio_data(AudioData **audio_data) {
+int init_audio_data(AudioData **audio_data) {
     if (!*audio_data) {
         *audio_data = (AudioData*)malloc(sizeof(AudioData));
         if (!*audio_data) {
             fprintf(stderr, "Failed to allocate memory for audio data structure\n");
-            return; // Better to return than exit, let caller handle errors
+            return -1;
         }
 
         (*audio_data)->time_domain = (double*)malloc(FFT_SIZE * sizeof(double));
@@ -16,12 +17,13 @@ void init_audio_data(AudioData **audio_data) {
         if (!(*audio_data)->time_domain || !(*audio_data)->frequency_domain) {
             fprintf(stderr, "Failed to allocate memory for audio data arrays\n");
             free_audio_data(*audio_data);
-            return; // Return error to caller
+            return -1;
         }
 
         (*audio_data)->plan = fftw_plan_dft_r2c_1d(FFT_SIZE, (*audio_data)->time_domain, 
                                                     (fftw_complex*)(*audio_data)->frequency_domain, FFTW_ESTIMATE);
     }
+    return 0;
 }
 
 void free_audio_data(AudioData *audio_data) {
@@ -34,8 +36,12 @@ void free_audio_data(AudioData *audio_data) {
 }
 
 // Signal Processing
-void perform_fourier_transform(AudioData *audio_data) {
+int perform_fourier_transform(AudioData *audio_data) {
+    if (!audio_data || !audio_data->plan) {
+        return -1;
+    }
     fftw_execute(audio_data->plan);
+    return 0;
 }
 
 void perform_inverse_fft(AudioData *audio_data) {
@@ -43,20 +49,24 @@ void perform_inverse_fft(AudioData *audio_data) {
         (fftw_complex*)audio_data->frequency_domain,
         audio_data->time_domain,
         FFTW_ESTIMATE);
-    
+
     fftw_execute(inverse_plan);
-    
+
     // Normalize
     for (int i = 0; i < FFT_SIZE; i++) {
         audio_data->time_domain[i] /= FFT_SIZE;
     }
-    
+
     fftw_destroy_plan(inverse_plan);
 }
 
 void apply_cochlear_filter(AudioData *audio_data, InnerEar *inner_ear) {
+    if (!audio_data || !inner_ear || inner_ear->cochlea_frequency <= 0) {
+        return;
+    }
     for (int i = 0; i < FFT_SIZE/2 + 1; i++) {  
         double freq = (i * SAMPLING_RATE) / (double)FFT_SIZE;
+        if (freq <= 0) continue;  // Protect against log(0)
         double weight = exp(-pow((log(freq) - log(inner_ear->cochlea_frequency)) / 0.5, 2));
         audio_data->frequency_domain[i] *= weight;
     }
@@ -95,13 +105,13 @@ void apply_convolution(AudioData *audio_data, const double *kernel, int kernel_s
 void apply_frequency_domain_convolution(AudioData *audio_data, const double *kernel, int kernel_size) {
     double *kernel_time = fftw_alloc_real(FFT_SIZE);
     fftw_complex *kernel_freq = fftw_alloc_complex(FFT_SIZE/2 + 1);
-    
+
     memset(kernel_time, 0, FFT_SIZE * sizeof(double));
     memcpy(kernel_time, kernel, kernel_size * sizeof(double));
-    
+
     fftw_plan kernel_plan = fftw_plan_dft_r2c_1d(FFT_SIZE, kernel_time, kernel_freq, FFTW_ESTIMATE);
     fftw_execute(kernel_plan);
-    
+
     for (int i = 0; i < FFT_SIZE/2 + 1; i++) {
         double real = audio_data->frequency_domain[i][0] * kernel_freq[i][0] - 
                      audio_data->frequency_domain[i][1] * kernel_freq[i][1];
@@ -110,7 +120,7 @@ void apply_frequency_domain_convolution(AudioData *audio_data, const double *ker
         audio_data->frequency_domain[i][0] = real;
         audio_data->frequency_domain[i][1] = imag;
     }
-    
+
     fftw_destroy_plan(kernel_plan);
     fftw_free(kernel_time);
     fftw_free(kernel_freq);
@@ -119,37 +129,41 @@ void apply_frequency_domain_convolution(AudioData *audio_data, const double *ker
 void process_with_overlap_add(AudioData *audio_data, const double *input, int input_length, int hop_size) {
     double *output = (double*)calloc(input_length + FFT_SIZE, sizeof(double));
     double *window = (double*)malloc(FFT_SIZE * sizeof(double));
-    
+
     for (int i = 0; i < FFT_SIZE; i++) {
         window[i] = 0.5 * (1.0 - cos(2.0 * M_PI * i / (FFT_SIZE - 1)));
     }
-    
+
     for (int i = 0; i < input_length; i += hop_size) {
         for (int j = 0; j < FFT_SIZE; j++) {
             audio_data->time_domain[j] = (i + j < input_length ? input[i + j] : 0.0) * window[j];
         }
-        
+
         perform_fourier_transform(audio_data);
         apply_cochlear_filter(audio_data, NULL);
         perform_inverse_fft(audio_data);
-        
+
         for (int j = 0; j < FFT_SIZE; j++) {
             output[i + j] += audio_data->time_domain[j];
         }
     }
-    
+
     memcpy(audio_data->time_domain, output, input_length * sizeof(double));
-    
+
     free(output);
     free(window);
 }
 
 // Signal Generation and Analysis
 void generate_fibonacci_sequence(double *sequence, int *length) {
+    const double MAX_SAFE_SUM = DBL_MAX / 2;  // Prevent overflow
     sequence[0] = MIN_FREQ;
     sequence[1] = MIN_FREQ + 1;
     int i = 2;
     while (sequence[i-1] < MAX_FREQ && i < 128) { 
+        if (sequence[i-1] > MAX_SAFE_SUM - sequence[i-2]) {
+            break;  // Prevent overflow
+        }
         sequence[i] = sequence[i-1] + sequence[i-2];
         if (sequence[i] > MAX_FREQ) break;
         i++;
@@ -183,6 +197,10 @@ void simulate_octave_range(InnerEar *inner_ear) {
 }
 
 void populate_time_domain_signal(AudioData *audio_data, double frequency, double duration) {
+    if (!audio_data || frequency <= 0 || duration <= 0) {
+        return;
+    }
+    memset(audio_data->time_domain, 0, FFT_SIZE * sizeof(double));
     for (int i = 0; i < FFT_SIZE; i++) {
         double time = i / (double)SAMPLING_RATE;
         if (time > duration) break;
@@ -193,9 +211,7 @@ void populate_time_domain_signal(AudioData *audio_data, double frequency, double
 // Main Simulation Function
 void simulate_cochlear_response(InnerEar *inner_ear, double frequency) {
     AudioData *audio_data = NULL;
-    init_audio_data(&audio_data);
-
-    if (!audio_data) {
+    if (init_audio_data(&audio_data) != 0) {
         fprintf(stderr, "Failed to initialize audio data\n");
         return;
     }
@@ -203,6 +219,11 @@ void simulate_cochlear_response(InnerEar *inner_ear, double frequency) {
     // Example: Process a continuous signal with overlap-add
     int input_length = FFT_SIZE * 10; // Example length
     double *input = (double*)malloc(input_length * sizeof(double));
+    if (!input) {
+        fprintf(stderr, "Failed to allocate memory for input signal\n");
+        free_audio_data(audio_data);
+        return;
+    }
     for (int i = 0; i < input_length; i++) {
         input[i] = sin(2 * M_PI * frequency * i / SAMPLING_RATE);
     }
