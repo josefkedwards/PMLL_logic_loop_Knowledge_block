@@ -6,6 +6,7 @@
 #include <thread>
 #include <algorithm>
 #include <unordered_map>
+#include <mutex>
 #include "cosmos_sdk_integration.h"
 #include "ibc_integration.h"
 #include "bitcore_integration.h"
@@ -21,16 +22,15 @@ private:
     std::unordered_map<std::string, int> long_term_memory;
     int JKE_counter = 0;
     std::vector<std::string> suspicious_transactions;
+    std::mutex suspicious_transactions_mutex; // Mutex for thread-safe access to suspicious_transactions
     double ATOM_value = 5.89; // Default starting value, should be configurable
     std::vector<std::string> reserves; // To store BTC and ETH reserve addresses
 
 public:
     InterchainFiatBackedEngine() : short_term_memory(MEMORY_CAPACITY) {
-        // Initialize reserves with example strings; can be updated via updateReserves
         reserves = {"btc_address_example", "eth_address_example"};
     }
 
-    // Method to update the reserve addresses
     void updateReserves(const std::string& btc_address, const std::string& eth_address) {
         reserves = {btc_address, eth_address};
     }
@@ -46,15 +46,13 @@ public:
             detectFraud(cosmos_ledger, ibc_ledger, bitcoin_ledger, ethereum_ledger);
         } catch (const std::exception& e) {
             std::cerr << "Error retrieving ledger states: " << e.what() << std::endl;
-            // Consider implementing retry logic or alerting mechanisms here
         }
     }
 
     void checkFiatBackingConsistency(const CosmosLedger& cosmos_ledger, 
                                      const BitcoinLedger& bitcoin_ledger, 
                                      const EthereumLedger& ethereum_ledger) {
-        double btcValue = 0.0;
-        double ethValue = 0.0;
+        double btcValue = 0.0, ethValue = 0.0;
         
         if (reserves.size() >= 2 && !reserves[0].empty() && !reserves[1].empty()) {
             btcValue = bitcore_getReserveValue(reserves[0]);
@@ -79,6 +77,7 @@ public:
         for (const auto& block : ledger.blocks) {
             for (const auto& transaction : block.transactions) {
                 if (isSuspicious(transaction, chain)) {
+                    std::lock_guard<std::mutex> lock(suspicious_transactions_mutex);
                     suspicious_transactions.push_back(transaction.id);
                     logSuspiciousTransaction(transaction, chain);
                 }
@@ -86,8 +85,8 @@ public:
         }
     }
 
-    // Generalized method for checking suspicious transactions across chains
     bool isSuspicious(const Transaction& transaction, const std::string& chain) {
+        // This is a placeholder for polymorphism; consider using virtual functions or visitor pattern
         if (chain == "cosmos") return isCosmosSuspicious(transaction);
         if (chain == "ibc") return isIBCSuspicious(static_cast<const IBCTx&>(transaction));
         if (chain == "bitcoin") return isBitcoinSuspicious(static_cast<const BitcoinTransaction&>(transaction));
@@ -117,7 +116,7 @@ public:
 
     void logSuspiciousTransaction(const Transaction& transaction, const std::string& chain) {
         std::cout << "Suspicious " << chain << " transaction detected: " << transaction.id << std::endl;
-        // Alert mechanisms based on chain type would go here
+        // Alert mechanisms based on chain type could go here
     }
 
     void novelinput(const std::string& input) {
@@ -155,6 +154,7 @@ public:
         else if (chain == "ibc") tx = ibc_get_transaction(txid);
 
         if (isSuspicious(tx, chain)) {
+            std::lock_guard<std::mutex> lock(suspicious_transactions_mutex);
             suspicious_transactions.push_back(txid);
             logSuspiciousTransaction(tx, chain);
         }
@@ -170,11 +170,8 @@ public:
             return;
         }
 
-        // Here you would typically interact with the blockchain or ledger to actually mint tokens
-        ATOM_value += amount; // Update the internal value counter
+        ATOM_value += amount; 
         std::cout << "Minted " << amount << " ATOM. New total: " << ATOM_value << std::endl;
-        // Log event or trigger event for external systems
-        // log_event("Minted ATOM", amount);
     }
 
     void burnATOM(double amount) {
@@ -183,11 +180,8 @@ public:
             return;
         }
 
-        // Here you would typically interact with the blockchain or ledger to actually burn tokens
-        ATOM_value -= amount; // Update the internal value counter
+        ATOM_value -= amount; 
         std::cout << "Burned " << amount << " ATOM. New total: " << ATOM_value << std::endl;
-        // Log event or trigger event for external systems
-        // log_event("Burned ATOM", amount);
     }
 
     std::string process_conversation(const std::string& user_input) {
@@ -226,3 +220,4 @@ int main() {
     std::cout << "Current ATOM Value: $" << engine.getATOMValue() << std::endl;
     engine.process_conversation(""); 
     return 0;
+}
