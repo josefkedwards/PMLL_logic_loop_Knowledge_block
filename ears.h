@@ -43,5 +43,10 @@ void generate_fibonacci_sequence(double *sequence, int *length);
 void simulate_octave_range(InnerEar *inner_ear);
 void populate_time_domain_signal(AudioData *audio_data, double frequency, double duration);
 void simulate_cochlear_response(InnerEar *inner_ear, double frequency);
+void apply_window_function(AudioData *audio_data);
+void apply_convolution(AudioData *audio_data, const double *kernel, int kernel_size);
+void perform_inverse_fft(AudioData *audio_data);
+void apply_frequency_domain_convolution(AudioData *audio_data, const double *kernel, int kernel_size);
+void process_with_overlap_add(AudioData *audio_data, const double *input, int input_length, int hop_size);
 
 #endif // EARS_H
