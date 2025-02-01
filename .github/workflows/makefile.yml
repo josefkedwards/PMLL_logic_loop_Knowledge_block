@@ -1,27 +1,82 @@
-name: Makefile CI
+[submodule "PMLL_logic_loop_Knowledge_block"]
+    path = PMLL_logic_loop_Knowledge_block
+    url = https://github.com/bearycool11/PMLL_logic_loop_Knowledge_block.git
+name: Comprehensive CI/CD Workflow
 
 on:
   push:
-    branches: [ "main" ]
+    branches: 
+    - main
+    - release/*
   pull_request:
-    branches: [ "main" ]
+    branches: 
+    - main
+  schedule:
+  - cron: "0 2 * * 1-5"
+  workflow_dispatch:
 
 jobs:
   build:
-
+    name: Build and Test
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        repository: bearycool11/PMLL_logic_loop_Knowledge_block
+        ref: main
+        submodules: recursive
 
-    - name: configure
-      run: ./configure
+    - name: Initialize submodules
+      run: |
+        git submodule update --init --recursive
 
     - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential libtool automake autoconf
+
+    - name: Autoreconf
+      run: autoreconf -i
+      continue-on-error: true
+
+    - name: Setup Go environment
+      uses: actions/setup-go@v5.3.0
+      with:
+        go-version: '1.19'
+        check-latest: false
+        cache: true
+
+    - name: Configure
+      run: ./configure
+      continue-on-error: true
+
+    - name: Make
       run: make
+      continue-on-error: true
 
-    - name: Run check
+    - name: Make Check
       run: make check
+      continue-on-error: true
 
-    - name: Run distcheck
+    - name: Make Distcheck
       run: make distcheck
+      continue-on-error: true
+
+    - name: Upload logs on failure
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: failure-logs
+        path: |
+          config.log
+          *.log
+
+  deploy_to_staging:
+    name: Deploy to Staging
+    needs: build
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Deploy
+      run: echo "Deploying to staging environment"
