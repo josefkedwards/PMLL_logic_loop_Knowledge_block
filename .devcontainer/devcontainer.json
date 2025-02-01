@@ -1,4 +1,4 @@
-{
+"ghcr.io/nikiforovall/devcontainer-features/dotnet-aspire:1": {}
 	"name": "C++ with PMLL_Blockchain",
 	"build": {
 		"dockerfile": "Dockerfile",
