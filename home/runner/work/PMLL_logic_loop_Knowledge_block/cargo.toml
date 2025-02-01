@@ -1,0 +1,14 @@
+[package]
+name = "pmll_logic_loop_knowledge_block"
+version = "0.1.1"
+edition = "2021"
+license = "MIT"
+authors = ["Josef Kurk Edwards (OpenAI) <josef@example.com>"]
+description = "An upgraded Rust project demonstrating cargo build and common dependencies."
+
+[dependencies]
+serde = "1.0"
+rand = "0.8"
+
+[profile.release]
+opt-level = 3
