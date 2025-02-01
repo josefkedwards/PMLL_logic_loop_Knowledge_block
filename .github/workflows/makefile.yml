@@ -1,3 +1,6 @@
+[submodule "PMLL_logic_loop_Knowledge_block"]
+    path = PMLL_logic_loop_Knowledge_block
+    url = https://github.com/bearycool11/PMLL_logic_loop_Knowledge_block.git
 name: Comprehensive CI/CD Workflow
 
 on:
@@ -46,23 +49,19 @@ jobs:
         cache: true
 
     - name: Configure
-      run: |
-        ./configure
+      run: ./configure
       continue-on-error: true
 
     - name: Make
-      run: |
-        make
+      run: make
       continue-on-error: true
 
     - name: Make Check
-      run: |
-        make check
+      run: make check
       continue-on-error: true
 
     - name: Make Distcheck
-      run: |
-        make distcheck
+      run: make distcheck
       continue-on-error: true
 
     - name: Upload logs on failure
