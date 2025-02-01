@@ -1,3 +1,106 @@
+
+version: 1
+
+# Project Configuration
+project:
+  name: "My Awesome Project"
+  description: "A project showcasing the integration of AI in software development practices."
+
+# Tools Configuration
+tools:
+  # AST Grep configuration for static analysis
+  ast-grep:
+    rules:
+      - path: rules/my-rule.yml
+      - path: rules/another-rule.yml
+    utils:
+      - path: utils/is-literal.yml
+      - path: utils/check-naming-convention.yml
+
+# Node.js configuration
+nodejs:
+  version: '16'
+  install:
+    - npm install
+  scripts:
+    build: npm run build
+    lint: npm run lint
+    test: npm test
+
+# Python configuration (if applicable)
+python:
+  version: '3.8'
+  install:
+    - pip install -r requirements.txt
+  scripts:
+    lint: flake8 .
+    test: pytest
+
+# Global configuration for all languages
+global:
+  # Configuration for code review comments
+  comments:
+    severity:
+      error: "❌"
+      warning: "⚠️"
+      info: "ℹ️"
+    ignore:
+      - node_modules/**
+      - dist/**
+      - build/**
+      - .git/**
+      - .github/**
+      - venv/**
+    # Custom rules for review
+    custom_rules:
+      - name: "No console.log in production"
+        pattern: "console\.log\("
+        message: "Avoid using console.log in production code. Use proper logging instead."
+        severity: "warning"
+
+# GitHub Actions Integration
+github_actions:
+  - name: CI
+    on:
+      push:
+        branches:
+          - main
+      pull_request:
+        branches:
+          - main
+    jobs:
+      build:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout repository
+            uses: actions/checkout@v2
+          - name: Set up Node.js
+            uses: actions/setup-node@v2
+            with:
+              node-version: '16'
+          - name: Install dependencies
+            run: npm install
+          - name: Run build
+            run: npm run build
+          - name: Run lint
+            run: npm run lint
+          - name: Run tests
+            run: npm test
+
+# CodeRabbit specific settings
+coderabbit:
+  # Enable features
+  features:
+    auto_comment: true
+    auto_merge: false
+  # Review configuration
+  review:
+    min_score: 80
+    max_comments: 10
+    ignore_files:
+      - "README.md"
+      - "CONTRIBUTING.md"
+
 name: "coderabbitai Workflow"
 
 on:
