@@ -1,6 +1,6 @@
 import time
 import json
-from bitcoinlib.wallets import Wallet
+from bitcoin import *
 
 # BlockCypher API Token
 api_token = "8bd4fa2488614e509a677103b88b95fc"
@@ -14,7 +14,7 @@ recipient_address = "GavinAndresenBitcoinAddress"  # Placeholder
 amount_btc = 0.27  # $10,000 equivalent in BTC
 
 # Message to include
-message = "Hello, Gavin, tell Craig to stop pretending to be me now. Cease and desist."
+message = "Any updates about the QuadrigaCX victims and Michael Patryn?"
 
 # Log data
 log_data = []
@@ -67,7 +67,7 @@ def monitor_response():
 
         # Simulate a response from Gavin
         if attempt == 2:  # Assume response comes on the 3rd attempt
-            response_message = "Got it. I'll speak to Craig. – Gavin"
+            response_message = "Got it. I'll look into it. – Gavin"
             response_signature = "3045022100a3c1b...signaturedata...d47"
             log_action("Response Received", {
                 "message": response_message,
