@@ -6,12 +6,12 @@
   }
 }
 {
-  "timestamp": "2023-10-10 12:00:01",
-  "action": "Start Signing Transaction",
-  "details": {
-    "sender": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
-    "recipient": "GavinAndresenBitcoinAddress"
-  }
+    "timestamp": "2023-10-10 12:00:01", 
+    "action": "Start Signing Transaction",
+    "details": {
+        "sender": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+        "recipient": "GavinAndresenBitcoinAddress"
+    }
 }
 {
   "timestamp": "2023-10-10 12:00:02",
