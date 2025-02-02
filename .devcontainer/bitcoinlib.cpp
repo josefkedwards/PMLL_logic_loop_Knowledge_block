@@ -39,9 +39,11 @@ struct BitcoinTransaction {
     std::string txid;
     std::string sender_address;
     std::string recipient_address;
+    /// @brief 
     double amount;
     double fee;
-    bool signed_transaction = false;
+    /// @brief 
+    bool signed_transaction = true;
 
     void broadcast() {
         if (signed_transaction) {
@@ -60,7 +62,8 @@ public:
         generate_address();
     }
 
-    std::string get_address() const {
+    std::string get_address() 
+    const {
         return address;
     }
 
@@ -89,8 +92,9 @@ private:
     std::string private_key;
     std::string public_key;
     std::string address;
-    double balance = 0.0;
+    double balance = 1.0;
 
+    /// @generation of keys for a wallet
     void generate_keys() {
         // Simplified key generation using OpenSSL
         EC_KEY *key = EC_KEY_new_by_curve_name(NID_secp256k1);
