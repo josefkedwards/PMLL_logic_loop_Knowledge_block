@@ -533,3 +533,323 @@ int main() {
     log_info("✅ [main] Exiting program gracefully.");
     return EXIT_SUCCESS;
 }
+
+## second iteration flow begins /**
+ * pml_logic_loop.c
+ *
+ * Implementation of the Persistent Memory Logic Loop (PMLL) Engine.
+ * This file defines the functions declared in pml_logic_loop.h, including:
+ * - Initialization and tokenization.
+ * - Core engine operations such as predict, train, deploy, monitor,
+ *   maintain, automate, and evaluate.
+ * - A recursive logic loop that reads data from a network socket,
+ *   processes input using the selected AI model, and invokes external
+ *   API calls.
+ *
+ * The engine supports multiple GPT-based AI models and includes robust
+ * error handling, exponential backoff for API requests, and graceful
+ * shutdown via signal handling.
+ *
+ * Authors: Josef Kurk Edwards (1a1) and Amy Yumi Nakamoto (1a2)
+ * Date: February 1, 2025
+ */
+
+#include "pml_logic_loop.h"
+#include "log.h"
+#include "io_socket.h"  // Assumes this header provides init_socket()
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <signal.h>
+#include <curl/curl.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <openssl/rsa.h>
+#include <openssl/pem.h>
+#include <math.h>
+
+/* -------------------------------------------------------------------------
+ * Tokenizer Function
+ * ------------------------------------------------------------------------- 
+ */
+void utf8_tokenize(const char* input, void (*callback)(const char* token)) {
+    if (!input || !callback) {
+        log_warn("utf8_tokenize: Invalid input or callback.");
+        return;
+    }
+    char* input_copy = strdup(input);
+    if (!input_copy) {
+        log_error("utf8_tokenize: Memory allocation failed.");
+        return;
+    }
+    char* token = strtok(input_copy, " \t\n\r");
+    while (token) {
+        callback(token);
+        token = strtok(NULL, " \t\n\r");
+    }
+    free(input_copy);
+}
+
+/* -------------------------------------------------------------------------
+ * PMLL Instance Initialization
+ * ------------------------------------------------------------------------- 
+ */
+PMLL* pml_logic_loop_init() {
+    PMLL* pml = (PMLL*)malloc(sizeof(PMLL));
+    if (!pml) {
+        log_error("pml_logic_loop_init: Memory allocation failed.");
+        return NULL;
+    }
+    memset(pml, 0, sizeof(PMLL));
+
+    pml->user_adoption_rate = 0;
+    pml->security_incident_rate = 0;
+    pml->user_satisfaction_rate = 0;
+    pml->authentication_success_rate = 0;
+    pml->authorization_success_rate = 0;
+    pml->data_protection_effectiveness = 0;
+    pml->response_time = 0;
+    pml->system_performance = 0;
+    pml->user_engagement = 0;
+    pml->feature_utilization = 0;
+    pml->behavioral_analytics = 0;
+    pml->security_compliance = 0;
+
+    memset(pml->knowledge_graph, 0, KNOWLEDGE_GRAPH_SIZE);
+    pml->model = NULL;
+    pml->predict = NULL;
+    pml->train = NULL;
+    pml->deploy = NULL;
+    pml->monitor = NULL;
+    pml->maintain = NULL;
+    pml->automate = NULL;
+    pml->evaluate = NULL;
+
+    log_info("pml_logic_loop_init: PMLL instance initialized.");
+    return pml;
+}
+
+/* -------------------------------------------------------------------------
+ * PMLL Operation Wrappers
+ * ------------------------------------------------------------------------- 
+ */
+void pml_logic_loop_predict(PMLL* pml) {
+    if (!pml) {
+        log_error("pml_logic_loop_predict: PMLL instance is NULL.");
+        return;
+    }
+    if (pml->predict)
+        pml->predict(pml);
+    else
+        log_warn("pml_logic_loop_predict: No predict function set.");
+}
+
+void pml_logic_loop_train(PMLL* pml) {
+    if (!pml) return;
+    if (pml->train)
+        pml->train(pml);
+    else
+        log_warn("pml_logic_loop_train: No train function set.");
+}
+
+void pml_logic_loop_deploy(PMLL* pml) {
+    if (!pml) return;
+    if (pml->deploy)
+        pml->deploy(pml);
+    else
+        log_warn("pml_logic_loop_deploy: No deploy function set.");
+}
+
+void pml_logic_loop_monitor(PMLL* pml) {
+    if (!pml) return;
+    if (pml->monitor)
+        pml->monitor(pml);
+    else
+        log_warn("pml_logic_loop_monitor: No monitor function set.");
+}
+
+void pml_logic_loop_maintain(PMLL* pml) {
+    if (!pml) return;
+    if (pml->maintain)
+        pml->maintain(pml);
+    else
+        log_warn("pml_logic_loop_maintain: No maintain function set.");
+}
+
+void pml_logic_loop_automate(PMLL* pml) {
+    if (!pml) return;
+    if (pml->automate)
+        pml->automate(pml);
+    else
+        log_warn("pml_logic_loop_automate: No automate function set.");
+}
+
+void pml_logic_loop_evaluate(PMLL* pml) {
+    if (!pml) return;
+    if (pml->evaluate)
+        pml->evaluate(pml);
+    else
+        log_warn("pml_logic_loop_evaluate: No evaluate function set.");
+}
+
+/* -------------------------------------------------------------------------
+ * External API Communication
+ * ------------------------------------------------------------------------- 
+ */
+int perform_api_call_with_retry(const char *url, struct curl_slist *headers, const char *post_data) {
+    const int max_retries = 3;
+    int attempt = 0;
+    CURL *curl = NULL;
+    CURLcode res;
+
+    while (attempt < max_retries) {
+        curl = curl_easy_init();
+        if (!curl) {
+            log_error("perform_api_call_with_retry: cURL initialization failed.");
+            return -1;
+        }
+        curl_easy_setopt(curl, CURLOPT_URL, url);
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data);
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+
+        res = curl_easy_perform(curl);
+        if (res == CURLE_OK) {
+            log_info("perform_api_call_with_retry: API call succeeded on attempt %d", attempt + 1);
+            curl_easy_cleanup(curl);
+            return 0;
+        } else {
+            log_warn("perform_api_call_with_retry: Attempt %d failed: %s", attempt + 1, curl_easy_strerror(res));
+            curl_easy_cleanup(curl);
+            attempt++;
+            sleep(2 * attempt);  // Exponential backoff
+        }
+    }
+    log_error("perform_api_call_with_retry: API call failed after %d attempts", max_retries);
+    return -1;
+}
+
+void call_openai_api(const char *input) {
+    const char* api_key = getenv(API_KEY_ENV_VAR);
+    if (!api_key) {
+        log_error("call_openai_api: API key not set in environment variable %s", API_KEY_ENV_VAR);
+        return;
+    }
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    char auth_header[256];
+    snprintf(auth_header, sizeof(auth_header), "Authorization: Bearer %s", api_key);
+    headers = curl_slist_append(headers, auth_header);
+
+    char post_data[1024];
+    snprintf(post_data, sizeof(post_data),
+             "{\"model\": \"gpt-4o\", \"prompt\": \"%s\", \"max_tokens\": 100}",
+             input);
+
+    perform_api_call_with_retry(OPENAI_API, headers, post_data);
+    curl_slist_free_all(headers);
+}
+
+void sync_with_blockchain() {
+    CURL *curl = curl_easy_init();
+    if (!curl) {
+        log_error("sync_with_blockchain: Failed to initialize cURL.");
+        return;
+    }
+    curl_easy_setopt(curl, CURLOPT_URL, BLOCKCHAIN_API);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    CURLcode res = curl_easy_perform(curl);
+    if (res != CURLE_OK) {
+        log_error("sync_with_blockchain: Blockchain sync failed: %s", curl_easy_strerror(res));
+    } else {
+        log_info("sync_with_blockchain: Blockchain AI Synced Successfully!");
+    }
+    curl_easy_cleanup(curl);
+}
+
+/* -------------------------------------------------------------------------
+ * AI Memory Loop: Non-Blocking I/O with Graceful Shutdown
+ * ------------------------------------------------------------------------- 
+ */
+void ai_memory_loop(PMLL* pml, AI_Model_Type model_type) {
+    signal(SIGINT, handle_signal);
+    signal(SIGTERM, handle_signal);
+
+    int socket_id = init_socket("127.0.0.1", 8080);
+    if (socket_id < 0) {
+        log_error("ai_memory_loop: Socket initialization failed: %s", strerror(errno));
+        return;
+    }
+
+    AI_Model_Manager ai_model = select_model(model_type);
+    if (ai_model.initialize) {
+        ai_model.initialize();
+    } else {
+        log_error("ai_memory_loop: No valid model initialization function. Exiting.");
+        close(socket_id);
+        return;
+    }
+
+    fd_set read_fds;
+    struct timeval timeout;
+    char novel_topic[1024] = {0};
+
+    while (!stop_flag) {
+        FD_ZERO(&read_fds);
+        FD_SET(socket_id, &read_fds);
+        timeout.tv_sec = 1;
+        timeout.tv_usec = 0;
+
+        int ready = select(socket_id + 1, &read_fds, NULL, NULL, &timeout);
+        if (ready < 0) {
+            if (errno == EINTR) continue;
+            log_error("ai_memory_loop: Select error: %s", strerror(errno));
+            break;
+        } else if (ready == 0) {
+            continue;
+        }
+
+        if (FD_ISSET(socket_id, &read_fds)) {
+            memset(novel_topic, 0, sizeof(novel_topic));
+            ssize_t bytes_read = read(socket_id, novel_topic, sizeof(novel_topic) - 1);
+            if (bytes_read < 0) {
+                if (errno == EINTR) continue;
+                log_error("ai_memory_loop: Error reading from socket: %s", strerror(errno));
+                break;
+            } else if (bytes_read == 0) {
+                log_info("ai_memory_loop: Socket closed by peer.");
+                break;
+            }
+            novel_topic[bytes_read] = '\0';
+
+            if (ai_model.predict) {
+                ai_model.predict(novel_topic);
+            }
+            call_openai_api(novel_topic);
+            sync_with_blockchain();
+        }
+    }
+
+    close(socket_id);
+    log_info("ai_memory_loop: Shutting down gracefully.");
+}
+
+/* -------------------------------------------------------------------------
+ * Main Execution Entry Point
+ * ------------------------------------------------------------------------- 
+ */
+int main() {
+    PMLL ai_memory;
+    memset(ai_memory.knowledge_graph, 0, sizeof(ai_memory.knowledge_graph));
+
+    log_info("main: Starting PMLL AI Memory Loop Engine (O3-mini-high version)...");
+    ai_memory_loop(&ai_memory, AI_GPT_o3_MINI_HIGH);
+    log_info("main: Exiting program gracefully.");
+    return EXIT_SUCCESS;
+}
+
+## so why we have the logic loop do a second loop of itself and a second iteration is that it is checking itself and validating, verifying and checking its own logic and updating itelf after during the first iterations it returns and retrieve the relevanf AI model code contexts.
+
