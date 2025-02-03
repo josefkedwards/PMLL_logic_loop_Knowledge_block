@@ -163,7 +163,6 @@ void ai_memory_loop(PMLL* pml, AI_Model_Type model_type);
 
 #ifdef __cplusplus
 extern "C" {
-#endif
 
 #include <stddef.h>
 
