@@ -534,7 +534,7 @@ int main() {
     return EXIT_SUCCESS;
 }
 
-## second iteration flow begins /**
+// second iteration flow begins /**
  * pml_logic_loop.c
  *
  * Implementation of the Persistent Memory Logic Loop (PMLL) Engine.
@@ -850,6 +850,5 @@ int main() {
     log_info("main: Exiting program gracefully.");
     return EXIT_SUCCESS;
 }
-
-## so why we have the logic loop do a second loop of itself and a second iteration is that it is checking itself and validating, verifying and checking its own logic and updating itelf after during the first iterations it returns and retrieve the relevanf AI model code contexts.
+// so why we have the logic loop do a second loop of itself and a second iteration is that it is checking itself and validating, verifying and checking its own logic and updating itelf after during the first iterations shen it returns and retrieve the relevat AI model code contexts.
 
