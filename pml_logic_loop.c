@@ -851,4 +851,4 @@ int main() {
     return EXIT_SUCCESS;
 }
 // so why we have the logic loop do a second loop of itself and a second iteration is that it is checking itself and validating, verifying and checking its own logic and updating itelf after during the first iterations shen it returns and retrieve the relevat AI model code contexts.
-
+d
