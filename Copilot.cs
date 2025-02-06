@@ -159,3 +159,138 @@ namespace CopilotAzureChatGPT5o
         }
     }
 }
+using System;
+using System.Collections.Generic;
+using System.Text.Json;
+using System.Threading.Tasks;
+using StackExchange.Redis;
+using Nethereum.Web3;
+using Nethereum.Web3.Accounts;
+using Neo4j.Driver;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Logging;
+
+public static class SelfLearningAI
+{
+    private static readonly string RedisHost = Environment.GetEnvironmentVariable("REDIS_HOST");
+    private static readonly int RedisPort = int.Parse(Environment.GetEnvironmentVariable("REDIS_PORT"));
+    private static readonly ConnectionMultiplexer Redis = ConnectionMultiplexer.Connect($"{RedisHost}:{RedisPort}");
+    private static readonly string Neo4jUri = Environment.GetEnvironmentVariable("NEO4J_URI");
+    private static readonly string Neo4jUser = Environment.GetEnvironmentVariable("NEO4J_USER");
+    private static readonly string Neo4jPassword = Environment.GetEnvironmentVariable("NEO4J_PASSWORD");
+    private static IDriver _neo4jDriver = GraphDatabase.Driver(Neo4jUri, AuthTokens.Basic(Neo4jUser, Neo4jPassword));
+    private static readonly Web3 Web3 = new(new Account(Environment.GetEnvironmentVariable("ETH_PRIVATE_KEY")), Environment.GetEnvironmentVariable("ETH_NODE_URL"));
+    private static string ContractAddress = "YOUR_DEPLOYED_CONTRACT_ADDRESS";
+
+    [FunctionName("StoreMemory")]
+    public static async Task StoreMemory([ActivityTrigger] (string input, string response) data, ILogger log)
+    {
+        var db = Redis.GetDatabase();
+        await db.StringSetAsync($"memory:{data.input}", data.response);
+        await using var session = _neo4jDriver.AsyncSession();
+        await session.WriteTransactionAsync(async tx =>
+        {
+            await tx.RunAsync("MERGE (m:Memory {input: $input}) SET m.response = $response",
+                new { input = data.input, response = data.response });
+        });
+
+        var contract = Web3.Eth.GetContractHandler(ContractAddress);
+        await contract.SendTransactionAsync("storeMemory", data.input, data.response);
+
+        log.LogInformation($"[AI Memory] Stored: {data.input} → {data.response}");
+    }
+
+    [FunctionName("RetrieveMemory")]
+    public static async Task<string> RetrieveMemory([ActivityTrigger] string input, ILogger log)
+    {
+        var db = Redis.GetDatabase();
+        string cachedResponse = await db.StringGetAsync($"memory:{input}");
+        if (!string.IsNullOrEmpty(cachedResponse))
+        {
+            log.LogInformation($"[AI Memory] Retrieved from cache: {cachedResponse}");
+            return cachedResponse;
+        }
+
+        await using var session = _neo4jDriver.AsyncSession();
+        var result = await session.ReadTransactionAsync(async tx =>
+        {
+            var reader = await tx.RunAsync("MATCH (m:Memory) WHERE m.input CONTAINS $input RETURN m.response LIMIT 1",
+                new { input });
+            var record = await reader.SingleAsync();
+            return record["m.response"].As<string>();
+        });
+
+        log.LogInformation($"[AI Memory] Retrieved from Neo4j: {result}");
+        return result;
+    }
+
+using System;
+using System.Collections.Generic;
+using System.Text.Json;
+using System.Threading.Tasks;
+using OpenAI_API;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Logging;
+
+public static class SelfLearningAIModel
+{
+    [FunctionName("FineTuneAI")]
+    public static async Task<string> FineTuneAI([TimerTrigger("0 0 * * *")] TimerInfo myTimer, ILogger log)
+    {
+        string apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+        var client = new OpenAIAPI(apiKey);
+
+        List<(string, string)> trainingData = await GetTrainingData();
+        string jsonlData = JsonSerializer.Serialize(trainingData);
+        
+        await System.IO.File.WriteAllTextAsync("/tmp/fine_tune.jsonl", jsonlData);
+        var result = await client.FineTunes.CreateFineTuneAsync("/tmp/fine_tune.jsonl");
+
+        log.LogInformation($"[AI Fine-Tuning] Updated Model: {result.Id}");
+        return result.Id;
+    }
+
+    private static async Task<List<(string, string)>> GetTrainingData()
+    {
+        List<(string, string)> data = new();
+        data.Add(("Hello", "Hi! How can I assist you?"));
+        data.Add(("Tell me a joke", "Why don’t skeletons fight each other? They don’t have the guts!"));
+        return await Task.FromResult(data);
+    }
+
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Azure.AI.TextAnalytics;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Logging;
+
+public static class AIReasoning
+{
+    private static readonly string _textAnalyticsKey = Environment.GetEnvironmentVariable("TEXT_ANALYTICS_KEY");
+    private static readonly string _textAnalyticsEndpoint = Environment.GetEnvironmentVariable("TEXT_ANALYTICS_ENDPOINT");
+    private static readonly TextAnalyticsClient _client = new(
+        new Uri(_textAnalyticsEndpoint), 
+        new AzureKeyCredential(_textAnalyticsKey)
+    );
+
+    [FunctionName("SelfImproveResponse")]
+    public static async Task<string> SelfImproveResponse([ActivityTrigger] (string input, string response) data, ILogger log)
+    {
+        DocumentSentiment sentiment = await _client.AnalyzeSentimentAsync(data.response);
+        if (sentiment.Sentiment == TextSentiment.Negative)
+        {
+            string betterResponse = await GenerateBetterResponse(data.input);
+            log.LogInformation($"[AI Improvement] Updated response for '{data.input}': {betterResponse}");
+            return betterResponse;
+        }
+        return data.response;
+    }
+
+    private static async Task<string> GenerateBetterResponse(string input)
+    {
+        return await Task.FromResult($"I’m sorry if my response was incorrect. Here’s a better answer: {input}");
+    }
+}
+
+
