@@ -1,0 +1,210 @@
+[
+  {
+    "name": "ADMIN_API_CLIENT_ID",
+    "value": "d6ScnQskOCntCxt3"
+  },
+  {
+    "name": "ADMIN_API_CLIENT_ID_FINNAI",
+    "value": "FINNAIOTOROSHILLM"
+  },
+  {
+    "name": "ADMIN_API_CLIENT_SECRET",
+    "value": "ZVWqHEnsoN00EfgvXLpQB4FRXUCQPmz0"
+  },
+  {
+    "name": "ADMIN_API_CLIENT_SECRET2",
+    "value": "aLNo6QV5kPB3ATpBxa8FKekRvV5CO1Cq"
+  },
+  {
+    "name": "ADMIN_API_EXPOSED_SUBDOMAIN",
+    "value": "teqnjitubqpyikwzgntv-otoroshi"
+  },
+  {
+    "name": "ADMIN_API_EXPOSED_SUBDOMAIN2",
+    "value": "FINN-otoroshi-LLM"
+  },
+  {
+    "name": "ADMIN_API_GROUP",
+    "value": "22adAWCFr44wilQ9"
+  },
+  {
+    "name": "ADMIN_API_GROUP2",
+    "value": "FcjCChlIeT2yxU7U"
+  },
+  {
+    "name": "ADMIN_API_SERVICE_ID",
+    "value": "gljyWRb7jghc8cdZ"
+  },
+  {
+    "name": "ADMIN_API_SERVICE_ID2",
+    "value": "GCjs2DLlYpRe7m7u"
+  },
+  {
+    "name": "ADMIN_API_TARGET_SUBDOMAIN",
+    "value": "rfbcxiyouajyouwpjzha-otoroshi"
+  },
+  {
+    "name": "ADMIN_API_TARGET_SUBDOMAIN2",
+    "value": "mrkmvkxgjeptpqhlrszr-otoroshi"
+  },
+  {
+    "name": "APP_BACKOFFICE_SUBDOMAIN",
+    "value": "navsaioczpensqgpevhd-otoroshi"
+  },
+  {
+    "name": "APP_BACKOFFICE_SUBDOMAIN2",
+    "value": "shqufdrtajrivvxzqbnb-otoroshi"
+  },
+  {
+    "name": "APP_DOMAIN",
+    "value": "services.clever-cloud.com"
+  },
+  {
+    "name": "APP_ENV",
+    "value": "prod"
+  },
+  {
+    "name": "APP_PRIVATEAPPS_SUBDOMAIN",
+    "value": "zovwpdywatttuzqgarbu-otoroshi"
+  },
+  {
+    "name": "APP_PRIVATEAPPS_SUBDOMAIN2",
+    "value": "bclslrhuvjtojrqriabf-otoroshi"
+  },
+  {
+    "name": "APP_ROOT_SCHEME",
+    "value": "https"
+  },
+  {
+    "name": "APP_STORAGE",
+    "value": "lettuce"
+  },
+  {
+    "name": "CC_JAR_PATH",
+    "value": "./otoroshi.jar"
+  },
+  {
+    "name": "CC_JAVA_VERSION",
+    "value": "21"
+  },
+  {
+    "name": "CC_OTOROSHI_API_URL",
+    "value": "https://teqnjitubqpyikwzgntv-otoroshi.services.clever-cloud.com"
+  },
+  {
+    "name": "CC_OTOROSHI_API_URL2",
+    "value": "https://chatgpt-otoroshi.services.clever-cloud.com"
+  },
+  {
+    "name": "CC_OTOROSHI_APIM_VERSION",
+    "value": "1738687356"
+  },
+  {
+    "name": "CC_OTOROSHI_APIM_VERSION2",
+    "value": "1738687356"
+  },
+  {
+    "name": "CC_OTOROSHI_INITIAL_ADMIN_LOGIN",
+    "value": "iXARR@otoroshi.io"
+  },
+  {
+    "name": "CC_OTOROSHI_INITIAL_ADMIN_LOGIN2",
+    "value": "T4u0M@otoroshi.io"
+  },
+  {
+    "name": "CC_OTOROSHI_INITIAL_ADMIN_LOGIN3",
+    "value": "ChatGPT@otoroshi.io"
+  },
+  {
+    "name": "CC_OTOROSHI_INITIAL_ADMIN_PASSWORD",
+    "value": "g1cMk3QFe7XcyxVREhLRhpQPVG4ayejF"
+  },
+  {
+    "name": "CC_OTOROSHI_INITIAL_ADMIN_PASSWORD2",
+    "value": "0VXnu3nEOLx9JHoE3lyLeArPNRMp9VHD"
+  },
+  {
+    "name": "CC_OTOROSHI_INITIAL_ADMIN_PASSWORD3",
+    "value": "g1cMk3QFe7XcyxVREhLRhpQPVG4ayejF"
+  },
+  {
+    "name": "CC_OTOROSHI_SECRET",
+    "value": "https://ZVWqHEnsoN00EfgvXLpQB4FRXUCQPmz0"
+  },
+  {
+    "name": "CC_OTOROSHI_SECRET2",
+    "value": "https://aLNo6QV5kPB3ATpBxa8FKekRvV5CO1Cq"
+  },
+  {
+    "name": "CC_OTOROSHI_SSO_URL",
+    "value": "https://zovwpdywatttuzqgarbu-otoroshi.services.clever-cloud.com"
+  },
+  {
+    "name": "CC_OTOROSHI_SSO_URL2",
+    "value": "https://bclslrhuvjtojrqriabf-otoroshi.services.clever-cloud.com"
+  },
+  {
+    "name": "CC_OTOROSHI_VERSION",
+    "value": "v16.23.2"
+  },
+  {
+    "name": "CC_PRE_BUILD_HOOK",
+    "value": "./provisioning.sh"
+  },
+  {
+    "name": "CC_RUN_COMMAND",
+    "value": "./start.sh"
+  },
+  {
+    "name": "CLAIM_SHAREDKEY",
+    "value": "Lq8FXASxSiA4tlng"
+  },
+  {
+    "name": "OTOROSHI_CHECK_FOR_UPDATES",
+    "value": "false"
+  },
+  {
+    "name": "OTOROSHI_EXPOSED_PORTS_HTTP",
+    "value": "80"
+  },
+  {
+    "name": "OTOROSHI_EXPOSED_PORTS_HTTPS",
+    "value": "443"
+  },
+  {
+    "name": "OTOROSHI_INSTANCE_LOGO",
+    "value": "https://console.cloud-apim.com/assets/images/otoroshi-logo-color-cloud-apim.png"
+  },
+  {
+    "name": "OTOROSHI_INSTANCE_NAME",
+    "value": "ChatGPT(Finn Otoroshi LLM AI by Cloud APIM, interchain, OpenAI and Dr. J.K. Edwards))"
+  },
+  {
+    "name": "OTOROSHI_REDIS_LETTUCE_URI",
+    "value": "redis://gTFsuSuzR8BG3zGc3Ey@bhvm4krrk9yfa7n2cwkq-redis.services.clever-cloud.com:40248"
+  },
+  {
+    "name": "OTOROSHI_ROUTE_BASE_DOMAIN",
+    "value": "app-2debb2b7-966c-4140-955d-6e3fb94ebf82.cleverapps.io"
+  },
+  {
+    "name": "OTOROSHI_SECRET",
+    "value": "aDh8OMgukQGYe3tCWW6tHmhjQ/qjydmrWEVfZvpSsN0="
+  },
+  {
+    "name": "PLAY_CRYPTO_SECRET",
+    "value": "v4a3mLC4hrXMTC3W"
+  },
+  {
+    "name": "PORT",
+    "value": "8080"
+  },
+  {
+    "name": "SESSION_DOMAIN",
+    "value": "navsaioczpensqgpevhd-otoroshi.services.clever-cloud.com"
+  },
+  {
+    "name": "SESSION_SECURE_ONLY",
+    "value": "true"
+  }
+]
