@@ -1,0 +1,216 @@
+[
+    {
+        "name": "ADMIN_API_CLIENT_ID",
+        "value": "d6ScnQskOCntCxt3"
+    },
+    {
+        "name": "ADMIN_API_CLIENT_ID_FINNAI",
+        "value": "FINNAIOTOROSHILLM"
+    },
+    {
+        "name": "ADMIN_API_CLIENT_SECRET",
+        "value": "ZVWqHEnsoN00EfgvXLpQB4FRXUCQPmz0"
+    },
+    {
+        "name": "ADMIN_API_CLIENT_SECRET2",
+        "value": "aLNo6QV5kPB3ATpBxa8FKekRvV5CO1Cq"
+    },
+    {
+        "name": "ADMIN_API_EXPOSED_SUBDOMAIN",
+        "value": "teqnjitubqpyikwzgntv-otoroshi"
+    },
+    {
+        "name": "ADMIN_API_EXPOSED_SUBDOMAIN2",
+        "value": "FINN-otoroshi-LLM"
+    },
+    {
+        "name": "ADMIN_API_GROUP",
+        "value": "22adAWCFr44wilQ9"
+    },
+    {
+        "name": "ADMIN_API_GROUP2",
+        "value": "FcjCChlIeT2yxU7U"
+    },
+    {
+        "name": "ADMIN_API_SERVICE_ID",
+        "value": "gljyWRb7jghc8cdZ"
+    },
+    {
+        "name": "ADMIN_API_SERVICE_ID2",
+        "value": "GCjs2DLlYpRe7m7u"
+    },
+    {
+        "name": "ADMIN_API_TARGET_SUBDOMAIN",
+        "value": "rfbcxiyouajyouwpjzha-otoroshi"
+    },
+    {
+        "name": "ADMIN_API_TARGET_SUBDOMAIN2",
+        "value": "mrkmvkxgjeptpqhlrszr-otoroshi"
+    },
+    {
+        "name": "APP_BACKOFFICE_SUBDOMAIN",
+        "value": "navsaioczpensqgpevhd-otoroshi"
+    },
+    {
+        "name": "APP_BACKOFFICE_SUBDOMAIN2",
+        "value": "shqufdrtajrivvxzqbnb-otoroshi"
+    },
+    {
+        "name": "APP_DOMAIN",
+        "value": "services.clever-cloud.com"
+    },
+    {
+        "name": "APP_ENV",
+        "value": "prod"
+    },
+    {
+        "name": "APP_PRIVATEAPPS_SUBDOMAIN",
+        "value": "zovwpdywatttuzqgarbu-otoroshi"
+    },
+    {
+        "name": "APP_PRIVATEAPPS_SUBDOMAIN2",
+        "value": "bclslrhuvjtojrqriabf-otoroshi"
+    },
+    {
+        "name": "APP_ROOT_SCHEME",
+        "value": "https"
+    },
+    {
+        "name": "APP_STORAGE",
+        "value": "lettuce"
+    },
+    {
+        "name": "CC_JAR_PATH",
+        "value": "./otoroshi.jar"
+    },
+    {
+        "name": "CC_JAVA_VERSION",
+        "value": "21"
+    },
+    {
+        "name": "CC_OTOROSHI_API_URL",
+        "value": "https://teqnjitubqpyikwzgntv-otoroshi.services.clever-cloud.com"
+    },
+    {
+        "name": "CC_OTOROSHI_API_URL2",
+        "value": "https://chatgpt-otoroshi.services.clever-cloud.com"
+    },
+    {
+        "name": "CC_OTOROSHI_APIM_VERSION",
+        "value": "1738687356"
+    },
+    {
+        "name": "CC_OTOROSHI_INITIAL_ADMIN_LOGIN",
+        "value": "iXARR@otoroshi.io"
+    },
+    {
+        "name": "CC_OTOROSHI_INITIAL_ADMIN_LOGIN2",
+        "value": "T4u0M@otoroshi.io"
+    },
+    {
+        "name": "CC_OTOROSHI_INITIAL_ADMIN_LOGIN3",
+        "value": "ChatGPT@otoroshi.io"
+    },
+    {
+        "name": "CC_OTOROSHI_INITIAL_ADMIN_PASSWORD",
+        "value": "g1cMk3QFe7XcyxVREhLRhpQPVG4ayejF"
+    },
+    {
+        "name": "CC_OTOROSHI_SECRET",
+        "value": "https://ZVWqHEnsoN00EfgvXLpQB4FRXUCQPmz0"
+    },
+    {
+        "name": "CC_OTOROSHI_SSO_URL",
+        "value": "https://zovwpdywatttuzqgarbu-otoroshi.services.clever-cloud.com"
+    },
+    {
+        "name": "CC_OTOROSHI_VERSION",
+        "value": "v16.23.2"
+    },
+    {
+        "name": "CC_PRE_BUILD_HOOK",
+        "value": "./provisioning.sh"
+    },
+    {
+        "name": "CC_RUN_COMMAND",
+        "value": "./start.sh"
+    },
+    {
+        "name": "OTOROSHI_INSTANCE_NAME",
+        "value": "ChatGPT(Finn Otoroshi LLM AI by Cloud APIM, interchain, OpenAI and Dr. J.K. Edwards)"
+    },
+    {
+        "name": "OTOROSHI_ROUTE_BASE_DOMAIN",
+        "value": "app-2debb2b7-966c-4140-955d-6e3fb94ebf82.cleverapps.io"
+    },
+    {
+        "name": "OTOROSHI_SECRET",
+        "value": "aDh8OMgukQGYe3tCWW6tHmhjQ/qjydmrWEVfZvpSsN0="
+    },
+    {
+        "name": "PORT",
+        "value": "8080"
+    },
+    {
+        "name": "SESSION_DOMAIN",
+        "value": "navsaioczpensqgpevhd-otoroshi.services.clever-cloud.com"
+    },
+    {
+        "name": "SESSION_SECURE_ONLY",
+        "value": "true"
+    },
+    {
+        "name": "ADMIN_AI_AGENT_ROLE",
+        "value": "Finn Otoroshi LLM AI - API and System Orchestration"
+    },
+    {
+        "name": "REDIS_MEMORY_MANAGEMENT",
+        "value": "Session persistence enforced; eviction policy: noeviction"
+    },
+    {
+        "name": "OTOROSHI_SECURITY_ENFORCEMENT",
+        "value": "LLM queries require dual-auth validation from IXARR or OpenAI LLC"
+    },
+    {
+        "name": "AI_ADMIN_RATE_LIMIT",
+        "value": "100:minute"
+    },
+    {
+        "name": "AI_ADMIN_ALLOWED_OPERATIONS",
+        "value": "read,route,monitor,analyze"
+    },
+    {
+        "name": "AI_ADMIN_RESTRICTED_OPERATIONS",
+        "value": "delete,modify_auth,change_security_settings"
+    },
+    {
+        "name": "AI_ADMIN_AUDIT_TRAIL",
+        "value": "enabled"
+    },
+    {
+        "name": "AI_ADMIN_AUDIT_RETENTION",
+        "value": "90days"
+    },
+    {
+        "name": "AI_HEALTH_CHECK_INTERVAL",
+        "value": "30seconds"
+    },
+    {
+        "name": "AI_FALLBACK_MODE",
+        "value": "readonly"
+    },
+    {
+        "name": "METRICS_COLLECTION_ENDPOINT",
+        "value": "https://metrics.otoroshi.cloud/ai-admin-metrics"
+    },
+    {
+        "name": "REDIS_MAX_MEMORY",
+        "value": "2GB"
+    },
+    {
+        "name": "REDIS_BACKUP_INTERVAL",
+        "value": "15minutes"
+    }
+]
+
+
