@@ -36,4 +36,5 @@
     ],
     "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
     "workspaceFolder": "/workspace/pmll_blockchain"
+   "ghcr.io/lee-orr/rusty-dev-containers/cosmonic:0": {}
 }
